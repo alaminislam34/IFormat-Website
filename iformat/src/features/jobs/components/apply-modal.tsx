@@ -227,7 +227,7 @@ export function ApplyModal({ job, isOpen, onClose }: ApplyModalProps) {
                 {/* Attach Saved Cloud Resume */}
                 {isAuthenticated && (
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 flex items-center justify-between">
+                    <label className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 flex items-center justify-between">
                       <span className="flex items-center gap-1.5">
                         <Paperclip className="w-3.5 h-3.5 text-blue-600" /> Attach Cloud Resume
                       </span>

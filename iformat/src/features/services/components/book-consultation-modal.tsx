@@ -129,7 +129,7 @@ export function BookConsultationModal({
               <form onSubmit={handleBooking} className="space-y-4">
                 {/* Available Slots */}
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 flex items-center justify-between">
+                  <label className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 flex items-center justify-between">
                     <span className="flex items-center gap-1.5">
                       <Calendar className="w-3.5 h-3.5 text-[#0A54B1]" /> Select Time Slot
                     </span>
