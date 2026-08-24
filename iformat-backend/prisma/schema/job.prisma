@@ -1,0 +1,73 @@
+model JobPosting {
+  id               String        @id @default(uuid())
+  employerId       String
+  title            String
+  company          String
+  category         String        @default("Technology & Engineering")
+  jobType          String        @default("Full Time")
+  workplaceType    String        @default("Remote")
+  location         String        @default("Remote")
+  salary           String        @default("Competitive")
+  salaryMin        Int?
+  salaryMax        Int?
+  salaryCurrency   String        @default("USD")
+  validity         DateTime?
+  description      String
+  responsibilities String[]      @default([])
+  requirements     String[]      @default([])
+  niceToHave       String[]      @default([])
+  perks            String[]      @default([])
+  status           JobStatus     @default(DRAFT)
+  isDeleted        Boolean       @default(false)
+  deletedAt        DateTime?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  employer         User          @relation("EmployerJobs", fields: [employerId], references: [id], onDelete: Cascade)
+  applications     Application[]
+
+  @@index([status, isDeleted, createdAt])
+  @@index([category, status])
+  @@index([employerId, isDeleted])
+}
+
+model Application {
+  id               String            @id @default(uuid())
+  jobId            String
+  candidateId      String
+  cvId             String?
+  candidateName    String
+  candidateEmail   String
+  coverNote        String?
+  status           ApplicationStatus @default(SUBMITTED)
+  employerFeedback String?
+  isDeleted        Boolean           @default(false)
+  deletedAt        DateTime?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  job              JobPosting        @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  candidate        User              @relation("CandidateApplications", fields: [candidateId], references: [id], onDelete: Cascade)
+  cv               CV?               @relation(fields: [cvId], references: [id], onDelete: SetNull)
+  screeningResult  ScreeningResult?
+
+  @@unique([jobId, candidateId])
+  @@index([jobId, status])
+  @@index([candidateId, status])
+  @@index([status, createdAt])
+}
+
+model ScreeningResult {
+  id             String      @id @default(uuid())
+  applicationId  String      @unique
+  score          Int
+  recommendation String
+  summary        String
+  strengths      String[]    @default([])
+  gaps           String[]    @default([])
+  rawAiResponse  Json?
+  modelUsed      String      @default("gpt-4o-mini")
+  createdAt      DateTime    @default(now())
+
+  application    Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+}

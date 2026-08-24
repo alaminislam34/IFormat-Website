@@ -1,0 +1,35 @@
+model ConsultationSlot {
+  id           String    @id @default(uuid())
+  advisorId    String
+  title        String    @default("CV & Career Strategy Session")
+  startTime    DateTime
+  endTime      DateTime
+  isBooked     Boolean   @default(false)
+  priceInCents Int       @default(4900)
+  isDeleted    Boolean   @default(false)
+  deletedAt    DateTime?
+  createdAt    DateTime  @default(now())
+
+  advisor      User      @relation("AdvisorSlots", fields: [advisorId], references: [id], onDelete: Cascade)
+  booking      Booking?
+
+  @@index([advisorId, startTime])
+  @@index([isBooked, startTime])
+}
+
+model Booking {
+  id        String           @id @default(uuid())
+  slotId    String           @unique
+  userId    String
+  notes     String?
+  status    BookingStatus    @default(CONFIRMED)
+  isDeleted Boolean          @default(false)
+  deletedAt DateTime?
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  slot      ConsultationSlot @relation(fields: [slotId], references: [id], onDelete: Restrict)
+  user      User             @relation("UserBookings", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isDeleted])
+}

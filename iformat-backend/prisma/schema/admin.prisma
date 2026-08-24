@@ -1,0 +1,15 @@
+model AuditLog {
+  id          String      @id @default(uuid())
+  adminId     String
+  action      AuditAction
+  targetType  String      // "USER" | "JOB" | "PLAN" | "SUBSCRIPTION" | "COMPANY" | "BOOKING"
+  targetId    String
+  details     Json?       // Metadata / snapshot of changed fields
+  ipAddress   String?
+  createdAt   DateTime    @default(now())
+
+  admin       User        @relation("AdminAuditLogs", fields: [adminId], references: [id], onDelete: Cascade)
+
+  @@index([adminId, createdAt])
+  @@index([targetType, targetId])
+}

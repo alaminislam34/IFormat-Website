@@ -1,0 +1,10 @@
+<h2>Application Update: <%= jobTitle %></h2>
+<p>Hello <%= candidateName %>,</p>
+<p>There has been an update regarding your application for the <strong><%= jobTitle %></strong> position at <strong><%= companyName %></strong>.</p>
+<div style="background-color: #f1f5f9; padding: 16px; border-radius: 8px; margin: 16px 0; border-left: 4px solid #0A54B1;">
+  <p style="margin: 4px 0;"><strong>Status:</strong> <span style="font-weight: 700; color: #0A54B1;"><%= newStatus %></span></p>
+  <% if (typeof feedback !== 'undefined' && feedback) { %>
+    <p style="margin: 8px 0 4px 0;"><strong>Feedback:</strong> <em>"<%= feedback %>"</em></p>
+  <% } %>
+</div>
+<a href="<%= portalUrl %>" class="btn">View Application in Portal</a>

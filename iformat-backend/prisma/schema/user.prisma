@@ -1,0 +1,65 @@
+model User {
+  id                 String              @id @default(uuid())
+  email              String              @unique
+  passwordHash       String?
+  role               Role                @default(CANDIDATE)
+  name               String
+  avatarUrl          String?
+  phone              String?
+  emailVerified      Boolean             @default(false)
+  tokenVersion       Int                 @default(0)
+
+  companyName        String?
+  companyWebsite     String?
+  companyDescription String?
+  companyLogoUrl     String?
+  isVerifiedCompany  Boolean             @default(false)
+  isBanned           Boolean             @default(false)
+  banReason          String?
+  isDeleted          Boolean             @default(false)
+  deletedAt          DateTime?
+
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+
+  oauthAccounts      OAuthAccount[]
+  cvs                CV[]
+  jobPostings        JobPosting[]        @relation("EmployerJobs")
+  applications       Application[]       @relation("CandidateApplications")
+  advisorSlots       ConsultationSlot[]  @relation("AdvisorSlots")
+  bookings           Booking[]           @relation("UserBookings")
+  subscription       Subscription?
+  usageRecords       SubscriptionUsage[]
+  notifications      Notification[]
+  auditLogs          AuditLog[]          @relation("AdminAuditLogs")
+
+  @@index([email])
+  @@index([role])
+  @@index([isDeleted, isBanned])
+}
+
+model OAuthAccount {
+  id                String   @id @default(uuid())
+  userId            String
+  provider          String
+  providerAccountId String
+  createdAt         DateTime @default(now())
+
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model OtpVerification {
+  id        String   @id @default(uuid())
+  email     String
+  code      String
+  type      OtpType  @default(EMAIL_VERIFICATION)
+  expiresAt DateTime
+  attempts  Int      @default(0)
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([email, type])
+}
