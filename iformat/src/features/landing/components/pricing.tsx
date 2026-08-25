@@ -57,7 +57,7 @@ export function Pricing() {
     }
 
     if (!isAuthenticated) {
-      router.push(`/login?redirect=/services#pricing&selectedPlan=${plan.code}`);
+      router.push(`/login?redirect=${encodeURIComponent(`/services?selectedPlan=${plan.code}#pricing`)}`);
       return;
     }
 
@@ -67,7 +67,7 @@ export function Pricing() {
       const session = await membershipService.createCheckoutSession({
         planId: plan.id,
         successUrl: `${origin}/dashboard/billing?payment=success`,
-        cancelUrl: `${origin}/services#pricing?payment=cancelled`,
+        cancelUrl: `${origin}/services?payment=cancelled#pricing`,
       });
 
       if (session?.url) {

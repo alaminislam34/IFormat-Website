@@ -3,17 +3,24 @@ import helmet from "helmet";
 import cors from "cors";
 import hpp from "hpp";
 import cookieParser from "cookie-parser";
+import swaggerUi from "swagger-ui-express";
 import { env } from "./config/env.js";
 import { apiRouter } from "./routes/index.js";
 import { errorHandler } from "./middlewares/errorHandler.middleware.js";
 import { apiLimiter } from "./middlewares/rateLimiter.middleware.js";
 import { NotFoundError } from "./errors/index.js";
 import { passport } from "./lib/passport.js";
+import { swaggerSpec } from "./docs/swagger.js";
 
 const app: Express = express();
 
 // 1. Security & Protection Middlewares
-app.use(helmet());
+app.use(
+  helmet({
+    contentSecurityPolicy: false,
+    crossOriginEmbedderPolicy: false,
+  })
+);
 app.use(
   cors({
     origin: [env.CORS_ORIGIN, "http://localhost:3000"],
@@ -42,7 +49,36 @@ app.use(passport.initialize());
 // 4. Rate Limiting
 app.use(apiLimiter);
 
-// 5. API Routes Mount
+// 5. Swagger Interactive API Documentation
+app.use(
+  "/api-docs",
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerSpec, {
+    customSiteTitle: "iFormat API Docs",
+    customCss: ".swagger-ui .topbar { display: none }",
+    swaggerOptions: {
+      persistAuthorization: true,
+    },
+  })
+);
+
+app.get("/docs", (_req: Request, res: Response) => {
+  return res.redirect("/api-docs/");
+});
+
+app.get(`/api/${env.API_VERSION}/docs`, (_req: Request, res: Response) => {
+  return res.redirect("/api-docs/");
+});
+
+app.get(
+  ["/api-docs.json", "/docs.json", `/api/${env.API_VERSION}/docs.json`],
+  (_req: Request, res: Response) => {
+    res.setHeader("Content-Type", "application/json");
+    res.send(swaggerSpec);
+  }
+);
+
+// 6. API Routes Mount
 app.use(`/api/${env.API_VERSION}`, apiRouter);
 
 app.get("/", (_req: Request, res: Response) => {
@@ -51,6 +87,7 @@ app.get("/", (_req: Request, res: Response) => {
     message: "iFormat API is running",
     data: {
       apiBase: `/api/${env.API_VERSION}`,
+      docs: "/api-docs",
       health: `/api/${env.API_VERSION}/health`,
     },
   });

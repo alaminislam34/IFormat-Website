@@ -13,16 +13,18 @@ function LenisNavigationHandler() {
 
     // Check if there is a hash in the current URL
     if (typeof window !== "undefined" && window.location.hash) {
-      const targetId = window.location.hash;
-      const targetEl = document.querySelector(targetId);
-      if (targetEl) {
-        // Smoothly scroll to the hash target with navbar offset
-        lenis.scrollTo(targetId, {
-          offset: -80,
-          duration: 1.2,
-          immediate: false,
-        });
-        return;
+      const cleanId = window.location.hash.replace(/^#/, "").split(/[?&]/)[0];
+      if (cleanId) {
+        const targetEl = document.getElementById(cleanId);
+        if (targetEl) {
+          // Smoothly scroll to the hash target with navbar offset
+          lenis.scrollTo(targetEl, {
+            offset: -80,
+            duration: 1.2,
+            immediate: false,
+          });
+          return;
+        }
       }
     }
 
@@ -43,18 +45,19 @@ function LenisNavigationHandler() {
 
       // In-page hash link (e.g. #about or /#about on homepage)
       if (href.startsWith("#") || (href.startsWith("/#") && pathname === "/")) {
-        const hash = href.startsWith("/#") ? href.slice(1) : href;
-        if (hash === "#") return;
+        const rawHash = href.startsWith("/#") ? href.slice(1) : href;
+        const cleanId = rawHash.replace(/^#/, "").split(/[?&]/)[0];
+        if (!cleanId) return;
 
-        const targetEl = document.querySelector(hash);
+        const targetEl = document.getElementById(cleanId);
         if (targetEl) {
           e.preventDefault();
-          lenis.scrollTo(hash, {
+          lenis.scrollTo(targetEl, {
             offset: -80,
             duration: 1.2,
           });
           // Update URL without jump
-          window.history.pushState(null, "", hash);
+          window.history.pushState(null, "", `#${cleanId}`);
         }
       }
     };

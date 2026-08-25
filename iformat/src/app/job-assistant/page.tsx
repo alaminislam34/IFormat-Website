@@ -18,7 +18,7 @@ export default function JobAssistantPage() {
     <main className="min-h-screen bg-slate-50 flex flex-col justify-between pt-16">
       <div className="w-full flex-1 flex flex-col">
 
-        <div className="bg-white border-b border-slate-200/80 py-3.5 px-6 w-full shadow-xs">
+        <div className="bg-white border-b mt-4 border-b-slate-200/80 py-3.5 px-6 w-full">
           <div className="max-w-7xl mx-auto flex items-center gap-3 overflow-x-auto scrollbar-none">
             <button
               onClick={() => setActiveTab("cv")}
@@ -56,7 +56,6 @@ export default function JobAssistantPage() {
           </div>
         </div>
 
-        {/* Main Content Area */}
         <div className="flex-1 w-full max-w-7xl mx-auto px-6 py-10">
           <AnimatePresence mode="wait">
             <motion.div
