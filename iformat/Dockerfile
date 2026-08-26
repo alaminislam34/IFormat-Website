@@ -13,7 +13,8 @@ FROM base AS deps
 WORKDIR /app
 
 COPY package.json pnpm-lock.yaml ./
-RUN pnpm install --frozen-lockfile
+RUN --mount=type=cache,id=pnpm-frontend,target=/root/.local/share/pnpm/store \
+    pnpm install --frozen-lockfile
 
 # ==============================================================================
 # Stage 3: Build Next.js Application
@@ -32,7 +33,8 @@ ENV NEXT_PUBLIC_USE_MOCK=${NEXT_PUBLIC_USE_MOCK}
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
 
-RUN pnpm build
+RUN --mount=type=cache,id=nextjs,target=/app/.next/cache \
+    pnpm build
 
 # ==============================================================================
 # Stage 4: Production Runner (Ultra-lightweight Standalone)

@@ -23,11 +23,33 @@ env:
 
 jobs:
   # ============================================================================
-  # 1. Build & Publish Container Images to GHCR
+  # 1. Build & Push Container Images to GHCR (Parallelized High-Speed Matrix)
   # ============================================================================
   build-and-push:
-    name: Build & Push Container Images
+    name: Build & Push (${{ matrix.service }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - service: backend
+            context: ./iformat-backend
+            dockerfile: ./iformat-backend/Dockerfile
+            image: ghcr.io/${{ github.repository }}/backend
+            build-args: ""
+          - service: frontend
+            context: ./iformat
+            dockerfile: ./iformat/Dockerfile
+            image: ghcr.io/${{ github.repository }}/frontend
+            build-args: |
+              NEXT_PUBLIC_API_URL=/api/v1
+              NEXT_PUBLIC_USE_MOCK=false
+          - service: gateway
+            context: ./nginx
+            dockerfile: ./nginx/Dockerfile
+            image: ghcr.io/${{ github.repository }}/gateway
+            build-args: ""
+
     steps:
       - name: Checkout Source Code
         uses: actions/checkout@v4
@@ -42,72 +64,28 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract Metadata for Backend
-        id: meta-backend
+      - name: Extract Metadata
+        id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.IMAGE_BACKEND }}
+          images: ${{ matrix.image }}
           tags: |
             type=raw,value=latest,enable={{is_default_branch}}
             type=sha,prefix=sha-,format=short
             type=ref,event=branch
             type=ref,event=tag
 
-      - name: Build and Push Backend Image
+      - name: Build and Push Image
         uses: docker/build-push-action@v5
         with:
-          context: ./iformat-backend
-          file: ./iformat-backend/Dockerfile
+          context: ${{ matrix.context }}
+          file: ${{ matrix.dockerfile }}
           push: true
-          tags: ${{ steps.meta-backend.outputs.tags }}
-          labels: ${{ steps.meta-backend.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      - name: Extract Metadata for Frontend
-        id: meta-frontend
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.IMAGE_FRONTEND }}
-          tags: |
-            type=raw,value=latest,enable={{is_default_branch}}
-            type=sha,prefix=sha-,format=short
-            type=ref,event=branch
-            type=ref,event=tag
-
-      - name: Build and Push Frontend Image
-        uses: docker/build-push-action@v5
-        with:
-          context: ./iformat
-          file: ./iformat/Dockerfile
-          push: true
-          tags: ${{ steps.meta-frontend.outputs.tags }}
-          labels: ${{ steps.meta-frontend.outputs.labels }}
-          build-args: |
-            NEXT_PUBLIC_API_URL=/api/v1
-            NEXT_PUBLIC_USE_MOCK=false
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      - name: Extract Metadata for Gateway (Nginx)
-        id: meta-gateway
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.IMAGE_GATEWAY }}
-          tags: |
-            type=raw,value=latest,enable={{is_default_branch}}
-            type=sha,prefix=sha-,format=short
-
-      - name: Build and Push Gateway Image
-        uses: docker/build-push-action@v5
-        with:
-          context: ./nginx
-          file: ./nginx/Dockerfile
-          push: true
-          tags: ${{ steps.meta-gateway.outputs.tags }}
-          labels: ${{ steps.meta-gateway.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: ${{ matrix.build-args }}
+          cache-from: type=gha,scope=${{ matrix.service }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.service }}
 
   # ============================================================================
   # 2. Automated Zero-Downtime Deployment to Server
