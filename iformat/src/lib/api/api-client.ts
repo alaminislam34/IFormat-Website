@@ -76,24 +76,42 @@ class ApiClient {
     endpoint: string,
     params?: Record<string, string | number | boolean | undefined>
   ): string {
-    let finalEndpoint = endpoint;
-    if (!finalEndpoint.startsWith("http")) {
+    let fullPath = endpoint;
+    if (!fullPath.startsWith("http://") && !fullPath.startsWith("https://")) {
       const cleanBase = this.baseUrl.replace(/\/+$/, "");
       const cleanEndpoint = endpoint.replace(/^\/+/, "");
-      finalEndpoint = `${cleanBase}/${cleanEndpoint}`;
+      fullPath = `${cleanBase}/${cleanEndpoint}`;
     }
 
-    const url = new URL(finalEndpoint);
+    if (fullPath.startsWith("http://") || fullPath.startsWith("https://")) {
+      const url = new URL(fullPath);
+      if (params) {
+        Object.entries(params).forEach(([key, value]) => {
+          if (value !== undefined && value !== null && value !== "") {
+            url.searchParams.append(key, String(value));
+          }
+        });
+      }
+      return url.toString();
+    }
 
+    const searchParams = new URLSearchParams();
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
         if (value !== undefined && value !== null && value !== "") {
-          url.searchParams.append(key, String(value));
+          searchParams.append(key, String(value));
         }
       });
     }
 
-    return url.toString();
+    const queryString = searchParams.toString();
+    if (queryString) {
+      return fullPath.includes("?")
+        ? `${fullPath}&${queryString}`
+        : `${fullPath}?${queryString}`;
+    }
+
+    return fullPath;
   }
 
   async request<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
