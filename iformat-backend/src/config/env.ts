@@ -46,8 +46,8 @@ const envSchema = z.object({
   PRODUCT_ID: z.string().optional(),
 
   // AWS S3
-  AWS_ACCESS_KEY_ID: z.string().optional().default("mock_aws_key"),
-  AWS_SECRET_ACCESS_KEY: z.string().optional().default("mock_aws_secret"),
+  AWS_ACCESS_KEY_ID: z.string().optional(),
+  AWS_SECRET_ACCESS_KEY: z.string().optional(),
   AWS_REGION: z.string().default("eu-central-1"),
   AWS_S3_BUCKET: z.string().default("ifromat-media-db"),
 
@@ -56,7 +56,7 @@ const envSchema = z.object({
   SMTP_PORT: z.coerce.number().default(587),
   SMTP_USER: z.string().optional(),
   SMTP_PASS: z.string().optional(),
-  SMTP_FROM: z.string().default("iFormat <support@iformat.com>"),
+  SMTP_FROM: z.string().default("iFormat <devamin.bd@gmail.com>"),
 
   // Redis
   REDIS_URL: z.string().optional(),
