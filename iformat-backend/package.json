@@ -11,8 +11,8 @@
     "migrate": "prisma migrate dev",
     "push": "prisma db push",
     "studio": "prisma studio",
-    "lint": "eslint src --ext .ts",
-    "test:qa": "tsx tests/qa-auth.test.ts && tsx tests/qa-jobs-applications.test.ts && tsx tests/qa-payments-entitlements.test.ts",
+    "lint": "tsc --noEmit",
+    "test:qa": "tsx tests/qa-auth.test.ts && tsx tests/qa-jobs-applications.test.ts && tsx tests/qa-payments-entitlements.test.ts && tsx tests/qa-ai-services.test.ts",
     "test:apis": "tsx scripts/test-all-apis.ts"
   },
   "dependencies": {

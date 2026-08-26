@@ -5,7 +5,7 @@ dotenv.config();
 
 const envSchema = z.object({
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
-  PORT: z.coerce.number().default(5001),
+  PORT: z.coerce.number().default(5000),
   API_VERSION: z.string().default("v1"),
 
   // Database
@@ -34,7 +34,7 @@ const envSchema = z.object({
   // Google OAuth
   GOOGLE_CLIENT_ID: z.string().optional().default("mock-google-client-id"),
   GOOGLE_CLIENT_SECRET: z.string().optional().default("mock-google-client-secret"),
-  GOOGLE_CALLBACK_URL: z.string().default("http://localhost:5001/api/v1/oauth/google/callback"),
+  GOOGLE_CALLBACK_URL: z.string().default("http://localhost:5000/api/v1/oauth/google/callback"),
   OAUTH_SUCCESS_REDIRECT_URL: z.string().default("http://localhost:3000/account-type"),
   OAUTH_FAILURE_REDIRECT_URL: z.string().default("http://localhost:3000/login?error=oauth_failed"),
 
@@ -48,15 +48,15 @@ const envSchema = z.object({
   // AWS S3
   AWS_ACCESS_KEY_ID: z.string().optional().default("mock_aws_key"),
   AWS_SECRET_ACCESS_KEY: z.string().optional().default("mock_aws_secret"),
-  AWS_REGION: z.string().default("us-east-1"),
-  AWS_S3_BUCKET: z.string().default("iformat-bucket"),
+  AWS_REGION: z.string().default("eu-central-1"),
+  AWS_S3_BUCKET: z.string().default("ifromat-media-db"),
 
-  // SMTP (Amazon SES / SMTP)
-  SMTP_HOST: z.string().default("email-smtp.ca-central-1.amazonaws.com"),
+  // SMTP (Amazon SES / Mail Manager)
+  SMTP_HOST: z.string().default("he24ywr9xaq8.eig6.mail-manager-smtp.amazonaws.com"),
   SMTP_PORT: z.coerce.number().default(587),
   SMTP_USER: z.string().optional(),
   SMTP_PASS: z.string().optional(),
-  SMTP_FROM: z.string().default("iFormat <devamin.bd@gmail.com>"),
+  SMTP_FROM: z.string().default("iFormat <support@iformat.com>"),
 
   // Redis
   REDIS_URL: z.string().optional(),

@@ -76,7 +76,7 @@ export default function AdminCompaniesPage() {
             Company Verifications & Badges
           </h1>
           <p className="text-slate-400 text-xs mt-1">
-            Audit employer organizations, website credentials, and grant official "Verified Company" trust badges.
+            Audit employer organizations, website credentials, and grant official &quot;Verified Company&quot; trust badges.
           </p>
         </div>
       </div>
