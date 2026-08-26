@@ -59,10 +59,7 @@ services:
   # Backend API Server
   # ============================================================================
   backend:
-    image: ${IMAGE_BACKEND:-ghcr.io/${GITHUB_REPOSITORY:-alaminislam34/iformat-website}/backend:latest}
-    build:
-      context: ./iformat-backend
-      dockerfile: Dockerfile
+    image: ghcr.io/alaminislam34/iformat-website/backend:latest
     container_name: iformat-backend-prod
     restart: always
     environment:
@@ -74,28 +71,31 @@ services:
       CORS_ORIGIN: ${CORS_ORIGIN}
       JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      JWT_ACCESS_EXPIRES_IN: ${JWT_ACCESS_EXPIRES_IN:-15m}
+      JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN:-7d}
+      COOKIE_DOMAIN: ${COOKIE_DOMAIN:-iformat.com}
+      COOKIE_SECURE: ${COOKIE_SECURE:-true}
       AI_SERVICE_URL: ${AI_SERVICE_URL:-http://10.10.28.89:8010}
       AI_SERVICE_TIMEOUT_MS: ${AI_SERVICE_TIMEOUT_MS:-60000}
-      OPENAI_API_KEY: ${OPENAI_API_KEY}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
       GOOGLE_CALLBACK_URL: ${GOOGLE_CALLBACK_URL}
+      OAUTH_SUCCESS_REDIRECT_URL: ${OAUTH_SUCCESS_REDIRECT_URL}
+      OAUTH_FAILURE_REDIRECT_URL: ${OAUTH_FAILURE_REDIRECT_URL}
       STRIPE_PUBLISHABLE_KEY: ${STRIPE_PUBLISHABLE_KEY}
       STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
       STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
       STRIPE_CONNECT_WEBHOOK_SECRET: ${STRIPE_CONNECT_WEBHOOK_SECRET}
       PRODUCT_ID: ${PRODUCT_ID}
-      COOKIE_DOMAIN: ${COOKIE_DOMAIN:-localhost}
-      COOKIE_SECURE: ${COOKIE_SECURE:-true}
       AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
       AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
       AWS_REGION: ${AWS_REGION:-eu-central-1}
       AWS_S3_BUCKET: ${AWS_S3_BUCKET:-ifromat-media-db}
-      SMTP_HOST: ${SMTP_HOST:-he24ywr9xaq8.eig6.mail-manager-smtp.amazonaws.com}
+      SMTP_HOST: ${SMTP_HOST}
       SMTP_PORT: ${SMTP_PORT:-587}
       SMTP_USER: ${SMTP_USER}
       SMTP_PASS: ${SMTP_PASS}
-      SMTP_FROM: ${SMTP_FROM:-iFormat <support@iformat.com>}
+      SMTP_FROM: ${SMTP_FROM:-iFormat <devamin.bd@gmail.com>}
     depends_on:
       postgres:
         condition: service_healthy
@@ -117,13 +117,7 @@ services:
   # Frontend Application
   # ============================================================================
   frontend:
-    image: ${IMAGE_FRONTEND:-ghcr.io/${GITHUB_REPOSITORY:-alaminislam34/iformat-website}/frontend:latest}
-    build:
-      context: ./iformat
-      dockerfile: Dockerfile
-      args:
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-/api/v1}
-        NEXT_PUBLIC_USE_MOCK: "false"
+    image: ghcr.io/alaminislam34/iformat-website/frontend:latest
     container_name: iformat-frontend-prod
     restart: always
     environment:
@@ -148,9 +142,7 @@ services:
   # Nginx Gateway & Reverse Proxy
   # ============================================================================
   nginx:
-    build:
-      context: ./nginx
-      dockerfile: Dockerfile
+    image: ghcr.io/alaminislam34/iformat-website/gateway:latest
     container_name: iformat-gateway-prod
     restart: always
     ports:
