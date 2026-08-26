@@ -117,7 +117,7 @@ jobs:
         working-directory: iformat-backend
         env:
           NODE_ENV: test
-          PORT: 5001
+          PORT: 5000
           DATABASE_URL: postgresql://postgres:testpassword@localhost:5432/iformat_test_db?schema=public
           REDIS_URL: redis://localhost:6379
           JWT_ACCESS_SECRET: test_jwt_access_secret_32_characters_minimum
