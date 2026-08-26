@@ -97,10 +97,7 @@ services:
       SMTP_PASS: ${SMTP_PASS}
       SMTP_FROM: ${SMTP_FROM:-iFormat <devamin.bd@gmail.com>}
     depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
+      - redis
     deploy:
       resources:
         limits:
@@ -124,8 +121,7 @@ services:
       NODE_ENV: production
       PORT: 3000
     depends_on:
-      backend:
-        condition: service_healthy
+      - backend
     deploy:
       resources:
         limits:
