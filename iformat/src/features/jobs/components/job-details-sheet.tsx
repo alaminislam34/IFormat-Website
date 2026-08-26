@@ -80,27 +80,30 @@ export function JobDetailsSheet({ job, isOpen, onClose }: JobDetailsSheetProps) 
   const logoBg = job.logoBg || "bg-[#0A54B1]";
 
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <>
-          {/* Backdrop Overlay */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-            className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-50 transition-opacity"
-          />
+    <>
+      <AnimatePresence>
+        {isOpen && (
+          <div key="job-details-sheet-container">
+            {/* Backdrop Overlay */}
+            <motion.div
+              key="job-details-backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={onClose}
+              className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-50 transition-opacity"
+            />
 
-          {/* Drawer Sheet Container */}
-          <motion.div
-            initial={{ x: "100%", opacity: 0.95 }}
-            animate={{ x: 0, opacity: 1 }}
-            exit={{ x: "100%", opacity: 0.95 }}
-            transition={{ type: "spring", damping: 30, stiffness: 280 }}
-            data-lenis-prevent
-            className="fixed top-4 right-4 bottom-4 w-full max-w-xl bg-white rounded-3xl shadow-2xl z-50 flex flex-col overflow-hidden border border-slate-100"
-          >
+            {/* Drawer Sheet Container */}
+            <motion.div
+              key="job-details-drawer"
+              initial={{ x: "100%", opacity: 0.95 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: "100%", opacity: 0.95 }}
+              transition={{ type: "spring", damping: 30, stiffness: 280 }}
+              data-lenis-prevent
+              className="fixed top-4 right-4 bottom-4 w-full max-w-xl bg-white rounded-3xl shadow-2xl z-50 flex flex-col overflow-hidden border border-slate-100"
+            >
             {/* Header */}
             <div className="p-6 border-b border-slate-100 flex items-start justify-between relative bg-slate-50/50">
               <div className="flex items-center gap-4 pr-8">
@@ -413,8 +416,9 @@ export function JobDetailsSheet({ job, isOpen, onClose }: JobDetailsSheetProps) 
               </div>
             )}
           </motion.div>
-        </>
+        </div>
       )}
+    </AnimatePresence>
 
       {/* Apply Modal */}
       {isApplyModalOpen && (
@@ -424,6 +428,6 @@ export function JobDetailsSheet({ job, isOpen, onClose }: JobDetailsSheetProps) 
           onClose={() => setIsApplyModalOpen(false)}
         />
       )}
-    </AnimatePresence>
+    </>
   );
 }

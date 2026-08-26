@@ -125,8 +125,9 @@ export function ApplyModal({ job, isOpen, onClose }: ApplyModalProps) {
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div key="apply-modal-container" className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <motion.div
+            key="apply-modal-backdrop"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -135,6 +136,7 @@ export function ApplyModal({ job, isOpen, onClose }: ApplyModalProps) {
           />
 
           <motion.div
+            key="apply-modal-content"
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
