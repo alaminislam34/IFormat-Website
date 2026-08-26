@@ -6,9 +6,13 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useGenerateCoverLetter } from "@/hooks";
 
+type CoverLetterTone = "Professional" | "Enthusiastic" | "Confident" | "Concise";
+
 export function CoverLetterGenerator() {
   const [jobTitle, setJobTitle] = React.useState("Senior Full Stack Developer");
   const [companyName, setCompanyName] = React.useState("Vercel Inc");
+  const [recipient, setRecipient] = React.useState("Hiring Team");
+  const [tone, setTone] = React.useState<CoverLetterTone>("Professional");
   const [jobDesc, setJobDesc] = React.useState(
     "We are looking for a Senior Full Stack Developer to build the future of developer tools. Experience with Next.js, React, Node.js, and edge environments is preferred. You should be passionate about developer experience, speed, and clean code."
   );
@@ -24,12 +28,17 @@ export function CoverLetterGenerator() {
       {
         role: jobTitle,
         company: companyName,
-        experienceContext: jobDesc,
+        recipient: recipient || "Hiring Manager",
+        jobDescription: jobDesc,
+        tone: tone.toLowerCase(),
       },
       {
         onSuccess: (letter) => {
           setGeneratedLetter(letter);
           toast.success("Cover letter generated!");
+        },
+        onError: (err: any) => {
+          toast.error(err?.message || "Failed to generate cover letter");
         },
       }
     );
@@ -46,7 +55,7 @@ export function CoverLetterGenerator() {
   const handleDownload = () => {
     if (!generatedLetter) return;
     const element = document.createElement("a");
-    const file = new Blob([generatedLetter], { type: "text/plain" });
+    const file = new Blob([generatedLetter], { type: "text/plain;charset=utf-8" });
     element.href = URL.createObjectURL(file);
     element.download = `${companyName.replace(/\s+/g, "_")}_Cover_Letter.txt`;
     document.body.appendChild(element);
@@ -59,7 +68,7 @@ export function CoverLetterGenerator() {
     <div className="w-full space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Cover Letter Generator</h1>
-        <button className="px-5 py-2.5 bg-linear-to-r from-brand-cyan to-[#0ea5e9] text-white rounded-xl text-xs font-bold shadow-md shadow-sky-500/15 hover:opacity-90 transition-opacity self-start sm:self-auto">
+        <button className="px-5 py-2.5 bg-linear-to-r from-brand-cyan to-[#0ea5e9] text-white rounded-xl text-xs font-bold shadow-md shadow-sky-500/15 hover:opacity-90 transition-opacity self-start sm:self-auto cursor-pointer">
           Consult with expert
         </button>
       </div>
@@ -86,21 +95,54 @@ export function CoverLetterGenerator() {
               />
             </div>
 
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Company Name</label>
+                <input
+                  type="text"
+                  value={companyName}
+                  onChange={(e) => setCompanyName(e.target.value)}
+                  placeholder="e.g. Innovate Corp"
+                  className="w-full h-12 px-4 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0A54B1]/20 focus:border-[#0A54B1] focus:bg-white transition-all text-sm font-medium"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Recipient Name</label>
+                <input
+                  type="text"
+                  value={recipient}
+                  onChange={(e) => setRecipient(e.target.value)}
+                  placeholder="e.g. Hiring Team"
+                  className="w-full h-12 px-4 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0A54B1]/20 focus:border-[#0A54B1] focus:bg-white transition-all text-sm font-medium"
+                />
+              </div>
+            </div>
+
             <div className="space-y-2">
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Company Name</label>
-              <input
-                type="text"
-                value={companyName}
-                onChange={(e) => setCompanyName(e.target.value)}
-                placeholder="e.g. Innovate Corp"
-                className="w-full h-12 px-4 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0A54B1]/20 focus:border-[#0A54B1] focus:bg-white transition-all text-sm font-medium"
-              />
+              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Tone</label>
+              <div className="grid grid-cols-4 gap-1 p-1 bg-slate-100 rounded-xl border border-slate-200/50">
+                {(["Professional", "Enthusiastic", "Confident", "Concise"] as CoverLetterTone[]).map((t) => (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() => setTone(t)}
+                    className={`py-2 text-[10px] md:text-[11px] font-bold rounded-lg transition-all cursor-pointer ${
+                      tone === t
+                        ? "bg-white text-slate-800 shadow-sm"
+                        : "text-slate-500 hover:text-slate-800"
+                    }`}
+                  >
+                    {t}
+                  </button>
+                ))}
+              </div>
             </div>
 
             <div className="space-y-2">
               <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Job Description</label>
               <textarea
-                rows={6}
+                rows={5}
                 value={jobDesc}
                 onChange={(e) => setJobDesc(e.target.value)}
                 placeholder="Paste the full job description here to help the AI tailor your letter..."
@@ -111,7 +153,7 @@ export function CoverLetterGenerator() {
 
           <Button
             onClick={handleGenerate}
-            disabled={isGenerating}
+            disabled={isGenerating || !jobTitle || !companyName}
             className="w-full bg-brand-gradient text-white hover:opacity-95 h-12 rounded-xl text-sm font-bold flex items-center justify-center gap-2 shadow-lg shadow-brand-blue/20 cursor-pointer"
           >
             {isGenerating ? (
@@ -148,14 +190,14 @@ export function CoverLetterGenerator() {
                 className="h-9 px-3 rounded-lg border-slate-200 text-slate-600 bg-white hover:bg-slate-50 flex items-center gap-1.5 text-xs font-semibold"
               >
                 <Download className="w-3.5 h-3.5" />
-                Download PDF
+                Download
               </Button>
             </div>
 
             <button
               onClick={handleGenerate}
               disabled={isGenerating || !generatedLetter}
-              className="inline-flex items-center gap-1 text-xs font-bold text-[#0A54B1] hover:underline disabled:opacity-50"
+              className="inline-flex items-center gap-1 text-xs font-bold text-[#0A54B1] hover:underline disabled:opacity-50 cursor-pointer"
             >
               <RotateCw className="w-3.5 h-3.5" /> Regenerate
             </button>

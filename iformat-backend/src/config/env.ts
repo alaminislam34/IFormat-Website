@@ -27,6 +27,10 @@ const envSchema = z.object({
   // OpenAI
   OPENAI_API_KEY: z.string().optional().default("sk-mock-key"),
 
+  // AI Microservice (FastAPI + Bedrock)
+  AI_SERVICE_URL: z.string().default("http://10.10.28.89:8010"),
+  AI_SERVICE_TIMEOUT_MS: z.coerce.number().default(60000),
+
   // Google OAuth
   GOOGLE_CLIENT_ID: z.string().optional().default("mock-google-client-id"),
   GOOGLE_CLIENT_SECRET: z.string().optional().default("mock-google-client-secret"),

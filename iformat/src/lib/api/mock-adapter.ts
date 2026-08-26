@@ -168,25 +168,25 @@ class MockDatabase {
 
   async generateOutreachEmail(request: GenerateEmailRequest): Promise<string> {
     await delay(700);
-    const toneMap = {
-      Professional: `Subject: Application & Introduction: ${request.role} - [Your Name]\n\nDear ${
-        request.recipient || "Hiring Team"
-      },\n\nI recently came across the ${request.role} opening at ${
-        request.company
-      } and wanted to reach out directly. ${
-        request.context || "I bring deep full-stack and frontend experience."
-      }\n\nI would appreciate the opportunity to connect for 10 minutes this week to discuss how I can contribute to ${
-        request.company
-      }'s upcoming initiatives.\n\nBest regards,`,
-      Friendly: `Subject: Excited about ${request.role} at ${request.company}!\n\nHi ${
-        request.recipient || "Team"
-      },\n\nHope your week is off to a great start! I saw your opening for ${
+    const toneMap: Record<string, string> = {
+      Professional: `Subject: Inquiring about ${request.role} role at ${request.company}\n\nDear ${
+        request.recipient || "Hiring Manager"
+      },\n\nI am writing to express my enthusiastic interest in the ${
         request.role
-      } at ${
+      } opportunity at ${
         request.company
-      } and got really excited about the work your team is doing.\n\n${
-        request.context || "I love building clean, responsive user experiences."
-      }\n\nWould love to chat over a quick virtual coffee if you have time!\n\nCheers,`,
+      }.\n\n${
+        request.context || "With extensive hands-on experience in modern web technologies, I am confident in delivering immediate value to your engineering team."
+      }\n\nI would welcome the opportunity to discuss how my skill set aligns with your team goals.\n\nSincerely,`,
+      Friendly: `Subject: Hello from a passionate ${request.role} - interested in ${request.company}!\n\nHi ${
+        request.recipient || "Team"
+      },\n\nHope you're having a great week! I came across ${
+        request.company
+      } and was really inspired by your recent work. I'm a ${
+        request.role
+      } and wanted to reach out directly.\n\n${
+        request.context || "I specialize in building scalable web applications with smooth UX."
+      }\n\nWould love to chat over a quick virtual coffee!\n\nWarm regards,`,
       Confident: `Subject: Senior Impact for ${request.role} at ${request.company}\n\nHi ${
         request.recipient || "Hiring Leader"
       },\n\nIf ${

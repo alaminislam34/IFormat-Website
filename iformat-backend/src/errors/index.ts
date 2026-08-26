@@ -25,10 +25,23 @@ export class NotFoundError extends AppError {
   }
 }
 
+export class BadRequestError extends AppError {
+  constructor(message = "Bad request", errors?: any) {
+    super(message, 400, errors);
+  }
+}
+
 export class ConflictError extends AppError {
   constructor(message = "Resource already exists or violates a unique constraint", errors?: any) {
     super(message, 409, errors);
   }
 }
 
+export class InternalServerError extends AppError {
+  constructor(message = "Internal server error", errors?: any) {
+    super(message, 500, errors);
+  }
+}
+
 export * from "./AppError.js";
+

@@ -1,171 +1,240 @@
-import OpenAI from "openai";
-import { env } from "../../config/env.js";
+import { AIClient } from "../../lib/ai-client.js";
+import { prisma } from "../../lib/prisma.js";
 import { logger } from "../../utils/logger.js";
 import {
   GenerateCoverLetterInput,
   GenerateEmailInput,
   OptimizeResumeInput,
+  BuildCvInput,
+  RecommendProductsInput,
+  CareerChatInput,
 } from "./ai.validation.js";
-
-const openai = new OpenAI({
-  apiKey: env.OPENAI_API_KEY,
-  timeout: 30 * 1000,
-});
 
 export class AIService {
   /**
-   * Generates a tailored, professional Cover Letter
+   * Generates a tailored, professional Cover Letter via FastAPI Bedrock service
    */
-  static async generateCoverLetter(input: GenerateCoverLetterInput): Promise<string> {
+  static async generateCoverLetter(input: GenerateCoverLetterInput, userId?: string) {
     logger.info(`🤖 Generating AI Cover Letter for ${input.role} at ${input.company}`);
 
-    const prompt = `
-You are an expert career consultant and senior executive copywriter.
-Write an outstanding, modern, and highly compelling Cover Letter tailored specifically for the candidate applying to:
-
-ROLE: ${input.role}
-COMPANY: ${input.company}
-TONE: ${input.tone || "professional"}
-ADDITIONAL CONTEXT / EXPERIENCE:
-${input.experienceContext || "Experienced professional with relevant domain expertise, strong communication, and problem-solving skills."}
-
-GUIDELINES:
-1. Do not use generic cliches (e.g. "I am writing to apply for..."). Start with a strong, hook-driven opening paragraph expressing value proposition.
-2. Highlight relevant technical and soft skills, quantifiable impact, and alignment with the company's mission.
-3. Keep the letter formatted cleanly with standard professional sections (Salutation, Introduction, Body Paragraphs, Call to Action, Professional Sign-off).
-4. Do not include placeholder text like [Your Name] unless strictly necessary for signoff; make the letter polished and immediately usable.
-`;
-
-    try {
-      const response = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
-        messages: [
-          {
-            role: "system",
-            content: "You are an elite career coach and resume strategist.",
-          },
-          {
-            role: "user",
-            content: prompt,
-          },
-        ],
-        temperature: 0.7,
-        max_tokens: 1200,
+    // If candidateProfile is not explicitly passed, try to fetch from DB user record
+    let candidateProfile = input.candidateProfile;
+    if (!candidateProfile && userId) {
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          phone: true,
+          companyName: true,
+          companyDescription: true,
+        },
       });
-
-      const generated = response.choices[0]?.message?.content?.trim();
-      if (!generated) {
-        throw new Error("No content generated from AI model.");
+      if (user) {
+        candidateProfile = user;
       }
-
-      return generated;
-    } catch (error) {
-      logger.error("Failed to generate cover letter via OpenAI:", error);
-      throw error;
     }
+
+    if (!candidateProfile || Object.keys(candidateProfile).length === 0) {
+      candidateProfile = {
+        name: "Candidate",
+        role: input.role,
+        skills: ["Communication", "Problem Solving", "Collaboration"],
+      };
+    }
+
+    const jobDescription = input.jobDescription || input.experienceContext || `Role: ${input.role} at ${input.company}`;
+
+    const response = await AIClient.generateCoverLetter({
+      candidateProfile,
+      role: input.role,
+      company: input.company,
+      recipient: input.recipient || "Hiring Manager",
+      jobDescription,
+      tone: input.tone || "professional",
+    });
+
+    return response;
   }
 
   /**
    * Generates a high-converting Cold Outreach / Job Application Email
    */
-  static async generateEmail(input: GenerateEmailInput): Promise<string> {
-    logger.info(`🤖 Generating AI Outreach Email for ${input.role} at ${input.company}`);
+  static async generateEmail(input: GenerateEmailInput) {
+    const recipient = input.recipient || input.recipientName || "Hiring Manager";
+    logger.info(`🤖 Generating AI Outreach Email for ${input.role} at ${input.company} to ${recipient}`);
 
-    const prompt = `
-You are an expert in job search strategy and professional networking communication.
-Write a crisp, high-converting outreach email to:
+    const response = await AIClient.generateColdEmail({
+      recipient,
+      role: input.role,
+      company: input.company,
+      context: input.context || `Reaching out regarding open ${input.role} opportunities.`,
+      tone: input.tone || "Professional",
+    });
 
-RECIPIENT: ${input.recipientName || "Hiring Manager"}
-COMPANY: ${input.company}
-ROLE OF INTEREST: ${input.role}
-TONE: ${input.tone || "formal"}
-CONTEXT / BACKGROUND:
-${input.context || "Reaching out regarding open opportunities with relevant background in the field."}
-
-GUIDELINES:
-1. Include a catchy, professional Subject Line at the very top (e.g., Subject: Inquiring about [Role] - [Candidate Value]).
-2. Keep the email body concise (under 200 words), direct, and respectful of the recipient's time.
-3. Clearly state the reason for reaching out, key value proposition, and a clear, low-friction call to action (e.g., a brief 10-minute introductory call).
-`;
-
-    try {
-      const response = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
-        messages: [
-          {
-            role: "system",
-            content: "You are an expert executive communicator and career consultant.",
-          },
-          {
-            role: "user",
-            content: prompt,
-          },
-        ],
-        temperature: 0.6,
-        max_tokens: 600,
-      });
-
-      const generated = response.choices[0]?.message?.content?.trim();
-      if (!generated) {
-        throw new Error("No content generated from AI model.");
-      }
-
-      return generated;
-    } catch (error) {
-      logger.error("Failed to generate email via OpenAI:", error);
-      throw error;
-    }
+    return response;
   }
 
   /**
-   * Optimizes and enhances resume bullet points with quantifiable impact and ATS keywords
+   * Optimizes uploaded PDF resume using AI and returns Base64 PDF + summary
    */
-  static async optimizeResume(input: OptimizeResumeInput): Promise<string> {
-    logger.info(`🤖 Optimizing resume text for role: ${input.targetRole || "general"}`);
+  static async optimizeResume(
+    input: OptimizeResumeInput,
+    fileBuffer: Buffer,
+    fileName: string = "resume.pdf"
+  ) {
+    logger.info(`🤖 Optimizing resume PDF for role: ${input.targetRole} (${fileName})`);
 
-    const prompt = `
-You are an expert ATS (Applicant Tracking System) optimizer and executive resume writer.
-Enhance and rewrite the following resume content to maximize impact, readability, and ATS match score.
+    const response = await AIClient.optimizeResume({
+      resumeBuffer: fileBuffer,
+      fileName,
+      targetRole: input.targetRole,
+      targetIndustry: input.targetIndustry,
+      jobDescription: input.jobDescription,
+    });
 
-TARGET ROLE: ${input.targetRole || "Senior Industry Specialist"}
-INDUSTRY: ${input.industry || "Technology & Software"}
+    return response;
+  }
 
-ORIGINAL RESUME TEXT:
-${input.rawText}
+  /**
+   * Builds an ATS-compliant CV and PDF from raw notes and user info
+   */
+  static async buildCV(input: BuildCvInput, userId?: string) {
+    logger.info(`🤖 Building ATS CV for target role: ${input.targetRole}`);
 
-GUIDELINES:
-1. Use strong action verbs (Spearheaded, Architected, Accelerated, Reduced, Engineered).
-2. Incorporate metric frameworks (Google X-Y-Z formula: Accomplished [X] as measured by [Y], by doing [Z]).
-3. Fix grammar, tone, and sentence structure for high executive appeal.
-4. Output the polished, optimized resume content cleanly with bullet points or formatted sections.
-`;
+    let userInfo = input.user_info;
+    if (!userInfo && userId) {
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          phone: true,
+          companyName: true,
+          companyDescription: true,
+        },
+      });
+      if (user) {
+        userInfo = user;
+      }
+    }
 
-    try {
-      const response = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
-        messages: [
-          {
-            role: "system",
-            content: "You are a top-tier resume specialist and ATS algorithm expert.",
-          },
-          {
-            role: "user",
-            content: prompt,
-          },
-        ],
-        temperature: 0.4,
-        max_tokens: 1500,
+    if (!userInfo || Object.keys(userInfo).length === 0) {
+      userInfo = {
+        name: "Candidate Profile",
+        targetRole: input.targetRole,
+        targetIndustry: input.targetIndustry,
+      };
+    }
+
+    const response = await AIClient.buildCV({
+      user_info: userInfo,
+      raw_notes: input.raw_notes,
+      targetRole: input.targetRole,
+      targetIndustry: input.targetIndustry,
+      jobDescription: input.jobDescription,
+    });
+
+    return response;
+  }
+
+  /**
+   * Recommends iFormat products/packages matching candidate profile
+   */
+  static async recommendProducts(input: RecommendProductsInput) {
+    logger.info(`🤖 Running Product Recommendation for ${input.job_title} in ${input.industry}`);
+
+    let catalog = input.productCatalog;
+    if (!catalog || catalog.length === 0) {
+      // Pull active platform plans from DB
+      const dbPlans = await prisma.plan.findMany({
+        where: { isActive: true, isDeleted: false },
       });
 
-      const generated = response.choices[0]?.message?.content?.trim();
-      if (!generated) {
-        throw new Error("No content generated from AI model.");
+      if (dbPlans.length > 0) {
+        catalog = dbPlans.map((p) => ({
+          productId: p.id,
+          name: p.name,
+          description: p.description || `${p.name} membership plan with active features`,
+          targetRoles: [input.job_title],
+          targetLevels: [input.experience_level],
+          metadata: {
+            priceInCents: p.priceInCents,
+            billingInterval: p.billingInterval,
+          },
+        }));
+      } else {
+        catalog = [
+          {
+            productId: "plan_pro_career",
+            name: "iFormat Pro Career Package",
+            description: "Full ATS resume builder, cover letter generation, and 1-on-1 career consultation.",
+            targetRoles: ["All"],
+            targetLevels: ["Junior", "Mid", "Senior"],
+          },
+          {
+            productId: "plan_mentorship",
+            name: "1-on-1 Executive Mentorship",
+            description: "Direct career guidance with experienced industry leaders and mock interviews.",
+            targetRoles: ["Senior", "Lead", "Manager"],
+            targetLevels: ["Senior", "Lead"],
+          },
+        ];
       }
-
-      return generated;
-    } catch (error) {
-      logger.error("Failed to optimize resume via OpenAI:", error);
-      throw error;
     }
+
+    const response = await AIClient.recommendProducts({
+      job_title: input.job_title,
+      experience_level: input.experience_level,
+      career_goals: input.career_goals,
+      skills: input.skills,
+      industry: input.industry,
+      productCatalog: catalog,
+    });
+
+    return response;
+  }
+
+  /**
+   * Queries the Career Advisor Chatbot
+   */
+  static async careerChat(input: CareerChatInput, userId?: string) {
+    logger.info(`🤖 Querying Career Advisor: "${input.query.slice(0, 50)}..."`);
+
+    let userInfo = input.user_info;
+    if (!userInfo && userId) {
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          phone: true,
+          companyName: true,
+          companyDescription: true,
+        },
+      });
+      if (user) {
+        userInfo = user;
+      }
+    }
+
+    if (!userInfo || Object.keys(userInfo).length === 0) {
+      userInfo = {
+        name: "User",
+        role: "Job Seeker",
+      };
+    }
+
+    const response = await AIClient.queryCareerAdvisor({
+      query: input.query,
+      user_info: userInfo,
+      contextSources: input.contextSources,
+      chat_history: input.chat_history,
+    });
+
+    return response;
   }
 }
