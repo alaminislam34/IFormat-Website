@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { MapPin, ArrowRight, DollarSign } from "lucide-react";
+import { MapPin, ArrowRight, DollarSign, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 import { JobDTO as Job, JobApplicantDTO as Applicant } from "@/types/api";
@@ -10,9 +10,10 @@ export type { Job, Applicant };
 interface JobCardProps {
   job: Job;
   onViewDetails: () => void;
+  isApplied?: boolean;
 }
 
-export function JobCard({ job, onViewDetails }: JobCardProps) {
+export function JobCard({ job, onViewDetails, isApplied = false }: JobCardProps) {
   const typeStyles: Record<string, string> = {
     "Full Time": "text-[#0A54B1] bg-sky-50/80 border border-sky-100",
     "Part Time": "text-indigo-600 bg-indigo-50/70 border border-indigo-100",
@@ -39,16 +40,32 @@ export function JobCard({ job, onViewDetails }: JobCardProps) {
       exit={{ opacity: 0, scale: 0.95 }}
       whileHover={{ y: -6, boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.05), 0 8px 10px -6px rgb(0 0 0 / 0.05)" }}
       transition={{ duration: 0.3, ease: "easeOut" }}
-      className="bg-white rounded-3xl border border-slate-100 p-6 flex flex-col justify-between shadow-sm relative overflow-hidden group"
+      onClick={onViewDetails}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onViewDetails();
+        }
+      }}
+      role="button"
+      tabIndex={0}
+      className="bg-white rounded-3xl border border-slate-100 p-6 flex flex-col justify-between shadow-sm relative overflow-hidden group cursor-pointer text-left focus:outline-none focus:ring-2 focus:ring-[#0A54B1]/30 transition-all select-none"
     >
       {/* Top Badges */}
       <div className="flex items-center justify-between mb-5">
         <span className="text-xs font-semibold text-rose-500 bg-rose-50 px-3 py-1.5 rounded-xl border border-rose-100">
           📅 {displayDate}
         </span>
-        <span className={cn("text-xs font-semibold px-3 py-1.5 rounded-xl", typeClass)}>
-          {job.jobType}
-        </span>
+        <div className="flex items-center gap-1.5">
+          {isApplied && (
+            <span className="text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-xl border border-emerald-100 flex items-center gap-1">
+              <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Applied
+            </span>
+          )}
+          <span className={cn("text-xs font-semibold px-3 py-1.5 rounded-xl", typeClass)}>
+            {job.jobType}
+          </span>
+        </div>
       </div>
 
       {/* Title & Company */}
@@ -87,14 +104,14 @@ export function JobCard({ job, onViewDetails }: JobCardProps) {
         </div>
 
         {/* View Details Button */}
-        <button
-          onClick={onViewDetails}
-          className="flex items-center justify-center w-10 h-10 rounded-2xl bg-slate-50 group-hover:bg-primary text-slate-400 group-hover:text-white transition-all duration-300 shadow-xs cursor-pointer"
+        <div
+          className="flex items-center justify-center w-10 h-10 rounded-2xl bg-slate-50 group-hover:bg-primary text-slate-400 group-hover:text-white transition-all duration-300 shadow-xs"
           title="View Job Details"
         >
           <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
-        </button>
+        </div>
       </div>
     </motion.div>
   );
 }
+

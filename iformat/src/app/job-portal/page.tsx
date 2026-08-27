@@ -394,6 +394,12 @@ function JobPortalContent() {
   const [selectedJob, setSelectedJob] = React.useState<Job | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = React.useState(false);
   const [isAddJobOpen, setIsAddJobOpen] = React.useState(false);
+  // Track applied jobs locally for instant UI feedback
+  const [appliedJobIds, setAppliedJobIds] = React.useState<Set<string>>(new Set());
+
+  const handleJobApplied = (jobId: string) => {
+    setAppliedJobIds((prev) => new Set(prev).add(jobId));
+  };
 
   // TanStack Query
   const { data: fetchedJobs, isLoading } = useJobs({
@@ -520,18 +526,20 @@ function JobPortalContent() {
             )}
           </div>
 
-          {/* Post a Job button with RBAC / Auth redirect */}
-          <button
-            onClick={handlePostJobClick}
-            className="w-full sm:w-auto h-12 px-6 rounded-xl bg-[#0A54B1] hover:bg-[#0A54B1]/90 text-white text-sm font-bold flex items-center justify-center gap-1.5 shadow-md shadow-blue-500/10 cursor-pointer shrink-0 transition-all hover:scale-[1.02] active:scale-[0.98]"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Post a Job</span>
-          </button>
+          {/* Add Job Button (Visible to Employers/Admins) */}
+          {isEmployerOrAdmin && (
+            <button
+              onClick={handlePostJobClick}
+              className="h-12 px-6 rounded-xl bg-[#0A54B1] hover:bg-[#0A54B1]/90 text-white font-bold text-sm shadow-md shadow-blue-500/20 hover:shadow-lg transition-all active:scale-95 flex items-center gap-2 shrink-0 cursor-pointer w-full sm:w-auto justify-center"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Post a Job</span>
+            </button>
+          )}
         </div>
 
-        {/* Filter Badges Carousel */}
-        <div className="max-w-4xl mx-auto">
+        {/* Categories Bar */}
+        <div className="border-y border-slate-100 py-6">
           <JobFilters
             categories={industryCounts}
             selectedCategory={selectedCategory}
@@ -549,30 +557,28 @@ function JobPortalContent() {
 
         {/* Jobs Grid Section */}
         {isLoading ? (
-          /* SKELETON LOADER ANIMATION */
-          <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {Array.from({ length: 4 }).map((_, idx) => (
+          /* SKELETON LOADING GRID */
+          <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 animate-pulse">
+            {Array.from({ length: 8 }).map((_, i) => (
               <div
-                key={idx}
-                className="bg-white rounded-3xl border border-slate-100 p-6 flex flex-col justify-between h-75 shadow-sm animate-pulse"
+                key={i}
+                className="bg-white rounded-3xl border border-slate-100 p-6 flex flex-col justify-between h-64 shadow-xs"
               >
-                <div className="flex justify-between items-center mb-5">
-                  <div className="h-6 w-20 bg-slate-100 rounded-lg" />
-                  <div className="h-6 w-16 bg-slate-100 rounded-lg" />
+                <div className="flex justify-between items-center mb-4">
+                  <div className="h-5 w-16 bg-slate-100 rounded-full" />
+                  <div className="h-5 w-20 bg-slate-100 rounded-full" />
                 </div>
                 <div className="space-y-3 mb-6">
-                  <div className="h-5 w-[85%] bg-slate-100 rounded-md" />
-                  <div className="h-5 w-[60%] bg-slate-100 rounded-md" />
-                  <div className="flex items-center gap-2 mt-4">
-                    <div className="w-7 h-7 rounded-full bg-slate-100" />
-                    <div className="h-4 w-24 bg-slate-100 rounded-md" />
+                  <div className="h-6 w-3/4 bg-slate-100 rounded-md" />
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded-full bg-slate-100" />
+                    <div className="h-4 w-1/3 bg-slate-100 rounded-md" />
                   </div>
                 </div>
                 <div className="space-y-2 pt-3 border-t border-slate-50">
                   <div className="h-5 w-20 bg-slate-100 rounded-md" />
                   <div className="h-5 w-28 bg-slate-100 rounded-md" />
                 </div>
-                <div className="h-10 w-full bg-slate-100 rounded-xl mt-5" />
               </div>
             ))}
           </div>
@@ -608,6 +614,7 @@ function JobPortalContent() {
                   <JobCard
                     key={job.id}
                     job={job}
+                    isApplied={appliedJobIds.has(job.id)}
                     onViewDetails={() => {
                       setSelectedJob(job);
                       setIsDetailsOpen(true);
@@ -647,6 +654,8 @@ function JobPortalContent() {
       <JobDetailsSheet
         job={selectedJob}
         isOpen={isDetailsOpen}
+        isApplied={selectedJob ? appliedJobIds.has(selectedJob.id) : false}
+        onApplied={handleJobApplied}
         onClose={() => {
           setIsDetailsOpen(false);
           // Wait for animation to finish before clearing job to prevent jumpiness

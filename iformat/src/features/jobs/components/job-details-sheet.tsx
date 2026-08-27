@@ -26,9 +26,17 @@ interface JobDetailsSheetProps {
   job: Job | null;
   isOpen: boolean;
   onClose: () => void;
+  isApplied?: boolean;
+  onApplied?: (jobId: string) => void;
 }
 
-export function JobDetailsSheet({ job, isOpen, onClose }: JobDetailsSheetProps) {
+export function JobDetailsSheet({
+  job,
+  isOpen,
+  onClose,
+  isApplied = false,
+  onApplied,
+}: JobDetailsSheetProps) {
   const router = useRouter();
   const { user, isAuthenticated } = useAuthStore();
   const userRole = user?.role?.toUpperCase();
@@ -36,12 +44,14 @@ export function JobDetailsSheet({ job, isOpen, onClose }: JobDetailsSheetProps) 
 
   const [activeTab, setActiveTab] = useState<"details" | "applicants">("details");
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
+  const [hasAppliedLocally, setHasAppliedLocally] = useState(false);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const [downloadAllState, setDownloadAllState] = useState<"idle" | "loading" | "success">("idle");
   const [downloadedApplicants, setDownloadedApplicants] = useState<Record<string, boolean>>({});
 
   if (!job) return null;
 
+  const appliedState = isApplied || hasAppliedLocally;
   const applicants = job.applicants || [];
   const applicantsCount = job._count?.applications ?? applicants.length;
 
@@ -432,12 +442,22 @@ export function JobDetailsSheet({ job, isOpen, onClose }: JobDetailsSheetProps) 
                   <span className="text-base font-extrabold text-[#0A54B1]">{job.salary}</span>
                 </div>
 
-                <button
-                  onClick={handleApplyClick}
-                  className="bg-primary hover:bg-primary/95 text-white font-bold text-sm px-6 py-3 rounded-2xl shadow-lg shadow-blue-500/20 hover:shadow-xl hover:shadow-blue-500/30 transition-all active:scale-95 cursor-pointer"
-                >
-                  Apply for this Position
-                </button>
+                {appliedState ? (
+                  <button
+                    disabled
+                    className="bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold text-sm px-6 py-3 rounded-2xl flex items-center gap-2 cursor-default shadow-xs"
+                  >
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                    Applied Successfully
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleApplyClick}
+                    className="bg-primary hover:bg-primary/95 text-white font-bold text-sm px-6 py-3 rounded-2xl shadow-lg shadow-blue-500/20 hover:shadow-xl hover:shadow-blue-500/30 transition-all active:scale-95 cursor-pointer"
+                  >
+                    Apply for this Position
+                  </button>
+                )}
               </div>
             )}
           </motion.div>
@@ -451,6 +471,10 @@ export function JobDetailsSheet({ job, isOpen, onClose }: JobDetailsSheetProps) 
           job={job}
           isOpen={isApplyModalOpen}
           onClose={() => setIsApplyModalOpen(false)}
+          onApplied={(appliedJobId) => {
+            setHasAppliedLocally(true);
+            onApplied?.(appliedJobId);
+          }}
         />
       )}
     </>
