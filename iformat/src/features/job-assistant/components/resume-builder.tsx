@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useRouter } from "next/navigation";
 import { 
   User, 
   FileText, 
@@ -153,6 +154,7 @@ export function ResumeBuilder() {
   const saveVersionMutation = useSaveCVVersion();
   const deleteCVMutation = useDeleteCV();
 
+  const router = useRouter();
   const [activeCvId, setActiveCvId] = React.useState<string | null>(null);
   const [activeCvTitle, setActiveCvTitle] = React.useState<string>("My Resume");
   const [activeVersionNumber, setActiveVersionNumber] = React.useState<number>(1);
@@ -162,7 +164,8 @@ export function ResumeBuilder() {
 
   const handleSaveToCloud = async () => {
     if (!isAuthenticated) {
-      toast.error("Please log in to save your resume to the cloud");
+      toast.info("Please log in to save your resume to the cloud.");
+      router.push("/login?redirect=/job-assistant");
       return;
     }
 

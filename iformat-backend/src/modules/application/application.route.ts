@@ -7,7 +7,7 @@ import {
 } from "./application.validation.js";
 import { validate } from "../../middlewares/validate.middleware.js";
 import { requireAuth } from "../../middlewares/auth.middleware.js";
-import { requireEmployer } from "../../middlewares/rbac.middleware.js";
+import { requireEmployer, requireCandidate } from "../../middlewares/rbac.middleware.js";
 import { requireApplicationQuota } from "../../middlewares/entitlement.middleware.js";
 import { catchAsync } from "../../utils/catchAsync.js";
 
@@ -18,6 +18,7 @@ router.use(requireAuth);
 // Candidate applies to a job
 router.post(
   "/",
+  requireCandidate,
   requireApplicationQuota,
   validate({ body: applyJobSchema }),
   catchAsync(ApplicationController.apply)

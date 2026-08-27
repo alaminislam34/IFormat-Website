@@ -15,6 +15,8 @@ import {
   Loader2,
   FileText,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useAuthStore } from "@/stores/use-auth-store";
 import { cn } from "@/lib/utils";
 import { Job, Applicant } from "./job-card";
 import { ApplyModal } from "./apply-modal";
@@ -27,6 +29,11 @@ interface JobDetailsSheetProps {
 }
 
 export function JobDetailsSheet({ job, isOpen, onClose }: JobDetailsSheetProps) {
+  const router = useRouter();
+  const { user, isAuthenticated } = useAuthStore();
+  const userRole = user?.role?.toUpperCase();
+  const isEmployerOrAdmin = userRole === "EMPLOYER" || userRole === "ADMIN";
+
   const [activeTab, setActiveTab] = useState<"details" | "applicants">("details");
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
@@ -37,6 +44,22 @@ export function JobDetailsSheet({ job, isOpen, onClose }: JobDetailsSheetProps) 
 
   const applicants = job.applicants || [];
   const applicantsCount = job._count?.applications ?? applicants.length;
+
+  const handleApplyClick = () => {
+    if (!isAuthenticated) {
+      toast.info("Please sign in to submit your job application.");
+      onClose();
+      router.push(`/login?redirect=${encodeURIComponent(`/job-portal?job=${job.id}`)}`);
+      return;
+    }
+
+    if (userRole === "EMPLOYER") {
+      toast.error("Employer accounts cannot submit job applications. Please use a candidate account.");
+      return;
+    }
+
+    setIsApplyModalOpen(true);
+  };
 
   const handleDownloadCV = (applicantName: string) => {
     setDownloadingId(applicantName);
@@ -153,46 +176,48 @@ export function JobDetailsSheet({ job, isOpen, onClose }: JobDetailsSheetProps) 
             </div>
 
             {/* Tab Switcher */}
-            <div className="flex bg-white px-6 border-b border-slate-100">
-              <button
-                onClick={() => setActiveTab("details")}
-                className="relative py-4 pr-6 text-sm font-bold focus:outline-none cursor-pointer"
-              >
-                <span className={activeTab === "details" ? "text-primary" : "text-slate-500 hover:text-slate-700"}>
-                  Job Details
-                </span>
-                {activeTab === "details" && (
-                  <motion.div
-                    layoutId="active-tab-underline"
-                    className="absolute bottom-0 left-0 right-6 h-0.5 bg-primary"
-                  />
-                )}
-              </button>
-              <button
-                onClick={() => setActiveTab("applicants")}
-                className="relative py-4 px-6 text-sm font-bold focus:outline-none cursor-pointer flex items-center gap-1.5"
-              >
-                <span className={activeTab === "applicants" ? "text-primary" : "text-slate-500 hover:text-slate-700"}>
-                  Applicants
-                </span>
-                <span
-                  className={cn(
-                    "text-xs font-semibold px-2 py-0.5 rounded-full",
-                    activeTab === "applicants"
-                      ? "bg-primary/10 text-primary"
-                      : "bg-slate-100 text-slate-500"
-                  )}
+            {isEmployerOrAdmin && (
+              <div className="flex bg-white px-6 border-b border-slate-100">
+                <button
+                  onClick={() => setActiveTab("details")}
+                  className="relative py-4 pr-6 text-sm font-bold focus:outline-none cursor-pointer"
                 >
-                  {applicantsCount}
-                </span>
-                {activeTab === "applicants" && (
-                  <motion.div
-                    layoutId="active-tab-underline"
-                    className="absolute bottom-0 left-6 right-6 h-0.5 bg-primary"
-                  />
-                )}
-              </button>
-            </div>
+                  <span className={activeTab === "details" ? "text-primary" : "text-slate-500 hover:text-slate-700"}>
+                    Job Details
+                  </span>
+                  {activeTab === "details" && (
+                    <motion.div
+                      layoutId="active-tab-underline"
+                      className="absolute bottom-0 left-0 right-6 h-0.5 bg-primary"
+                    />
+                  )}
+                </button>
+                <button
+                  onClick={() => setActiveTab("applicants")}
+                  className="relative py-4 px-6 text-sm font-bold focus:outline-none cursor-pointer flex items-center gap-1.5"
+                >
+                  <span className={activeTab === "applicants" ? "text-primary" : "text-slate-500 hover:text-slate-700"}>
+                    Applicants
+                  </span>
+                  <span
+                    className={cn(
+                      "text-xs font-semibold px-2 py-0.5 rounded-full",
+                      activeTab === "applicants"
+                        ? "bg-primary/10 text-primary"
+                        : "bg-slate-100 text-slate-500"
+                    )}
+                  >
+                    {applicantsCount}
+                  </span>
+                  {activeTab === "applicants" && (
+                    <motion.div
+                      layoutId="active-tab-underline"
+                      className="absolute bottom-0 left-6 right-6 h-0.5 bg-primary"
+                    />
+                  )}
+                </button>
+              </div>
+            )}
 
             {/* Scrollable Content */}
             <div className="flex-1 overflow-y-auto p-6 scrollbar-thin scrollbar-thumb-slate-200">
@@ -408,7 +433,7 @@ export function JobDetailsSheet({ job, isOpen, onClose }: JobDetailsSheetProps) 
                 </div>
 
                 <button
-                  onClick={() => setIsApplyModalOpen(true)}
+                  onClick={handleApplyClick}
                   className="bg-primary hover:bg-primary/95 text-white font-bold text-sm px-6 py-3 rounded-2xl shadow-lg shadow-blue-500/20 hover:shadow-xl hover:shadow-blue-500/30 transition-all active:scale-95 cursor-pointer"
                 >
                   Apply for this Position

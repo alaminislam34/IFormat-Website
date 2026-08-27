@@ -3,6 +3,9 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { useAuthStore } from "@/stores/use-auth-store";
 import {
   Calendar,
   Brain,
@@ -20,10 +23,17 @@ import { BookConsultationModal } from "@/features/services/components/book-consu
 import { Button } from "@/components/ui/button";
 
 export default function ServicesPage() {
+  const router = useRouter();
+  const { isAuthenticated } = useAuthStore();
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const [selectedServiceTitle, setSelectedServiceTitle] = useState("1-on-1 Career Strategy Consultation");
 
   const handleOpenBooking = (title: string) => {
+    if (!isAuthenticated) {
+      toast.info("Please sign in to book your career consultation session.");
+      router.push(`/login?redirect=${encodeURIComponent("/services")}`);
+      return;
+    }
     setSelectedServiceTitle(title);
     setIsBookingModalOpen(true);
   };

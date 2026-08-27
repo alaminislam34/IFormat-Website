@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AnimatePresence } from "framer-motion";
@@ -16,8 +16,11 @@ import { useLogin } from "@/hooks";
 import { handleFormError } from "@/lib/handle-form-error";
 import { useAuthStore } from "@/stores/use-auth-store";
 
-export default function LoginPage() {
+function LoginContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectUrl = searchParams.get("redirect");
+
   const { user, isAuthenticated } = useAuthStore();
   const loginMutation = useLogin();
   const [showPassword, setShowPassword] = useState(false);
@@ -26,10 +29,14 @@ export default function LoginPage() {
 
   React.useEffect(() => {
     if (isAuthenticated && user) {
+      if (redirectUrl && redirectUrl.startsWith("/")) {
+        router.replace(redirectUrl);
+        return;
+      }
       const dest = user.role?.toUpperCase() === "ADMIN" ? "/admin" : "/job-portal";
       router.replace(dest);
     }
-  }, [isAuthenticated, user, router]);
+  }, [isAuthenticated, user, router, redirectUrl]);
 
   const {
     register,
@@ -62,8 +69,15 @@ export default function LoginPage() {
 
           toast.success(`Welcome back, ${res.user.name}!`);
 
+          if (redirectUrl && redirectUrl.startsWith("/")) {
+            router.push(redirectUrl);
+            return;
+          }
+
           const role = res.user.role?.toLowerCase();
-          if (role === "employer") {
+          if (role === "admin") {
+            router.push("/admin");
+          } else if (role === "employer") {
             router.push("/company-details");
           } else {
             router.push("/job-portal");
@@ -225,15 +239,29 @@ export default function LoginPage() {
             Sign in with Google
           </button>
 
-          {/* Submit Button */}
-          <button
-            type="submit"
-            className="w-full h-12 mt-2 bg-linear-to-r from-[#52CEDE] to-[#0A54B1] text-white text-sm font-bold rounded-xl shadow-lg shadow-blue-500/20 hover:opacity-95 hover:shadow-xl transition-all duration-200 active:scale-[0.99] flex items-center justify-center cursor-pointer"
-          >
-            Sign in
-          </button>
-        </form>
-      </div>
-    </AuthLayout>
-  );
-}
+            {/* Submit Button */}
+            <button
+              type="submit"
+              className="w-full h-12 mt-2 bg-linear-to-r from-[#52CEDE] to-[#0A54B1] text-white text-sm font-bold rounded-xl shadow-lg shadow-blue-500/20 hover:opacity-95 hover:shadow-xl transition-all duration-200 active:scale-[0.99] flex items-center justify-center cursor-pointer"
+            >
+              Sign in
+            </button>
+          </form>
+        </div>
+      </AuthLayout>
+    );
+  }
+
+  export default function LoginPage() {
+    return (
+      <React.Suspense
+        fallback={
+          <div className="min-h-screen flex items-center justify-center bg-slate-50">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0A54B1]" />
+          </div>
+        }
+      >
+        <LoginContent />
+      </React.Suspense>
+    );
+  }

@@ -404,6 +404,33 @@ function JobPortalContent() {
   const createJobMutation = useCreateJob();
   const jobs = fetchedJobs || INITIAL_JOBS;
 
+  // Auto-open job details when returning from login redirect (?job=ID)
+  React.useEffect(() => {
+    const jobId = searchParams.get("job");
+    if (jobId && jobs.length > 0 && !selectedJob) {
+      const targetJob = jobs.find((j) => j.id === jobId);
+      if (targetJob) {
+        setSelectedJob(targetJob);
+        setIsDetailsOpen(true);
+      }
+    }
+  }, [searchParams, jobs, selectedJob]);
+
+  const handlePostJobClick = () => {
+    if (!isAuthenticated) {
+      toast.info("Please log in with an employer account to post a job.");
+      router.push("/login?redirect=/job-portal");
+      return;
+    }
+
+    if (userRole === "CANDIDATE") {
+      toast.error("Job posting is available for employer accounts. Please switch to or sign in with an employer account.");
+      return;
+    }
+
+    setIsAddJobOpen(true);
+  };
+
   const handleCategoryChange = (category: string) => {
     setSelectedCategory(category);
   };
@@ -493,16 +520,14 @@ function JobPortalContent() {
             )}
           </div>
 
-          {/* Only Employers and Admins can Post Jobs */}
-          {isEmployerOrAdmin && (
-            <button
-              onClick={() => setIsAddJobOpen(true)}
-              className="w-full sm:w-auto h-12 px-6 rounded-xl bg-[#0A54B1] hover:bg-[#0A54B1]/90 text-white text-sm font-bold flex items-center justify-center gap-1.5 shadow-md shadow-blue-500/10 cursor-pointer shrink-0 transition-all hover:scale-[1.02] active:scale-[0.98]"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Post a Job</span>
-            </button>
-          )}
+          {/* Post a Job button with RBAC / Auth redirect */}
+          <button
+            onClick={handlePostJobClick}
+            className="w-full sm:w-auto h-12 px-6 rounded-xl bg-[#0A54B1] hover:bg-[#0A54B1]/90 text-white text-sm font-bold flex items-center justify-center gap-1.5 shadow-md shadow-blue-500/10 cursor-pointer shrink-0 transition-all hover:scale-[1.02] active:scale-[0.98]"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Post a Job</span>
+          </button>
         </div>
 
         {/* Filter Badges Carousel */}

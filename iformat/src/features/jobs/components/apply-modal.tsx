@@ -45,7 +45,10 @@ interface ApplyModalProps {
   onClose: () => void;
 }
 
+import { useRouter } from "next/navigation";
+
 export function ApplyModal({ job, isOpen, onClose }: ApplyModalProps) {
+  const router = useRouter();
   const { user, isAuthenticated } = useAuthStore();
   const applyJobMutation = useApplyJob();
   const generateLetterMutation = useGenerateCoverLetter();
@@ -96,6 +99,13 @@ export function ApplyModal({ job, isOpen, onClose }: ApplyModalProps) {
   };
 
   const onSubmit = (data: ApplyFormData) => {
+    if (!isAuthenticated) {
+      toast.info("Please sign in to submit your job application.");
+      onClose();
+      router.push(`/login?redirect=${encodeURIComponent(`/job-portal?job=${job.id}`)}`);
+      return;
+    }
+
     applyJobMutation.mutate(
       {
         jobId: job.id,
@@ -125,14 +135,14 @@ export function ApplyModal({ job, isOpen, onClose }: ApplyModalProps) {
   return (
     <AnimatePresence>
       {isOpen && (
-        <div key="apply-modal-container" className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div key="apply-modal-container" className="fixed inset-0 z-70 flex items-center justify-center p-4">
           <motion.div
             key="apply-modal-backdrop"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity"
+            className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"
           />
 
           <motion.div
@@ -140,6 +150,7 @@ export function ApplyModal({ job, isOpen, onClose }: ApplyModalProps) {
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            data-lenis-prevent
             className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl p-6 md:p-8 z-10 overflow-hidden border border-slate-100"
           >
             {/* Header */}
