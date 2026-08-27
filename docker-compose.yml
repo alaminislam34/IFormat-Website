@@ -59,7 +59,7 @@ services:
       CORS_ORIGIN: "http://localhost:3000,http://127.0.0.1:3000"
       JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-local_dev_jwt_access_secret_32_characters_minimum}
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-local_dev_jwt_refresh_secret_32_characters_minimum}
-      AI_SERVICE_URL: ${AI_SERVICE_URL:-http://10.10.28.89:8010}
+      AI_SERVICE_URL: ${AI_SERVICE_URL:-http://18.185.68.217:8010}
       AI_SERVICE_TIMEOUT_MS: ${AI_SERVICE_TIMEOUT_MS:-60000}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-sk-mock-key}
     ports:
