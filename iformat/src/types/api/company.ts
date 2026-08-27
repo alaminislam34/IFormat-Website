@@ -15,9 +15,11 @@ export interface CompanyProfileDTO {
 
 export interface UpdateCompanyDetailsRequest {
   name: string;
-  email: string;
+  email?: string;
   phone?: string;
+  website?: string;
   description?: string;
+  logoUrl?: string;
   logoFile?: string | null;
   pitchVideoFile?: string | null;
   documentFiles?: string[];

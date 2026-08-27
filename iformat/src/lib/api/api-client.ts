@@ -63,6 +63,17 @@ class ApiClient {
     }
   }
 
+  private clearAuth() {
+    if (typeof window === "undefined") return;
+    try {
+      localStorage.removeItem("iformat-auth-storage");
+      document.cookie = "accessToken=; path=/; max-age=0; SameSite=Lax";
+      document.cookie = "iformat_access_token=; path=/; max-age=0; SameSite=Lax";
+    } catch {
+      // Ignore
+    }
+  }
+
   private onTokenRefreshed(newToken: string | null) {
     this.refreshSubscribers.forEach((callback) => callback(newToken));
     this.refreshSubscribers = [];
@@ -167,36 +178,40 @@ class ApiClient {
 
           try {
             const rawRefreshToken = this.getRefreshToken();
-            const refreshRes = await fetch(this.buildUrl("/auth/refresh"), {
-              method: "POST",
-              credentials: "include",
-              headers: { "Content-Type": "application/json", Accept: "application/json" },
-              body: JSON.stringify({ refreshToken: rawRefreshToken }),
-            });
+            if (rawRefreshToken) {
+              const refreshRes = await fetch(this.buildUrl("/auth/refresh"), {
+                method: "POST",
+                credentials: "include",
+                headers: { "Content-Type": "application/json", Accept: "application/json" },
+                body: JSON.stringify({ refreshToken: rawRefreshToken }),
+              });
 
-            if (refreshRes.ok) {
-              const refreshData = await refreshRes.json();
-              const newToken =
-                refreshData?.data?.token || refreshData?.data?.accessToken || null;
-              const newRefreshToken = refreshData?.data?.refreshToken || null;
+              if (refreshRes.ok) {
+                const refreshData = await refreshRes.json();
+                const newToken =
+                  refreshData?.data?.token || refreshData?.data?.accessToken || null;
+                const newRefreshToken = refreshData?.data?.refreshToken || null;
 
-              if (newToken) {
-                this.setTokens(newToken, newRefreshToken);
-                this.onTokenRefreshed(newToken);
-                this.isRefreshing = false;
+                if (newToken) {
+                  this.setTokens(newToken, newRefreshToken);
+                  this.onTokenRefreshed(newToken);
+                  this.isRefreshing = false;
 
-                // Retry original request
-                return this.request<T>(endpoint, {
-                  ...options,
-                  token: newToken,
-                  _retry: true,
-                });
+                  // Retry original request
+                  return this.request<T>(endpoint, {
+                    ...options,
+                    token: newToken,
+                    _retry: true,
+                  });
+                }
               }
             }
           } catch {
             // Refresh failed
           }
 
+          // If refresh failed or was not possible, clear invalid tokens
+          this.clearAuth();
           this.isRefreshing = false;
           this.onTokenRefreshed(null);
         } else {

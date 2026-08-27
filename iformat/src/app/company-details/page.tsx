@@ -119,11 +119,21 @@ export default function CompanyDetailsPage() {
     try {
       setIsLoading(true);
       const { apiClient } = await import("@/lib/api/api-client");
-      await apiClient.patch("/users/company", {
+      const updatedUser = await apiClient.post<any>("/users/company", {
         companyName,
         companyWebsite: companyEmail ? `https://${companyEmail.split("@")[1] || "example.com"}` : undefined,
         companyDescription: description || undefined,
       });
+
+      // Sync Zustand auth store with employer role and company details
+      const { useAuthStore } = await import("@/stores/use-auth-store");
+      useAuthStore.getState().updateUser({
+        role: "employer",
+        companyName,
+        companyDescription: description,
+        ...updatedUser,
+      });
+      useAuthStore.getState().setRole("employer");
 
       setIsSuccess(true);
       toast.success("Company profile configured successfully!");
@@ -414,12 +424,20 @@ export default function CompanyDetailsPage() {
             <p className="text-sm text-slate-500 mb-8 max-w-sm mx-auto leading-relaxed">
               Your company details have been successfully saved. Let&apos;s go to your new workspace.
             </p>
-            <Link
-              href="/"
-              className="inline-flex items-center justify-center gap-2 w-full h-12 bg-linear-to-r from-[#52CEDE] to-[#0A54B1] text-white text-sm font-bold rounded-xl shadow-md hover:opacity-95 transition-all"
-            >
-              Go to Homepage <ArrowRight className="w-4 h-4" />
-            </Link>
+            <div className="space-y-3">
+              <Link
+                href="/dashboard"
+                className="inline-flex items-center justify-center gap-2 w-full h-12 bg-linear-to-r from-[#52CEDE] to-[#0A54B1] text-white text-sm font-bold rounded-xl shadow-md hover:opacity-95 transition-all"
+              >
+                Go to Employer Dashboard <ArrowRight className="w-4 h-4" />
+              </Link>
+              <Link
+                href="/job-portal"
+                className="inline-flex items-center justify-center gap-2 w-full h-12 bg-slate-100 hover:bg-slate-200 text-slate-800 text-sm font-bold rounded-xl transition-all"
+              >
+                Post a Job Now
+              </Link>
+            </div>
           </motion.div>
         )}
       </div>

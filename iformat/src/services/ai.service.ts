@@ -1,5 +1,4 @@
 import { apiClient } from "@/lib/api/api-client";
-import { mockDb } from "@/lib/api/mock-adapter";
 import {
   GenerateCoverLetterRequest,
   CoverLetterResponseDTO,
@@ -15,81 +14,40 @@ import {
   CareerChatResponseDTO,
 } from "@/types/api";
 
-const isMockEnabled = process.env.NEXT_PUBLIC_USE_MOCK === "true";
-
 export const aiService = {
   /**
    * Generates tailored cover letter via backend AI API
    */
   async generateCoverLetter(payload: GenerateCoverLetterRequest): Promise<string> {
-    if (isMockEnabled) {
-      return mockDb.generateCoverLetter({
-        role: payload.role,
-        company: payload.company,
-        experienceContext: payload.jobDescription || payload.experienceContext || "",
-      });
-    }
-    try {
-      const res = await apiClient.post<CoverLetterResponseDTO>("/ai/cover-letter", {
-        role: payload.role,
-        company: payload.company,
-        recipient: payload.recipient || "Hiring Manager",
-        jobDescription: payload.jobDescription || payload.experienceContext || "",
-        tone: payload.tone || "professional",
-        candidateProfile: payload.candidateProfile,
-      });
-      return res.letter;
-    } catch (error) {
-      if (process.env.NODE_ENV === "development" && isMockEnabled) {
-        return mockDb.generateCoverLetter({
-          role: payload.role,
-          company: payload.company,
-          experienceContext: payload.jobDescription || payload.experienceContext || "",
-        });
-      }
-      throw error;
-    }
+    const res = await apiClient.post<CoverLetterResponseDTO>("/ai/cover-letter", {
+      role: payload.role,
+      company: payload.company,
+      recipient: payload.recipient || "Hiring Manager",
+      jobDescription: payload.jobDescription || payload.experienceContext || "",
+      tone: payload.tone || "professional",
+      candidateProfile: payload.candidateProfile,
+    });
+    return res.letter;
   },
 
   /**
    * Generates high-converting cold email via backend AI API
    */
   async generateEmail(payload: GenerateEmailRequest): Promise<string> {
-    if (isMockEnabled) {
-      return mockDb.generateOutreachEmail(payload);
-    }
-    try {
-      const res = await apiClient.post<ColdEmailResponseDTO>("/ai/email", {
-        recipient: payload.recipient || payload.recipientName || "Hiring Manager",
-        role: payload.role,
-        company: payload.company,
-        context: payload.context,
-        tone: payload.tone,
-      });
-      return res.email;
-    } catch (error) {
-      if (process.env.NODE_ENV === "development" && isMockEnabled) {
-        return mockDb.generateOutreachEmail(payload);
-      }
-      throw error;
-    }
+    const res = await apiClient.post<ColdEmailResponseDTO>("/ai/email", {
+      recipient: payload.recipient || payload.recipientName || "Hiring Manager",
+      role: payload.role,
+      company: payload.company,
+      context: payload.context,
+      tone: payload.tone,
+    });
+    return res.email;
   },
 
   /**
    * Optimizes resume PDF via backend AI API
    */
   async optimizeResume(payload: OptimizeResumeRequest): Promise<ResumeOptimizerResponseDTO> {
-    if (isMockEnabled) {
-      return {
-        model: "mock-model",
-        tokensUsed: 120,
-        summary: `Optimized resume for ${payload.targetRole} in ${payload.targetIndustry}`,
-        fileName: "optimized_resume.pdf",
-        contentType: "application/pdf",
-        pdfBase64: "",
-      };
-    }
-
     const formData = new FormData();
     if (payload.file) {
       formData.append("resume", payload.file);

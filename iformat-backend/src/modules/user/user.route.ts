@@ -33,4 +33,10 @@ router.post(
   catchAsync(UserController.updateCompany)
 );
 
+router.patch(
+  "/company",
+  validate({ body: updateCompanyProfileSchema }),
+  catchAsync(UserController.updateCompany)
+);
+
 export const userRouter = router;
