@@ -17,9 +17,6 @@ permissions:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_FRONTEND: ghcr.io/${{ github.repository }}/frontend
-  IMAGE_BACKEND: ghcr.io/${{ github.repository }}/backend
-  IMAGE_GATEWAY: ghcr.io/${{ github.repository }}/gateway
 
 jobs:
   # ============================================================================
@@ -35,24 +32,27 @@ jobs:
           - service: backend
             context: ./iformat-backend
             dockerfile: ./iformat-backend/Dockerfile
-            image: ghcr.io/${{ github.repository }}/backend
             build-args: ""
           - service: frontend
             context: ./iformat
             dockerfile: ./iformat/Dockerfile
-            image: ghcr.io/${{ github.repository }}/frontend
             build-args: |
               NEXT_PUBLIC_API_URL=/api/v1
               NEXT_PUBLIC_USE_MOCK=false
           - service: gateway
             context: ./nginx
             dockerfile: ./nginx/Dockerfile
-            image: ghcr.io/${{ github.repository }}/gateway
             build-args: ""
 
     steps:
       - name: Checkout Source Code
         uses: actions/checkout@v4
+
+      - name: Set up Lowercase Image Name
+        id: repo
+        run: |
+          LOWER_REPO=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          echo "image_name=ghcr.io/${LOWER_REPO}/${{ matrix.service }}" >> $GITHUB_OUTPUT
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -68,7 +68,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ matrix.image }}
+          images: ${{ steps.repo.outputs.image_name }}
           tags: |
             type=raw,value=latest,enable={{is_default_branch}}
             type=sha,prefix=sha-,format=short
@@ -95,36 +95,38 @@ jobs:
     needs: build-and-push
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' || github.event_name == 'release'
+    env:
+      DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+      DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+      DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+      DEPLOY_PORT: ${{ secrets.DEPLOY_PORT || 22 }}
+      DEPLOY_WEBHOOK_URL: ${{ secrets.DEPLOY_WEBHOOK_URL }}
+      DOTENV_CONTENT: ${{ secrets.DOTENV_PRODUCTION }}
     steps:
       - name: Checkout Source Code
         uses: actions/checkout@v4
 
       # Step 1: Copy docker-compose and nginx definitions directly to the server
       - name: Copy Deployment Files to Server
-        if: env.DEPLOY_SSH_HOST != ''
+        if: env.DEPLOY_HOST != ''
         uses: appleboy/scp-action@v0.1.7
-        env:
-          DEPLOY_SSH_HOST: ${{ secrets.DEPLOY_HOST }}
         with:
-          host: ${{ secrets.DEPLOY_HOST }}
-          username: ${{ secrets.DEPLOY_USER }}
-          key: ${{ secrets.DEPLOY_SSH_KEY }}
-          port: ${{ secrets.DEPLOY_PORT || 22 }}
+          host: ${{ env.DEPLOY_HOST }}
+          username: ${{ env.DEPLOY_USER }}
+          key: ${{ env.DEPLOY_SSH_KEY }}
+          port: ${{ env.DEPLOY_PORT }}
           source: "docker-compose.prod.yml,nginx"
           target: "iformat"
 
       # Step 2: Automated SSH Deployment execution
       - name: Execute Remote Deployment via SSH
-        if: env.DEPLOY_SSH_HOST != ''
+        if: env.DEPLOY_HOST != ''
         uses: appleboy/ssh-action@v1.0.3
-        env:
-          DEPLOY_SSH_HOST: ${{ secrets.DEPLOY_HOST }}
-          DOTENV_CONTENT: ${{ secrets.DOTENV_PRODUCTION }}
         with:
-          host: ${{ secrets.DEPLOY_HOST }}
-          username: ${{ secrets.DEPLOY_USER }}
-          key: ${{ secrets.DEPLOY_SSH_KEY }}
-          port: ${{ secrets.DEPLOY_PORT || 22 }}
+          host: ${{ env.DEPLOY_HOST }}
+          username: ${{ env.DEPLOY_USER }}
+          key: ${{ env.DEPLOY_SSH_KEY }}
+          port: ${{ env.DEPLOY_PORT }}
           envs: DOTENV_CONTENT
           script: |
             set -e
@@ -159,7 +161,5 @@ jobs:
       # Optional Webhook deploy fallback (for Coolify, Portainer, CapRover)
       - name: Trigger Webhook Deployment (Optional)
         if: env.DEPLOY_WEBHOOK_URL != ''
-        env:
-          DEPLOY_WEBHOOK_URL: ${{ secrets.DEPLOY_WEBHOOK_URL }}
         run: |
-          curl -X POST "${{ secrets.DEPLOY_WEBHOOK_URL }}" -H "Content-Type: application/json"
+          curl -X POST "${{ env.DEPLOY_WEBHOOK_URL }}" -H "Content-Type: application/json"
