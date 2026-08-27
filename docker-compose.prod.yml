@@ -98,6 +98,8 @@ services:
       SMTP_FROM: ${SMTP_FROM:-iFormat <devamin.bd@gmail.com>}
     depends_on:
       - redis
+    ports:
+      - "5000:5000"
     deploy:
       resources:
         limits:
@@ -120,6 +122,8 @@ services:
     environment:
       NODE_ENV: production
       PORT: 3000
+    ports:
+      - "3000:3000"
     depends_on:
       - backend
     deploy:
