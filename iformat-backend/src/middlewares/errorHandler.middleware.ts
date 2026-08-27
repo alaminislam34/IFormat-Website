@@ -8,19 +8,22 @@ import { env } from "../config/env.js";
 
 export const errorHandler: ErrorRequestHandler = (
   err: any,
-  _req: Request,
+  req: Request,
   res: Response,
   _next: NextFunction
 ) => {
+  const reqId = req.id || req.headers["x-request-id"]?.toString();
+  const logPrefix = reqId ? `[ReqID: ${reqId}] ` : "";
+
   if (err instanceof AppError && err.statusCode < 500) {
-    logger.warn(err.message);
+    logger.warn(`${logPrefix}${err.message}`);
   } else {
-    logger.error(err);
+    logger.error(`${logPrefix}${err?.stack || err?.message || err}`);
   }
 
   // 1. Handled AppError instances
   if (err instanceof AppError) {
-    return ApiResponse.error(res, err.message, err.statusCode, err.errors);
+    return ApiResponse.error(res, err.message, err.statusCode, err.errors, reqId);
   }
 
   // 2. Zod Validation Errors
@@ -29,7 +32,7 @@ export const errorHandler: ErrorRequestHandler = (
       field: e.path.join("."),
       message: e.message,
     }));
-    return ApiResponse.error(res, "Validation failed", 400, formattedErrors);
+    return ApiResponse.error(res, "Validation failed", 400, formattedErrors, reqId);
   }
 
   // 3. Prisma Known Request Errors
@@ -42,30 +45,32 @@ export const errorHandler: ErrorRequestHandler = (
       return ApiResponse.error(
         res,
         `${target} already exists and violates unique constraint`,
-        409
+        409,
+        undefined,
+        reqId
       );
     }
     // Record not found
     if (err.code === "P2025") {
-      return ApiResponse.error(res, "Requested record was not found", 404);
+      return ApiResponse.error(res, "Requested record was not found", 404, undefined, reqId);
     }
     // Foreign key constraint failed
     if (err.code === "P2003") {
-      return ApiResponse.error(res, "Referenced record does not exist", 400);
+      return ApiResponse.error(res, "Referenced record does not exist", 400, undefined, reqId);
     }
   }
 
   // 4. JWT Errors
   if (err.name === "JsonWebTokenError") {
-    return ApiResponse.error(res, "Invalid token signature", 401);
+    return ApiResponse.error(res, "Invalid token signature", 401, undefined, reqId);
   }
   if (err.name === "TokenExpiredError") {
-    return ApiResponse.error(res, "Token has expired", 401);
+    return ApiResponse.error(res, "Token has expired", 401, undefined, reqId);
   }
 
   // 5. Stripe Webhook Errors
   if (err.type === "StripeSignatureVerificationError") {
-    return ApiResponse.error(res, "Stripe webhook signature verification failed", 400);
+    return ApiResponse.error(res, "Stripe webhook signature verification failed", 400, undefined, reqId);
   }
 
   // 6. Unknown / Unhandled Errors
@@ -79,6 +84,7 @@ export const errorHandler: ErrorRequestHandler = (
     res,
     message,
     statusCode,
-    env.NODE_ENV === "development" ? err.stack : undefined
+    env.NODE_ENV === "development" ? err.stack : undefined,
+    reqId
   );
 };

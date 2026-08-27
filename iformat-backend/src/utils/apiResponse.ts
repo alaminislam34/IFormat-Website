@@ -42,11 +42,13 @@ export class ApiResponse {
     res: Response,
     message = "An error occurred",
     statusCode = 500,
-    errors?: any
+    errors?: any,
+    requestId?: string
   ) {
     return res.status(statusCode).json({
       success: false,
       message,
+      ...(requestId ? { requestId } : {}),
       ...(errors !== undefined ? { errors } : {}),
     });
   }

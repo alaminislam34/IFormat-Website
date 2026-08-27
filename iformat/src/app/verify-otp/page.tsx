@@ -32,7 +32,6 @@ function VerifyOtpContent() {
     }
   }, [emailParam]);
 
-  // Sync remaining countdown from actual timestamp (prevents resetting on page refresh)
   useEffect(() => {
     if (!email) return;
     try {
@@ -57,7 +56,6 @@ function VerifyOtpContent() {
     }
   }, [email]);
 
-  // Active countdown ticker
   useEffect(() => {
     if (countdown <= 0) {
       setCanResend(true);

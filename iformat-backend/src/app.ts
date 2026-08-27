@@ -8,11 +8,15 @@ import { env } from "./config/env.js";
 import { apiRouter } from "./routes/index.js";
 import { errorHandler } from "./middlewares/errorHandler.middleware.js";
 import { apiLimiter } from "./middlewares/rateLimiter.middleware.js";
+import { requestId } from "./middlewares/requestId.middleware.js";
 import { NotFoundError } from "./errors/index.js";
 import { passport } from "./lib/passport.js";
 import { swaggerSpec } from "./docs/swagger.js";
 
 const app: Express = express();
+
+// 0. Request Correlation & ID Tracing
+app.use(requestId);
 
 // 1. Security & Protection Middlewares
 app.use(
@@ -81,6 +85,15 @@ app.get(
 // 6. API Routes Mount
 app.use(`/api/${env.API_VERSION}`, apiRouter);
 
+// Root Liveness & Readiness for load balancers/Docker
+app.get("/health", (_req: Request, res: Response) => {
+  return res.status(200).json({ status: "healthy", uptime: process.uptime() });
+});
+
+app.get("/health/ready", (_req: Request, res: Response) => {
+  return res.redirect(`/api/${env.API_VERSION}/health/ready`);
+});
+
 app.get("/", (_req: Request, res: Response) => {
   return res.status(200).json({
     success: true,
@@ -89,6 +102,7 @@ app.get("/", (_req: Request, res: Response) => {
       apiBase: `/api/${env.API_VERSION}`,
       docs: "/api-docs",
       health: `/api/${env.API_VERSION}/health`,
+      ready: `/api/${env.API_VERSION}/health/ready`,
     },
   });
 });

@@ -10,6 +10,7 @@ declare global {
     }
 
     interface Request {
+      id?: string;
       user?: User;
       rawBody?: Buffer;
     }
