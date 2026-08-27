@@ -27,7 +27,25 @@ app.use(
 );
 app.use(
   cors({
-    origin: [env.CORS_ORIGIN, "http://localhost:3000"],
+    origin: (origin, callback) => {
+      // Allow requests with no origin (curl, mobile apps, same-origin server calls)
+      if (!origin) return callback(null, true);
+
+      // Parse CORS_ORIGIN as comma-separated list of allowed origins
+      const allowedOrigins = env.CORS_ORIGIN
+        .split(",")
+        .map((o) => o.trim())
+        .filter(Boolean);
+
+      // Always include localhost for local dev
+      allowedOrigins.push("http://localhost:3000", "http://127.0.0.1:3000");
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      return callback(new Error(`CORS: origin '${origin}' not allowed`));
+    },
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],

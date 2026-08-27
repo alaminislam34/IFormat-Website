@@ -96,6 +96,7 @@ services:
       SMTP_USER: ${SMTP_USER}
       SMTP_PASS: ${SMTP_PASS}
       SMTP_FROM: ${SMTP_FROM:-iFormat <devamin.bd@gmail.com>}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-sk-mock-key}
     depends_on:
       - redis
     ports:
@@ -119,6 +120,13 @@ services:
     image: ghcr.io/alaminislam34/iformat-website/frontend:latest
     container_name: iformat-frontend-prod
     restart: always
+    build:
+      context: ./iformat
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-/api/v1}
+        NEXT_PUBLIC_USE_MOCK: "false"
+        NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${STRIPE_PUBLISHABLE_KEY}
     environment:
       NODE_ENV: production
       PORT: 3000
