@@ -166,24 +166,8 @@ export class AuthService {
       },
     });
 
-    const accessToken = signAccessToken({
-      userId: user.id,
-      email: user.email,
-      role: user.role,
-      tokenVersion: user.tokenVersion,
-    });
-
-    const refreshToken = signRefreshToken({
-      userId: user.id,
-      email: user.email,
-      role: user.role,
-      tokenVersion: user.tokenVersion,
-    });
-
     return {
       user: sanitizeUser(user),
-      accessToken,
-      refreshToken,
       requiresEmailVerification: true,
     };
   }
@@ -207,6 +191,25 @@ export class AuthService {
       throw new AuthError("Invalid email or password");
     }
 
+    // If email is not verified, require OTP verification before logging in
+    if (!user.emailVerified) {
+      const otpCode = await this.createOtp(email, OtpType.EMAIL_VERIFICATION);
+      sendEmail({
+        to: user.email,
+        subject: "Verify your iFormat account",
+        template: "otp-verification",
+        data: {
+          name: user.name,
+          code: otpCode,
+        },
+      });
+
+      return {
+        user: sanitizeUser(user),
+        requiresEmailVerification: true,
+      };
+    }
+
     const accessToken = signAccessToken({
       userId: user.id,
       email: user.email,
@@ -225,6 +228,7 @@ export class AuthService {
       user: sanitizeUser(user),
       accessToken,
       refreshToken,
+      requiresEmailVerification: false,
     };
   }
 
@@ -295,10 +299,30 @@ export class AuthService {
       });
     }
 
+    if (!updatedUser) {
+      throw new AuthError("User not found");
+    }
+
+    const accessToken = signAccessToken({
+      userId: updatedUser.id,
+      email: updatedUser.email,
+      role: updatedUser.role,
+      tokenVersion: updatedUser.tokenVersion,
+    });
+
+    const refreshToken = signRefreshToken({
+      userId: updatedUser.id,
+      email: updatedUser.email,
+      role: updatedUser.role,
+      tokenVersion: updatedUser.tokenVersion,
+    });
+
     return {
       success: true,
       message: "Verification successful",
-      user: updatedUser ? sanitizeUser(updatedUser) : null,
+      user: sanitizeUser(updatedUser),
+      accessToken,
+      refreshToken,
     };
   }
 

@@ -31,8 +31,22 @@ export const authService = {
   /**
    * Verify 6-digit OTP code for email verification or password reset
    */
-  async verifyOtp(payload: VerifyOtpRequest): Promise<{ success: boolean; message: string; user?: UserSession }> {
-    return await apiClient.post<{ success: boolean; message: string; user?: UserSession }>("/auth/verify-otp", payload);
+  async verifyOtp(payload: VerifyOtpRequest): Promise<{
+    success: boolean;
+    message: string;
+    user?: UserSession;
+    token?: string;
+    accessToken?: string;
+    refreshToken?: string;
+  }> {
+    return await apiClient.post<{
+      success: boolean;
+      message: string;
+      user?: UserSession;
+      token?: string;
+      accessToken?: string;
+      refreshToken?: string;
+    }>("/auth/verify-otp", payload);
   },
 
   /**

@@ -19,32 +19,30 @@ export function useLogin() {
   return useMutation({
     mutationFn: (payload: LoginRequest) => authService.login(payload),
     onSuccess: (data) => {
-      const token = data.token || data.accessToken || "";
-      setAuth(data.user, token, data.refreshToken);
+      const token = data.token || data.accessToken;
+      if (token && data.user && data.user.emailVerified !== false && !data.requiresEmailVerification) {
+        setAuth(data.user, token, data.refreshToken);
+      }
     },
   });
 }
 
 export function useRegister() {
-  const setAuth = useAuthStore((state) => state.setAuth);
-
   return useMutation({
     mutationFn: (payload: RegisterRequest) => authService.register(payload),
-    onSuccess: (data) => {
-      const token = data.token || data.accessToken || "";
-      setAuth(data.user, token, data.refreshToken);
-    },
+    // Do NOT setAuth here; user is unverified until OTP confirmation!
   });
 }
 
 export function useVerifyOtp() {
-  const updateUser = useAuthStore((state) => state.updateUser);
+  const setAuth = useAuthStore((state) => state.setAuth);
 
   return useMutation({
     mutationFn: (payload: VerifyOtpRequest) => authService.verifyOtp(payload),
     onSuccess: (data) => {
-      if (data.user) {
-        updateUser(data.user);
+      const token = data.token || data.accessToken;
+      if (data.user && token) {
+        setAuth(data.user, token, data.refreshToken);
       }
     },
   });

@@ -61,8 +61,8 @@ function LoginContent() {
       {
         onSuccess: (res) => {
           setIsLoading(false);
-          if (res.user.emailVerified === false) {
-            toast.info("Please verify your email address to complete your registration.");
+          if (res.user.emailVerified === false || res.requiresEmailVerification) {
+            toast.info("Please verify your email address to complete sign in. A new verification code has been sent.");
             router.push(`/verify-otp?email=${encodeURIComponent(data.email)}`);
             return;
           }

@@ -7,21 +7,30 @@ import { AuthError } from "../../errors/index.js";
 
 export class AuthController {
   static async register(req: Request, res: Response) {
-    const { user, accessToken, refreshToken, requiresEmailVerification } =
+    const { user, requiresEmailVerification } =
       await AuthService.register(req.body);
-    setAuthCookies(res, accessToken, refreshToken);
 
     return ApiResponse.success(
       res,
       "Account registered successfully. A verification code has been sent to your email.",
-      { user, token: accessToken, requiresEmailVerification },
+      { user, requiresEmailVerification },
       201
     );
   }
 
   static async login(req: Request, res: Response) {
-    const { user, accessToken, refreshToken } = await AuthService.login(req.body);
-    setAuthCookies(res, accessToken, refreshToken);
+    const { user, accessToken, refreshToken, requiresEmailVerification } =
+      await AuthService.login(req.body);
+
+    if (requiresEmailVerification || !accessToken) {
+      return ApiResponse.success(
+        res,
+        "Please verify your email address to complete sign in. A new verification code has been sent.",
+        { user, requiresEmailVerification: true }
+      );
+    }
+
+    setAuthCookies(res, accessToken, refreshToken!);
 
     return ApiResponse.success(
       res,
@@ -32,8 +41,14 @@ export class AuthController {
 
   static async verifyOtp(req: Request, res: Response) {
     const result = await AuthService.verifyOtp(req.body);
+    if (result.accessToken && result.refreshToken) {
+      setAuthCookies(res, result.accessToken, result.refreshToken);
+    }
+
     return ApiResponse.success(res, result.message, {
       user: result.user,
+      token: result.accessToken,
+      refreshToken: result.refreshToken,
     });
   }
 
