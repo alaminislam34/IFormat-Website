@@ -97,26 +97,44 @@ export class ApplicationService {
       ]);
     }
 
-    // 5. Create application
-    const application = await prisma.application.create({
-      data: {
-        jobId: input.jobId,
-        candidateId,
-        cvId: input.cvId || null,
-        candidateName: input.candidateName,
-        candidateEmail: input.candidateEmail.toLowerCase().trim(),
-        coverNote: input.coverNote || null,
-        status: ApplicationStatus.SUBMITTED,
-      },
-      include: {
-        job: {
-          select: {
-            title: true,
-            company: true,
-            location: true,
+    // 5. Create application and employer in-app notification inside a transaction
+    const application = await prisma.$transaction(async (tx) => {
+      const app = await tx.application.create({
+        data: {
+          jobId: input.jobId,
+          candidateId,
+          cvId: input.cvId || null,
+          candidateName: input.candidateName,
+          candidateEmail: input.candidateEmail.toLowerCase().trim(),
+          coverNote: input.coverNote || null,
+          status: ApplicationStatus.SUBMITTED,
+        },
+        include: {
+          job: {
+            select: {
+              title: true,
+              company: true,
+              location: true,
+            },
           },
         },
-      },
+      });
+
+      // In-app notification for employer
+      await tx.notification.create({
+        data: {
+          userId: job.employerId,
+          type: "NEW_APPLICANT",
+          title: `New Applicant: ${input.candidateName}`,
+          message: `${input.candidateName} applied for "${job.title}".`,
+          payload: {
+            applicationId: app.id,
+            jobId: job.id,
+          },
+        },
+      });
+
+      return app;
     });
 
     // 6. Asynchronously trigger AI Candidate Screening
@@ -307,12 +325,32 @@ export class ApplicationService {
       }
     }
 
-    const updated = await prisma.application.update({
-      where: { id: applicationId },
-      data: {
-        status: input.status,
-        employerFeedback: input.employerFeedback !== undefined ? input.employerFeedback : undefined,
-      },
+    // Update status and create candidate notification atomically
+    const updated = await prisma.$transaction(async (tx) => {
+      const appRecord = await tx.application.update({
+        where: { id: applicationId },
+        data: {
+          status: input.status,
+          employerFeedback: input.employerFeedback !== undefined ? input.employerFeedback : undefined,
+        },
+      });
+
+      // In-app notification for candidate
+      await tx.notification.create({
+        data: {
+          userId: application.candidateId,
+          type: "APPLICATION_STATUS_UPDATE",
+          title: `Application ${input.status}: ${application.job.title}`,
+          message: `Your application for "${application.job.title}" at "${application.job.company}" has been updated to ${input.status}.`,
+          payload: {
+            applicationId: application.id,
+            jobId: application.jobId,
+            status: input.status,
+          },
+        },
+      });
+
+      return appRecord;
     });
 
     // Notify Candidate asynchronously via email
