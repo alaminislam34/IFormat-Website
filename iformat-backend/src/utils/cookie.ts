@@ -4,9 +4,9 @@ import { COOKIE_NAMES } from "../config/constants.js";
 
 const getBaseCookieOptions = (): CookieOptions => ({
   httpOnly: true,
-  secure: env.NODE_ENV === "production" || env.COOKIE_SECURE,
-  sameSite: env.NODE_ENV === "production" ? "none" : "lax",
-  domain: env.COOKIE_DOMAIN === "localhost" ? undefined : env.COOKIE_DOMAIN,
+  secure: env.COOKIE_SECURE === true,
+  sameSite: "lax",
+  domain: env.COOKIE_DOMAIN && env.COOKIE_DOMAIN !== "localhost" && env.COOKIE_DOMAIN !== "" ? env.COOKIE_DOMAIN : undefined,
   path: "/",
 });
 

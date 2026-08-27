@@ -25,14 +25,21 @@ export const useAuthStore = create<AuthState>()(
       role: "candidate",
       isAuthenticated: false,
 
-      setAuth: (user, token, refreshToken) =>
+      setAuth: (user, token, refreshToken) => {
+        // Synchronize cookies so Next.js server middleware can verify protected dashboard routes
+        if (typeof document !== "undefined") {
+          const maxAge = 7 * 24 * 60 * 60; // 7 days
+          document.cookie = `accessToken=${token}; path=/; max-age=${maxAge}; SameSite=Lax`;
+          document.cookie = `iformat_access_token=${token}; path=/; max-age=${maxAge}; SameSite=Lax`;
+        }
         set({
           user,
           token,
           refreshToken: refreshToken || null,
           role: (user.role?.toLowerCase() as UserRole) || "candidate",
           isAuthenticated: true,
-        }),
+        });
+      },
 
       setRole: (role) =>
         set((state) => ({
@@ -45,13 +52,18 @@ export const useAuthStore = create<AuthState>()(
           user: state.user ? { ...state.user, ...partial } : null,
         })),
 
-      logout: () =>
+      logout: () => {
+        if (typeof document !== "undefined") {
+          document.cookie = "accessToken=; path=/; max-age=0; SameSite=Lax";
+          document.cookie = "iformat_access_token=; path=/; max-age=0; SameSite=Lax";
+        }
         set({
           user: null,
           token: null,
           refreshToken: null,
           isAuthenticated: false,
-        }),
+        });
+      },
     }),
     {
       name: "iformat-auth-storage",
