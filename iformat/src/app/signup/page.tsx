@@ -61,6 +61,9 @@ export default function SignupPage() {
       {
         onSuccess: (res) => {
           setIsLoading(false);
+          try {
+            localStorage.setItem(`otp_resend_until_${data.email}`, String(Date.now() + 60000));
+          } catch {}
           toast.success(`Account created! Welcome, ${res.user.name}`);
           // Redirect to OTP verification with email prefilled
           router.push(`/verify-otp?email=${encodeURIComponent(data.email)}`);

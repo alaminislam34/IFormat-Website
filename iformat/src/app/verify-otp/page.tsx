@@ -19,8 +19,8 @@ function VerifyOtpContent() {
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
-  const [countdown, setCountdown] = useState(60);
-  const [canResend, setCanResend] = useState(false);
+  const [countdown, setCountdown] = useState(0);
+  const [canResend, setCanResend] = useState(true);
 
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const verifyOtpMutation = useVerifyOtp();
@@ -32,16 +32,55 @@ function VerifyOtpContent() {
     }
   }, [emailParam]);
 
-  // Countdown timer for resend OTP
+  // Sync remaining countdown from actual timestamp (prevents resetting on page refresh)
   useEffect(() => {
-    let timer: NodeJS.Timeout;
-    if (countdown > 0) {
-      timer = setTimeout(() => setCountdown(countdown - 1), 1000);
-    } else {
+    if (!email) return;
+    try {
+      const storedUntil = localStorage.getItem(`otp_resend_until_${email}`);
+      if (storedUntil) {
+        const remaining = Math.ceil((parseInt(storedUntil, 10) - Date.now()) / 1000);
+        if (remaining > 0) {
+          setCountdown(remaining);
+          setCanResend(false);
+        } else {
+          setCountdown(0);
+          setCanResend(true);
+          localStorage.removeItem(`otp_resend_until_${email}`);
+        }
+      } else {
+        setCountdown(0);
+        setCanResend(true);
+      }
+    } catch {
+      setCountdown(0);
       setCanResend(true);
     }
-    return () => clearTimeout(timer);
-  }, [countdown]);
+  }, [email]);
+
+  // Active countdown ticker
+  useEffect(() => {
+    if (countdown <= 0) {
+      setCanResend(true);
+      return;
+    }
+
+    const timer = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          setCanResend(true);
+          if (email) {
+            try {
+              localStorage.removeItem(`otp_resend_until_${email}`);
+            } catch {}
+          }
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [countdown, email]);
 
   const [codeError, setCodeError] = useState("");
 
@@ -112,6 +151,9 @@ function VerifyOtpContent() {
 
     setCanResend(false);
     setCountdown(60);
+    try {
+      localStorage.setItem(`otp_resend_until_${email}`, String(Date.now() + 60000));
+    } catch {}
 
     resendOtpMutation.mutate(
       { email, type: "EMAIL_VERIFICATION" },
@@ -121,6 +163,11 @@ function VerifyOtpContent() {
         },
         onError: (err) => {
           toast.error(err.message || "Failed to resend verification code.");
+          setCanResend(true);
+          setCountdown(0);
+          try {
+            localStorage.removeItem(`otp_resend_until_${email}`);
+          } catch {}
         },
       }
     );
