@@ -61,7 +61,7 @@ export function PricingCard({
 
   return (
     <div
-      className={`rounded-3xl p-8 border flex flex-col justify-between transition-all duration-300 relative ${
+      className={`w-full rounded-3xl p-8 border flex flex-col justify-between transition-all duration-300 relative ${
         isPro
           ? "bg-slate-900 text-white border-sky-500 ring-2 ring-sky-500/20 shadow-2xl scale-[1.02]"
           : "bg-white text-slate-900 border-slate-200/80 hover:border-slate-300 shadow-sm"

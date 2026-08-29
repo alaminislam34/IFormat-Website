@@ -2,6 +2,7 @@ import { ApiErrorResponse } from "@/types/api";
 
 export class ApiError extends Error {
   public statusCode: number;
+  public code?: string;
   public errors?: any;
   public isNetworkError: boolean;
 
@@ -9,11 +10,13 @@ export class ApiError extends Error {
     message: string,
     statusCode = 500,
     errors?: any,
-    isNetworkError = false
+    isNetworkError = false,
+    code?: string
   ) {
     super(message);
     this.name = "ApiError";
     this.statusCode = statusCode;
+    this.code = code;
     this.errors = errors;
     this.isNetworkError = isNetworkError;
 

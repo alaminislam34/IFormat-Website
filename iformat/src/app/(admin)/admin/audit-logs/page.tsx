@@ -9,7 +9,8 @@ import {
   Loader2,
   Calendar,
 } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 import { adminService, AdminAuditLogDTO } from "@/services/admin.service";
 
 export default function AdminAuditLogsPage() {
@@ -22,7 +23,7 @@ export default function AdminAuditLogsPage() {
       const res = await adminService.listAuditLogs({ limit: 50 });
       if (res?.logs) setLogs(res.logs);
     } catch (err: any) {
-      console.warn("Could not load audit logs:", err.message);
+      toast.error(err?.message || "Could not load audit logs.");
     } finally {
       setLoading(false);
     }
@@ -43,6 +44,15 @@ export default function AdminAuditLogsPage() {
             Immutable log recording every administrative moderation, suspension, soft-delete, and plan update.
           </p>
         </div>
+        <Button
+          variant="outline"
+          onClick={loadLogs}
+          disabled={loading}
+          className="border-slate-800 bg-slate-900/50 hover:bg-slate-800 text-slate-300 text-xs h-9 rounded-xl cursor-pointer"
+        >
+          <History className={`w-3.5 h-3.5 mr-1.5 ${loading ? "animate-spin" : ""}`} />
+          Refresh Log
+        </Button>
       </div>
 
       <div className="bg-slate-900/90 border border-slate-800/80 rounded-3xl overflow-hidden shadow-xl">

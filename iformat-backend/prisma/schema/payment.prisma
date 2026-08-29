@@ -73,6 +73,7 @@ model SubscriptionUsage {
   jobsPostedCount   Int      @default(0)
   applicationsCount Int      @default(0)
   aiScreeningsCount Int      @default(0)
+  aiGenerationsCount Int     @default(0)
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 

@@ -251,11 +251,18 @@ class ApiClient {
       }
 
       if (!response.ok) {
-        const errorData = (data as { message?: string; errors?: Record<string, string[]> }) || {};
+        const errorData = (data as any) || {};
+        const errorMsg =
+          errorData?.error?.message ||
+          errorData?.message ||
+          (typeof data === "string" ? data : `Request failed with status ${response.status}`);
+        const errorCode = errorData?.error?.code || errorData?.code;
         throw new ApiError(
-          errorData.message || (typeof data === "string" ? data : `Request failed with status ${response.status}`),
+          errorMsg,
           response.status,
-          errorData.errors
+          errorData?.error?.errors || errorData?.errors,
+          false,
+          errorCode
         );
       }
 

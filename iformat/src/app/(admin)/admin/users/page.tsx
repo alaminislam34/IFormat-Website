@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { adminService, AdminUserItemDTO } from "@/services/admin.service";
 import { AdminPageHeader } from "@/features/admin/components/shared/admin-page-header";
-import { ToastBanner } from "@/features/admin/components/shared/toast-banner";
 import { UserFilterBar } from "@/features/admin/components/users/user-filter-bar";
 import { UserTable } from "@/features/admin/components/users/user-table";
 import { BanUserModal } from "@/features/admin/components/users/ban-user-modal";
@@ -21,7 +21,6 @@ export default function AdminUsersPage() {
   const [banModalUser, setBanModalUser] = useState<AdminUserItemDTO | null>(null);
   const [banReason, setBanReason] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const loadUsers = async () => {
     try {
@@ -33,7 +32,7 @@ export default function AdminUsersPage() {
       const res = await adminService.listUsers(params);
       if (res?.users) setUsers(res.users);
     } catch (err: any) {
-      console.warn("Could not load users:", err.message);
+      toast.error(err?.message || "Could not load user list.");
     } finally {
       setLoading(false);
     }
@@ -54,7 +53,7 @@ export default function AdminUsersPage() {
       setActionLoading(true);
       const newBannedState = !banModalUser.isBanned;
       await adminService.banUser(banModalUser.id, newBannedState, banReason);
-      setToastMessage(
+      toast.success(
         newBannedState
           ? `User ${banModalUser.email} has been suspended.`
           : `User ${banModalUser.email} has been unbanned.`
@@ -63,7 +62,7 @@ export default function AdminUsersPage() {
       setBanReason("");
       loadUsers();
     } catch (err: any) {
-      alert(err.message || "Failed to update ban status");
+      toast.error(err.message || "Failed to update ban status");
     } finally {
       setActionLoading(false);
     }
@@ -73,36 +72,35 @@ export default function AdminUsersPage() {
     if (!confirm(`Are you sure you want to soft-delete ${user.name} (${user.email})?`)) return;
     try {
       await adminService.softDeleteUser(user.id);
-      setToastMessage(`User ${user.email} soft-deleted.`);
+      toast.success(`User ${user.email} soft-deleted.`);
       loadUsers();
     } catch (err: any) {
-      alert(err.message || "Failed to soft delete user");
+      toast.error(err.message || "Failed to soft delete user");
     }
   };
 
   const handleRestore = async (user: AdminUserItemDTO) => {
     try {
       await adminService.restoreUser(user.id);
-      setToastMessage(`User ${user.email} restored successfully.`);
+      toast.success(`User ${user.email} restored successfully.`);
       loadUsers();
     } catch (err: any) {
-      alert(err.message || "Failed to restore user");
+      toast.error(err.message || "Failed to restore user");
     }
   };
 
   const handleVerifyEmail = async (user: AdminUserItemDTO) => {
     try {
       await adminService.forceVerifyEmail(user.id);
-      setToastMessage(`Email for ${user.email} force-verified.`);
+      toast.success(`Email for ${user.email} force-verified.`);
       loadUsers();
     } catch (err: any) {
-      alert(err.message || "Failed to verify email");
+      toast.error(err.message || "Failed to verify email");
     }
   };
 
   return (
     <div className="space-y-6">
-      <ToastBanner message={toastMessage} onClose={() => setToastMessage(null)} />
 
       <AdminPageHeader
         title="User Directory"
