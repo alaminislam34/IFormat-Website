@@ -6,10 +6,10 @@ import { motion as m, AnimatePresence } from "framer-motion";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
 import { createJobSchema, CreateJobFormData } from "@/lib/validations/job.schema";
 import { JobDTO } from "@/types/api";
 import { useUpdateJob } from "@/hooks";
+import { JobFormFields } from "./modal/job-form-fields";
 
 interface EditJobModalProps {
   job: JobDTO | null;
@@ -17,15 +17,6 @@ interface EditJobModalProps {
   onClose: () => void;
   onUpdated?: (job: JobDTO) => void;
 }
-
-const CATEGORIES = [
-  "Technology & Engineering",
-  "Design & Creative",
-  "Business & Marketing",
-  "Data & AI",
-  "Finance & Operations",
-  "Product & Management",
-];
 
 export function EditJobModal({ job, isOpen, onClose, onUpdated }: EditJobModalProps) {
   const updateJobMutation = useUpdateJob();
@@ -175,230 +166,60 @@ export function EditJobModal({ job, isOpen, onClose, onUpdated }: EditJobModalPr
               </button>
             </div>
 
-            {/* Scrollable Form Body */}
+            {/* Form */}
             <form onSubmit={handleSubmit(onFormSubmit)} className="p-6 overflow-y-auto space-y-6 flex-1">
               {/* Status Switcher */}
-              <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200/80 flex items-center justify-between">
-                <div>
-                  <span className="text-xs font-bold text-slate-800">Job Status</span>
-                  <p className="text-[11px] text-slate-500">
-                    Control visibility on the public job portal.
-                  </p>
-                </div>
-                <div className="flex items-center gap-1 bg-white p-1 rounded-xl border border-slate-200 shadow-xs">
+              <div className="space-y-1.5">
+                <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                  Publishing Status
+                </label>
+                <div className="flex gap-2 p-1 bg-slate-50 border border-slate-100 rounded-xl">
                   {(["PUBLISHED", "DRAFT", "CLOSED"] as const).map((st) => (
                     <button
                       key={st}
                       type="button"
                       onClick={() => setJobStatus(st)}
-                      className={cn(
-                        "px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer",
+                      className={`flex-1 py-2 text-xs font-bold rounded-lg border transition-all cursor-pointer ${
                         jobStatus === st
-                          ? st === "PUBLISHED"
-                            ? "bg-emerald-600 text-white shadow-xs"
-                            : st === "CLOSED"
-                            ? "bg-rose-600 text-white shadow-xs"
-                            : "bg-amber-500 text-white shadow-xs"
-                          : "text-slate-600 hover:bg-slate-100"
-                      )}
+                          ? "bg-white border-sky-100 text-sky-600 shadow-xs"
+                          : "bg-transparent border-transparent text-slate-500 hover:text-slate-700"
+                      }`}
                     >
-                      {st === "PUBLISHED" ? "Active" : st === "CLOSED" ? "Closed" : "Draft"}
+                      {st}
                     </button>
                   ))}
                 </div>
               </div>
 
-              {/* Title & Company */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                    Job Title <span className="text-rose-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    {...register("title")}
-                    className={cn(
-                      "w-full px-3.5 py-2.5 rounded-xl border bg-slate-50/50 text-slate-900 text-sm font-medium focus:outline-hidden focus:ring-2 focus:ring-[#0A54B1]/20 focus:border-[#0A54B1] transition-all",
-                      errors.title ? "border-rose-300 bg-rose-50/30" : "border-slate-200"
-                    )}
-                  />
-                  {errors.title && (
-                    <p className="text-[11px] font-semibold text-rose-500 mt-1">{errors.title.message}</p>
-                  )}
-                </div>
+              <JobFormFields
+                register={register}
+                errors={errors}
+                setValue={setValue}
+                selectedJobType={selectedJobType}
+                selectedLocation={selectedLocation}
+              />
 
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                    Company Name <span className="text-rose-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    {...register("company")}
-                    className={cn(
-                      "w-full px-3.5 py-2.5 rounded-xl border bg-slate-50/50 text-slate-900 text-sm font-medium focus:outline-hidden focus:ring-2 focus:ring-[#0A54B1]/20 focus:border-[#0A54B1] transition-all",
-                      errors.company ? "border-rose-300 bg-rose-50/30" : "border-slate-200"
-                    )}
-                  />
-                  {errors.company && (
-                    <p className="text-[11px] font-semibold text-rose-500 mt-1">{errors.company.message}</p>
-                  )}
-                </div>
-              </div>
-
-              {/* Category & Salary */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">Industry Category</label>
-                  <select
-                    {...register("category")}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 text-sm font-medium focus:outline-hidden focus:ring-2 focus:ring-[#0A54B1]/20 focus:border-[#0A54B1] transition-all"
-                  >
-                    {CATEGORIES.map((cat) => (
-                      <option key={cat} value={cat}>
-                        {cat}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">Salary Range</label>
-                  <input
-                    type="text"
-                    {...register("salary")}
-                    placeholder="e.g. $120,000 - $150,000 / year"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 text-sm font-medium focus:outline-hidden focus:ring-2 focus:ring-[#0A54B1]/20 focus:border-[#0A54B1] transition-all"
-                  />
-                </div>
-              </div>
-
-              {/* Job Type & Workplace Location */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">Employment Type</label>
-                  <div className="flex gap-2">
-                    {["Full Time", "Part Time", "Contract"].map((type) => (
-                      <button
-                        key={type}
-                        type="button"
-                        onClick={() => setValue("jobType", type as any)}
-                        className={cn(
-                          "flex-1 py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer",
-                          selectedJobType === type
-                            ? "bg-[#0A54B1] text-white border-[#0A54B1] shadow-xs"
-                            : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"
-                        )}
-                      >
-                        {type}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">Workplace Policy</label>
-                  <div className="flex gap-2">
-                    {["Remote", "Onsite", "Hybrid"].map((loc) => (
-                      <button
-                        key={loc}
-                        type="button"
-                        onClick={() => setValue("location", loc as any)}
-                        className={cn(
-                          "flex-1 py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer",
-                          selectedLocation === loc
-                            ? "bg-[#0A54B1] text-white border-[#0A54B1] shadow-xs"
-                            : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"
-                        )}
-                      >
-                        {loc}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Description */}
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                  Job Description <span className="text-rose-500">*</span>
-                </label>
-                <textarea
-                  rows={4}
-                  {...register("description")}
-                  className={cn(
-                    "w-full px-3.5 py-2.5 rounded-xl border bg-slate-50/50 text-slate-900 text-sm font-medium focus:outline-hidden focus:ring-2 focus:ring-[#0A54B1]/20 focus:border-[#0A54B1] transition-all resize-none",
-                    errors.description ? "border-rose-300 bg-rose-50/30" : "border-slate-200"
-                  )}
-                />
-                {errors.description && (
-                  <p className="text-[11px] font-semibold text-rose-500 mt-1">{errors.description.message}</p>
-                )}
-              </div>
-
-              {/* Requirements */}
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                  Requirements (One per line) <span className="text-rose-500">*</span>
-                </label>
-                <textarea
-                  rows={3}
-                  {...register("requirements")}
-                  placeholder="3+ years of experience with React & TypeScript&#10;Strong understanding of REST APIs&#10;Excellent communication skills"
-                  className={cn(
-                    "w-full px-3.5 py-2.5 rounded-xl border bg-slate-50/50 text-slate-900 text-sm font-medium focus:outline-hidden focus:ring-2 focus:ring-[#0A54B1]/20 focus:border-[#0A54B1] transition-all resize-none",
-                    errors.requirements ? "border-rose-300 bg-rose-50/30" : "border-slate-200"
-                  )}
-                />
-                {errors.requirements && (
-                  <p className="text-[11px] font-semibold text-rose-500 mt-1">{errors.requirements.message}</p>
-                )}
-              </div>
-
-              {/* Nice to Have & Perks */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">Nice to Have (Optional)</label>
-                  <textarea
-                    rows={2}
-                    {...register("niceToHave")}
-                    placeholder="Experience with AWS/GCP&#10;Next.js familiarity"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 text-xs font-medium focus:outline-hidden focus:ring-2 focus:ring-[#0A54B1]/20 focus:border-[#0A54B1] resize-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">Benefits & Perks (Optional)</label>
-                  <textarea
-                    rows={2}
-                    {...register("perks")}
-                    placeholder="Flexible PTO&#10;Health & Dental Coverage"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 text-xs font-medium focus:outline-hidden focus:ring-2 focus:ring-[#0A54B1]/20 focus:border-[#0A54B1] resize-none"
-                  />
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100 shrink-0">
+              {/* Submit & Cancel Buttons */}
+              <div className="pt-4 border-t border-slate-100 flex items-center justify-end gap-3">
                 <button
                   type="button"
-                  disabled={isSubmitting}
                   onClick={onClose}
-                  className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+                  className="px-5 h-11 border border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-50 transition-colors cursor-pointer text-xs"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-6 py-2.5 rounded-xl bg-linear-to-r from-[#52CEDE] to-[#0A54B1] text-white text-xs font-extrabold shadow-md shadow-blue-500/20 hover:opacity-95 transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                  className="px-6 h-11 bg-brand-gradient hover:opacity-95 text-white font-bold rounded-xl shadow-lg shadow-blue-500/10 flex items-center justify-center gap-2 transition-all cursor-pointer text-xs"
                 >
                   {isSubmitting ? (
                     <>
-                      <Loader2 className="w-3.5 h-3.5 animate-spin" /> Saving Changes...
+                      <Loader2 className="w-4 h-4 animate-spin" /> Saving Changes...
                     </>
                   ) : (
                     <>
-                      <Check className="w-3.5 h-3.5" /> Save Changes
+                      <Check className="w-4 h-4" /> Save Changes
                     </>
                   )}
                 </button>
