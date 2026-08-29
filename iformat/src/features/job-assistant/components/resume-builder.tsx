@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { User, FileText, Briefcase, GraduationCap, Award, Sparkles } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import { AnimatePresence } from "framer-motion";
 import { AuthPromptModal } from "@/components/auth/auth-prompt-modal";
 import { UpgradeModal } from "@/components/ui/upgrade-modal";
@@ -16,6 +16,14 @@ import { StepWorkExperience } from "./resume/step-work-experience";
 import { StepEducation } from "./resume/step-education";
 import { StepSkillsMore } from "./resume/step-skills-more";
 import { ResumePreviewCard } from "./resume/resume-preview-card";
+
+const steps = [
+  { num: 1, label: "01. Personal Info" },
+  { num: 2, label: "02. Summary" },
+  { num: 3, label: "03. Work Experience" },
+  { num: 4, label: "04. Education" },
+  { num: 5, label: "05. Skills & More" },
+];
 
 export function ResumeBuilder() {
   const {
@@ -60,134 +68,136 @@ export function ResumeBuilder() {
   } = useResumeState();
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-      {/* Left Form: 5 Cols */}
-      <div className="lg:col-span-5 bg-white border border-slate-200/80 rounded-3xl p-6 sm:p-7 shadow-xs space-y-6">
-        {/* Cloud Persistence Toolbar */}
-        <CloudCvToolbar
-          isAuthenticated={isAuthenticated}
-          activeCvId={activeCvId}
-          activeCvTitle={activeCvTitle}
-          activeVersionNumber={activeVersionNumber}
-          totalCVsCount={userCVs?.length || 0}
-          isSaving={isSaving}
-          onSaveToCloud={handleSaveToCloud}
-          onOpenSavedModal={() => setSavedModalOpen(true)}
-        />
+    <div className="w-full">
+      {/* Cloud CV Toolbar */}
+      <CloudCvToolbar
+        isAuthenticated={isAuthenticated}
+        activeCvId={activeCvId}
+        activeCvTitle={activeCvTitle}
+        activeVersionNumber={activeVersionNumber}
+        totalCVsCount={userCVs?.length || 0}
+        isSaving={isSaving}
+        onSaveToCloud={handleSaveToCloud}
+        onOpenSavedModal={() => setSavedModalOpen(true)}
+      />
 
-        {/* Step Indicator Tabs */}
-        <div className="grid grid-cols-5 gap-1.5 p-1.5 bg-slate-50 border border-slate-100 rounded-2xl">
-          {[
-            { id: 1, icon: User, label: "Info" },
-            { id: 2, icon: FileText, label: "Summary" },
-            { id: 3, icon: Briefcase, label: "Work" },
-            { id: 4, icon: GraduationCap, label: "Edu" },
-            { id: 5, icon: Award, label: "Skills" },
-          ].map((s) => (
-            <button
-              key={s.id}
-              onClick={() => setStep(s.id)}
-              className={`flex flex-col items-center justify-center py-2.5 rounded-xl transition-all cursor-pointer ${
-                step === s.id
-                  ? "bg-white text-sky-600 font-bold shadow-xs border border-sky-100"
-                  : "text-slate-500 hover:text-slate-800"
-              }`}
-            >
-              <s.icon className={`w-4 h-4 mb-1 ${step === s.id ? "text-sky-600" : "text-slate-400"}`} />
-              <span className="text-[10px] tracking-tight">{s.label}</span>
-            </button>
-          ))}
-        </div>
-
-        {/* Step Form Switcher */}
-        <AnimatePresence mode="wait">
-          {step === 1 && (
-            <StepPersonalInfo
-              data={data}
-              onChange={handleInputChange}
-              onNext={() => setStep(2)}
-            />
-          )}
-
-          {step === 2 && (
-            <StepSummary
-              summary={data.summary}
-              onChange={(val) => handleInputChange("summary", val)}
-              onPrev={() => setStep(1)}
-              onNext={() => setStep(3)}
-            />
-          )}
-
-          {step === 3 && (
-            <StepWorkExperience
-              workExperience={data.workExperience}
-              onChange={handleWorkChange}
-              onAdd={addWork}
-              onRemove={removeWork}
-              onPrev={() => setStep(2)}
-              onNext={() => setStep(4)}
-            />
-          )}
-
-          {step === 4 && (
-            <StepEducation
-              education={data.education}
-              onChange={handleEduChange}
-              onAdd={addEdu}
-              onRemove={removeEdu}
-              onPrev={() => setStep(3)}
-              onNext={() => setStep(5)}
-            />
-          )}
-
-          {step === 5 && (
-            <StepSkillsMore
-              data={data}
-              onChange={handleInputChange}
-              onSkillGroupChange={handleSkillGroupChange}
-              onAddSkillGroup={addSkillGroup}
-              onRemoveSkillGroup={removeSkillGroup}
-              onCertChange={handleCertChange}
-              onAddCert={addCert}
-              onRemoveCert={removeCert}
-              onPrev={() => setStep(4)}
-              onGenerate={handleGenerate}
-            />
-          )}
-        </AnimatePresence>
-
-        {/* Pro Banner */}
-        <div className="p-4 bg-linear-to-r from-sky-50 to-indigo-50 border border-sky-100 rounded-2xl flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-sky-600 text-white flex items-center justify-center shrink-0">
-              <Sparkles className="w-4 h-4" />
-            </div>
-            <div>
-              <div className="text-xs font-bold text-slate-800">Need expert human review?</div>
-              <div className="text-[11px] text-slate-500">Get your CV tailored by an industry veteran.</div>
-            </div>
+      {/* Steps Selector & Consult with expert button */}
+      {step <= 5 && (
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
+          <div className="flex items-center gap-2 overflow-x-auto pb-1">
+            {steps.map((s) => (
+              <button
+                key={s.num}
+                onClick={() => setStep(s.num)}
+                className={`px-4 py-2 rounded-full text-xs font-bold tracking-wider transition-all cursor-pointer whitespace-nowrap ${
+                  step === s.num
+                    ? "bg-[#0A54B1] text-white shadow-md shadow-blue-500/20"
+                    : "bg-slate-100 text-slate-700 hover:bg-slate-200 hover:text-slate-900 border border-slate-200/80"
+                }`}
+              >
+                {s.label}
+              </button>
+            ))}
           </div>
+
           <Link
             href="/services"
-            className="px-3 py-1.5 bg-white border border-sky-200 text-sky-700 font-bold text-xs rounded-xl shadow-xs hover:bg-sky-50 transition-colors whitespace-nowrap inline-flex items-center justify-center cursor-pointer"
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-linear-to-r from-[#52CEDE] to-[#0A54B1] text-white rounded-xl text-xs font-bold shadow-md shadow-blue-500/15 hover:opacity-90 hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer"
           >
+            <Sparkles className="w-3.5 h-3.5" />
             Consult with expert
           </Link>
         </div>
-      </div>
+      )}
 
-      {/* Right Resume Live Preview: 7 Cols */}
-      <ResumePreviewCard
-        data={data}
-        activeCvId={activeCvId}
-        activeVersionNumber={activeVersionNumber}
-        isSaving={isSaving}
-        copied={copied}
-        onEdit={() => setStep(1)}
-        onSaveToCloud={handleSaveToCloud}
-        onCopy={handleCopy}
-        onPrint={handlePrint}
-      />
+      {/* Main card */}
+      <div className="bg-white rounded-3xl border border-slate-200/80 shadow-xl shadow-slate-100/50 p-6 md:p-10 relative overflow-hidden">
+        {isGenerating ? (
+          <div className="flex flex-col items-center justify-center py-20 space-y-6">
+            <div className="relative w-20 h-20">
+              <div className="absolute inset-0 border-4 border-slate-100 rounded-full"></div>
+              <div className="absolute inset-0 border-4 border-t-[#0A54B1] border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin"></div>
+              <Sparkles className="w-8 h-8 text-[#0A54B1] absolute inset-0 m-auto animate-pulse" />
+            </div>
+            <div className="text-center space-y-2">
+              <h3 className="text-xl font-bold text-slate-800">AI is Writing Your CV...</h3>
+              <p className="text-sm text-slate-500 max-w-xs mx-auto">
+                Analyzing your qualifications, optimizing for ATS systems, and polishing your layout.
+              </p>
+            </div>
+          </div>
+        ) : (
+          <AnimatePresence mode="wait">
+            {step === 1 && (
+              <StepPersonalInfo
+                data={data}
+                onChange={handleInputChange}
+                onNext={() => setStep(2)}
+              />
+            )}
+
+            {step === 2 && (
+              <StepSummary
+                summary={data.summary}
+                onChange={(val) => handleInputChange("summary", val)}
+                onPrev={() => setStep(1)}
+                onNext={() => setStep(3)}
+              />
+            )}
+
+            {step === 3 && (
+              <StepWorkExperience
+                workExperience={data.workExperience}
+                onChange={handleWorkChange}
+                onAdd={addWork}
+                onRemove={removeWork}
+                onPrev={() => setStep(2)}
+                onNext={() => setStep(4)}
+              />
+            )}
+
+            {step === 4 && (
+              <StepEducation
+                education={data.education}
+                onChange={handleEduChange}
+                onAdd={addEdu}
+                onRemove={removeEdu}
+                onPrev={() => setStep(3)}
+                onNext={() => setStep(5)}
+              />
+            )}
+
+            {step === 5 && (
+              <StepSkillsMore
+                data={data}
+                onChange={handleInputChange}
+                onSkillGroupChange={handleSkillGroupChange}
+                onAddSkillGroup={addSkillGroup}
+                onRemoveSkillGroup={removeSkillGroup}
+                onCertChange={handleCertChange}
+                onAddCert={addCert}
+                onRemoveCert={removeCert}
+                onPrev={() => setStep(4)}
+                onGenerate={handleGenerate}
+              />
+            )}
+
+            {step === 6 && (
+              <ResumePreviewCard
+                data={data}
+                activeCvId={activeCvId}
+                activeVersionNumber={activeVersionNumber}
+                isSaving={isSaving}
+                copied={copied}
+                onEdit={() => setStep(1)}
+                onSaveToCloud={handleSaveToCloud}
+                onCopy={handleCopy}
+                onPrint={handlePrint}
+              />
+            )}
+          </AnimatePresence>
+        )}
+      </div>
 
       {/* Cloud Resumes Modal */}
       <SavedResumesModal
