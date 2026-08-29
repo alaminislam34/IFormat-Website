@@ -52,7 +52,7 @@ export function ResumePreviewCard({
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.98 }}
       key="step6"
-      className="space-y-8"
+      className="lg:col-span-7 space-y-8"
     >
       {/* Preview Actions bar */}
       <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-slate-50 border border-slate-200/60 rounded-2xl">
