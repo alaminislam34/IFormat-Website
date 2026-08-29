@@ -35,6 +35,8 @@ import { aiService } from "@/services/ai.service";
 import { useAuthStore } from "@/stores/use-auth-store";
 import { useUserCVs, useCreateCV, useSaveCVVersion, useDeleteCV } from "@/hooks";
 import { CVDTO } from "@/types/api";
+import { AuthPromptModal } from "@/components/auth/auth-prompt-modal";
+import { UpgradeModal } from "@/components/ui/upgrade-modal";
 
 const Linkedin = ({ className }: { className?: string }) => (
   <svg
@@ -160,13 +162,14 @@ export function ResumeBuilder() {
   const [activeCvTitle, setActiveCvTitle] = React.useState<string>("My Resume");
   const [activeVersionNumber, setActiveVersionNumber] = React.useState<number>(1);
   const [savedModalOpen, setSavedModalOpen] = React.useState(false);
+  const [showAuthModal, setShowAuthModal] = React.useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = React.useState(false);
 
   const isSaving = createCVMutation.isPending || saveVersionMutation.isPending;
 
   const handleSaveToCloud = async () => {
     if (!isAuthenticated) {
-      toast.info("Please log in to save your resume to the cloud.");
-      router.push("/login?redirect=/job-assistant");
+      setShowAuthModal(true);
       return;
     }
 
@@ -366,6 +369,11 @@ export function ResumeBuilder() {
   };
 
   const handleGenerate = async () => {
+    if (!isAuthenticated) {
+      setShowAuthModal(true);
+      return;
+    }
+
     try {
       setIsGenerating(true);
 
@@ -414,7 +422,11 @@ export function ResumeBuilder() {
       toast.success("AI generated your CV successfully!");
       setStep(6); // Move to resume preview
     } catch (err: any) {
-      toast.error(err?.message || "Failed to generate CV. Please check your inputs and try again.");
+      if (err?.code === "SUBSCRIPTION_REQUIRED" || err?.statusCode === 403) {
+        setShowUpgradeModal(true);
+      } else {
+        toast.error(err?.message || "Failed to generate CV. Please check your inputs and try again.");
+      }
     } finally {
       setIsGenerating(false);
     }
@@ -1331,6 +1343,25 @@ ${data.certifications.map(c => `${c.name} (${c.link})`).join('\n')}
             </div>
           </div>
         </div>
+      )}
+
+      {/* Auth Prompt Modal */}
+      {showAuthModal && (
+        <AuthPromptModal
+          isOpen={showAuthModal}
+          onClose={() => setShowAuthModal(false)}
+          title="Sign in to Build & Save CV"
+          description="Create a free account to generate AI-tailored CVs and save unlimited versions to the cloud."
+          redirectUrl="/job-assistant"
+        />
+      )}
+
+      {/* Upgrade Modal */}
+      {showUpgradeModal && (
+        <UpgradeModal
+          isOpen={showUpgradeModal}
+          onClose={() => setShowUpgradeModal(false)}
+        />
       )}
     </div>
   );

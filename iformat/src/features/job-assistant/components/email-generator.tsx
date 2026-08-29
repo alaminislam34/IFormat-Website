@@ -5,10 +5,14 @@ import { Copy, Mail, Send, Check, RotateCw, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useGenerateEmail } from "@/hooks";
+import { useAuthStore } from "@/stores/use-auth-store";
+import { AuthPromptModal } from "@/components/auth/auth-prompt-modal";
+import { UpgradeModal } from "@/components/ui/upgrade-modal";
 
 type ToneType = "Professional" | "Friendly" | "Confident" | "Concise";
 
 export function EmailGenerator() {
+  const { isAuthenticated } = useAuthStore();
   const [recipient, setRecipient] = React.useState("Sarah Johnson");
   const [role, setRole] = React.useState("Engineering Lead");
   const [company, setCompany] = React.useState("Stripe");
@@ -19,11 +23,18 @@ export function EmailGenerator() {
   
   const [generatedEmail, setGeneratedEmail] = React.useState("");
   const [copied, setCopied] = React.useState(false);
+  const [showAuthModal, setShowAuthModal] = React.useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = React.useState(false);
 
   const generateMutation = useGenerateEmail();
   const isGenerating = generateMutation.isPending;
 
   const handleGenerate = () => {
+    if (!isAuthenticated) {
+      setShowAuthModal(true);
+      return;
+    }
+
     generateMutation.mutate(
       {
         recipient,
@@ -36,6 +47,13 @@ export function EmailGenerator() {
         onSuccess: (email) => {
           setGeneratedEmail(email);
           toast.success("Outreach email generated!");
+        },
+        onError: (err: any) => {
+          if (err?.code === "SUBSCRIPTION_REQUIRED" || err?.statusCode === 403) {
+            setShowUpgradeModal(true);
+          } else {
+            toast.error(err?.message || "Failed to generate email");
+          }
         },
       }
     );
@@ -221,6 +239,25 @@ export function EmailGenerator() {
           </div>
         </div>
       </div>
+
+      {/* Auth Prompt Modal */}
+      {showAuthModal && (
+        <AuthPromptModal
+          isOpen={showAuthModal}
+          onClose={() => setShowAuthModal(false)}
+          title="Sign in to Generate Outreach Email"
+          description="Create a free account to generate personalized outreach emails with AI and save them to your account."
+          redirectUrl="/job-assistant"
+        />
+      )}
+
+      {/* Upgrade Modal */}
+      {showUpgradeModal && (
+        <UpgradeModal
+          isOpen={showUpgradeModal}
+          onClose={() => setShowUpgradeModal(false)}
+        />
+      )}
     </div>
   );
 }

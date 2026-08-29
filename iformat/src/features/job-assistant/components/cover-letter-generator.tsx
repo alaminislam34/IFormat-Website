@@ -5,10 +5,14 @@ import { Sparkles, Copy, FileText, Download, RotateCw, Check, Loader2 } from "lu
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useGenerateCoverLetter } from "@/hooks";
+import { useAuthStore } from "@/stores/use-auth-store";
+import { AuthPromptModal } from "@/components/auth/auth-prompt-modal";
+import { UpgradeModal } from "@/components/ui/upgrade-modal";
 
 type CoverLetterTone = "Professional" | "Enthusiastic" | "Confident" | "Concise";
 
 export function CoverLetterGenerator() {
+  const { isAuthenticated } = useAuthStore();
   const [jobTitle, setJobTitle] = React.useState("Senior Full Stack Developer");
   const [companyName, setCompanyName] = React.useState("Vercel Inc");
   const [recipient, setRecipient] = React.useState("Hiring Team");
@@ -19,11 +23,18 @@ export function CoverLetterGenerator() {
   
   const [generatedLetter, setGeneratedLetter] = React.useState("");
   const [copied, setCopied] = React.useState(false);
+  const [showAuthModal, setShowAuthModal] = React.useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = React.useState(false);
 
   const generateMutation = useGenerateCoverLetter();
   const isGenerating = generateMutation.isPending;
 
   const handleGenerate = () => {
+    if (!isAuthenticated) {
+      setShowAuthModal(true);
+      return;
+    }
+
     generateMutation.mutate(
       {
         role: jobTitle,
@@ -38,7 +49,11 @@ export function CoverLetterGenerator() {
           toast.success("Cover letter generated!");
         },
         onError: (err: any) => {
-          toast.error(err?.message || "Failed to generate cover letter");
+          if (err?.code === "SUBSCRIPTION_REQUIRED" || err?.statusCode === 403) {
+            setShowUpgradeModal(true);
+          } else {
+            toast.error(err?.message || "Failed to generate cover letter");
+          }
         },
       }
     );
@@ -227,6 +242,25 @@ export function CoverLetterGenerator() {
           </div>
         </div>
       </div>
+
+      {/* Auth Prompt Modal */}
+      {showAuthModal && (
+        <AuthPromptModal
+          isOpen={showAuthModal}
+          onClose={() => setShowAuthModal(false)}
+          title="Sign in to Generate Cover Letter"
+          description="Create a free account to generate tailored cover letters with AI and save them to your profile."
+          redirectUrl="/job-assistant"
+        />
+      )}
+
+      {/* Upgrade Modal */}
+      {showUpgradeModal && (
+        <UpgradeModal
+          isOpen={showUpgradeModal}
+          onClose={() => setShowUpgradeModal(false)}
+        />
+      )}
     </div>
   );
 }
