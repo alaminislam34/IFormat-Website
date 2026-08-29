@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { 
   User, 
   FileText, 
@@ -545,9 +546,13 @@ ${data.certifications.map(c => `${c.name} (${c.link})`).join('\n')}
             ))}
           </div>
 
-          <button className="px-5 py-2.5 bg-linear-to-r from-[#52CEDE] to-[#0A54B1] text-white rounded-xl text-xs font-bold shadow-md shadow-blue-500/15 hover:opacity-90 transition-opacity cursor-pointer">
+          <Link
+            href="/services"
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-linear-to-r from-[#52CEDE] to-[#0A54B1] text-white rounded-xl text-xs font-bold shadow-md shadow-blue-500/15 hover:opacity-90 hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
             Consult with expert
-          </button>
+          </Link>
         </div>
       )}
 

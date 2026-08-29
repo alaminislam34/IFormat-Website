@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { Sparkles, Copy, FileText, Download, RotateCw, Check, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -83,9 +84,13 @@ export function CoverLetterGenerator() {
     <div className="w-full space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Cover Letter Generator</h1>
-        <button className="px-5 py-2.5 bg-linear-to-r from-brand-cyan to-[#0ea5e9] text-white rounded-xl text-xs font-bold shadow-md shadow-sky-500/15 hover:opacity-90 transition-opacity self-start sm:self-auto cursor-pointer">
+        <Link
+          href="/services"
+          className="inline-flex items-center gap-2 px-5 py-2.5 bg-linear-to-r from-brand-cyan to-[#0ea5e9] text-white rounded-xl text-xs font-bold shadow-md shadow-sky-500/15 hover:opacity-90 hover:scale-105 active:scale-95 transition-all duration-200 self-start sm:self-auto cursor-pointer"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
           Consult with expert
-        </button>
+        </Link>
       </div>
 
       <div className="grid lg:grid-cols-12 gap-8 items-start">
