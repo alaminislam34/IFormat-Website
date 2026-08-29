@@ -60,7 +60,7 @@ function NotifItem({ notif, onMarkRead }: NotifItemProps) {
     <div
       className={cn(
         "relative flex gap-3 px-4 py-3.5 transition-colors cursor-pointer group",
-        "hover:bg-white/[0.04] border-b border-white/5 last:border-0",
+        "hover:bg-white/4 border-b border-white/5 last:border-0",
         !notif.read && "bg-indigo-950/30"
       )}
       onClick={() => {
@@ -164,7 +164,7 @@ export function NotificationBell({ variant = "light" }: NotificationBellProps) {
 
         {/* Unread badge */}
         {hasUnread && (
-          <span className="absolute -top-1 -right-1 min-w-[16px] h-4 flex items-center justify-center rounded-full bg-indigo-500 text-white text-[9px] font-black px-1 shadow-md shadow-indigo-500/50 ring-2 ring-white">
+          <span className="absolute -top-1 -right-1 min-w-4 h-4 flex items-center justify-center rounded-full bg-indigo-500 text-white text-[9px] font-black px-1 shadow-md shadow-indigo-500/50 ring-2 ring-white">
             {unreadCount > 99 ? "99+" : unreadCount}
           </span>
         )}
@@ -180,7 +180,7 @@ export function NotificationBell({ variant = "light" }: NotificationBellProps) {
             transition={{ duration: 0.15, ease: "easeOut" }}
             className={cn(
               "absolute right-0 mt-2 z-50",
-              "w-[360px] max-h-[480px] flex flex-col",
+              "w-90 max-h-120 flex flex-col",
               "rounded-2xl border border-white/10 shadow-2xl shadow-black/40",
               "bg-slate-900/95 backdrop-blur-xl overflow-hidden"
             )}

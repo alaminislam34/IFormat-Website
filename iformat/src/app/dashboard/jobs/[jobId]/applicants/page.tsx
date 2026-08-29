@@ -424,7 +424,7 @@ export default function JobApplicantsPage() {
                                 : "Low Alignment"}
                             </span>
                           </div>
-                          <p className="text-[11px] text-slate-400 truncate max-w-[200px]">
+                          <p className="text-[11px] text-slate-400 truncate max-w-50">
                             {app.screeningResult?.summary || "Screening score calculated by AI engine."}
                           </p>
                         </div>
@@ -586,7 +586,7 @@ export default function JobApplicantsPage() {
                   ).map(([cat, val]) => (
                     <div key={cat} className="p-3 rounded-xl bg-slate-950/60 border border-slate-800 text-center">
                       <div className="text-lg font-bold text-indigo-400">{val}%</div>
-                      <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider capitalize mt-0.5">
+                      <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mt-0.5">
                         {cat.replace(/([A-Z])/g, " $1")}
                       </div>
                     </div>

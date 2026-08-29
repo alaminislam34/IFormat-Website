@@ -234,7 +234,7 @@ export function Pricing() {
               {filteredPlans.map((plan, index) => (
                 <div
                   key={plan.id ? `plan-${plan.id}` : `plan-${plan.code || "tier"}-${index}`}
-                  className="snap-center shrink-0 w-full sm:w-[380px] md:w-[400px] flex"
+                  className="snap-center shrink-0 w-full sm:w-95 md:w-100 flex"
                 >
                   <div className="w-full flex">
                     <PricingCard

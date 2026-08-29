@@ -317,7 +317,7 @@ export default function AdminPlansPage() {
                   </div>
 
                   <h3 className="text-xl font-black text-white">{plan.name}</h3>
-                  <p className="text-slate-400 text-xs mt-1 leading-relaxed min-h-[32px]">
+                  <p className="text-slate-400 text-xs mt-1 leading-relaxed min-h-8">
                     {plan.description || "Platform access tier"}
                   </p>
 

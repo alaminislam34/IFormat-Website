@@ -88,9 +88,9 @@ export function AuthPromptModal({
               >
                 <Button
                   variant="outline"
-                  className="w-full h-11 border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-bold rounded-xl cursor-pointer flex items-center justify-center gap-2"
+                  className="w-full h-11 border-slate-200 bg-white text-slate-800 hover:bg-slate-100 hover:text-slate-900 text-xs font-bold rounded-xl cursor-pointer flex items-center justify-center gap-2"
                 >
-                  <LogIn className="w-4 h-4" /> Sign In
+                  <LogIn className="w-4 h-4 text-slate-600" /> Sign In
                 </Button>
               </Link>
             </div>
