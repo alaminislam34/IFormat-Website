@@ -3,14 +3,33 @@
 import { motion } from "framer-motion";
 import { ReactNode } from "react";
 
-export function ScrollReveal({ children, delay = 0, yOffset = 50 }: { children: ReactNode, delay?: number, yOffset?: number }) {
+interface ScrollRevealProps {
+  children: ReactNode;
+  delay?: number;
+  yOffset?: number;
+  className?: string;
+}
+
+export function ScrollReveal({
+  children,
+  delay = 0,
+  yOffset = 30,
+  className = "w-full",
+}: ScrollRevealProps) {
   return (
     <motion.div
       initial={{ opacity: 0, y: yOffset }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-10%" }}
-      transition={{ duration: 0.8, delay, ease: [0.16, 1, 0.3, 1] }} // Custom spring-like easeOut
-      className="w-full"
+      viewport={{
+        once: true,
+        margin: "0px 0px -5% 0px", // Trigger slightly before element is fully in view — feels earlier and snappier
+      }}
+      transition={{
+        duration: 0.65,
+        delay,
+        ease: [0.22, 1, 0.36, 1], // Refined expo out easing — natural deceleration
+      }}
+      className={className}
     >
       {children}
     </motion.div>

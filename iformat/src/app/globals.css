@@ -51,10 +51,33 @@
   --radius-sm: calc(var(--radius) - 4px);
 }
 
+html {
+  /* Smooth native scroll fallback when Lenis is not active (e.g. SSR or reduced-motion) */
+  scroll-behavior: smooth;
+  /* Prevent layout shift when scrollbar appears/disappears (e.g. when modals open) */
+  scrollbar-gutter: stable;
+  /* iOS momentum scrolling */
+  -webkit-overflow-scrolling: touch;
+}
+
 body {
   background-color: var(--background);
   color: var(--foreground);
+  /* Prevent horizontal scroll bleed */
+  overflow-x: hidden;
   @apply antialiased;
+}
+
+/* Respect user motion preferences — disable smooth scroll for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 /* Custom Gradient Utilities */

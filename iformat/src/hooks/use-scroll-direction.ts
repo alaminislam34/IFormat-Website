@@ -1,42 +1,54 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useLenis } from "lenis/react";
 
-export function useScrollDirection(threshold = 10) {
+export function useScrollDirection(threshold = 8) {
   const [scrollDirection, setScrollDirection] = useState<"up" | "down" | null>(null);
   const [isAtTop, setIsAtTop] = useState(true);
   const [scrollY, setScrollY] = useState(0);
 
+  const lastScrollY = useRef(0);
+  const lenis = useLenis(({ scroll }) => {
+    const current = scroll;
+    const diff = current - lastScrollY.current;
+
+    setIsAtTop(current < 40);
+    setScrollY(current);
+
+    if (Math.abs(diff) >= threshold) {
+      setScrollDirection(diff > 0 ? "down" : "up");
+      lastScrollY.current = current;
+    }
+  });
+
+  // Fallback: native scroll listener when Lenis is not available
   useEffect(() => {
-    let lastScrollY = typeof window !== "undefined" ? window.pageYOffset : 0;
+    if (lenis) return; // Lenis callback above handles it
+
+    let lastY = window.scrollY;
     let ticking = false;
-
-    const updateScrollDir = () => {
-      const currentScrollY = window.pageYOffset;
-
-      setIsAtTop(currentScrollY < 40);
-      setScrollY(currentScrollY);
-
-      if (Math.abs(currentScrollY - lastScrollY) < threshold) {
-        ticking = false;
-        return;
-      }
-
-      setScrollDirection(currentScrollY > lastScrollY ? "down" : "up");
-      lastScrollY = currentScrollY > 0 ? currentScrollY : 0;
-      ticking = false;
-    };
 
     const onScroll = () => {
       if (!ticking) {
-        window.requestAnimationFrame(updateScrollDir);
+        window.requestAnimationFrame(() => {
+          const current = window.scrollY;
+          const diff = current - lastY;
+          setIsAtTop(current < 40);
+          setScrollY(current);
+          if (Math.abs(diff) >= threshold) {
+            setScrollDirection(diff > 0 ? "down" : "up");
+            lastY = current;
+          }
+          ticking = false;
+        });
         ticking = true;
       }
     };
 
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
-  }, [threshold]);
+  }, [lenis, threshold]);
 
   return { scrollDirection, isAtTop, scrollY };
 }

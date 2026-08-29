@@ -74,15 +74,23 @@ interface LenisProviderProps {
 }
 
 export function LenisProvider({ children }: LenisProviderProps) {
+  // Respect user's reduced-motion preference
+  const prefersReducedMotion =
+    typeof window !== "undefined"
+      ? window.matchMedia("(prefers-reduced-motion: reduce)").matches
+      : false;
+
   return (
     <ReactLenis
       root
       options={{
-        lerp: 0.1,
-        duration: 1.4,
-        smoothWheel: true,
-        wheelMultiplier: 1,
-        touchMultiplier: 1.5,
+        lerp: prefersReducedMotion ? 1 : 0.08,      // Instant scroll when user prefers reduced motion
+        duration: prefersReducedMotion ? 0 : 1.2,
+        smoothWheel: !prefersReducedMotion,
+        wheelMultiplier: 1.1,
+        touchMultiplier: 2.0,
+        infinite: false,
+        orientation: "vertical",
       }}
     >
       <LenisNavigationHandler />

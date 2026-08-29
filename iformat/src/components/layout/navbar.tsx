@@ -22,7 +22,7 @@ export function Navbar() {
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-in-out ${
+      className={`fixed top-0 left-0 right-0 z-50 will-change-transform transition-all duration-200 ease-out ${
         isHidden
           ? "-translate-y-full opacity-0 pointer-events-none"
           : "translate-y-0 opacity-100"

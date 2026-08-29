@@ -7,30 +7,24 @@ import { useLenis } from "lenis/react";
 
 export function ScrollToTop() {
   const [isVisible, setIsVisible] = useState(false);
-  const lenis = useLenis();
+  const lenis = useLenis(({ scroll }) => {
+    // Use Lenis's own scroll value — stays in sync with smooth scroll
+    setIsVisible(scroll > 400);
+  });
 
-  // Show button when page is scrolled down
+  // Fallback for environments without Lenis
   useEffect(() => {
-    const toggleVisibility = () => {
-      if (window.scrollY > 300) {
-        setIsVisible(true);
-      } else {
-        setIsVisible(false);
-      }
-    };
-
-    window.addEventListener("scroll", toggleVisibility);
-    return () => window.removeEventListener("scroll", toggleVisibility);
-  }, []);
+    if (lenis) return;
+    const onScroll = () => setIsVisible(window.scrollY > 400);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [lenis]);
 
   const scrollToTop = () => {
     if (lenis) {
-      lenis.scrollTo(0, { duration: 1.2 });
+      lenis.scrollTo(0, { duration: 1.2, easing: (t: number) => 1 - Math.pow(1 - t, 4) });
     } else {
-      window.scrollTo({
-        top: 0,
-        behavior: "smooth",
-      });
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
 
@@ -38,14 +32,16 @@ export function ScrollToTop() {
     <AnimatePresence>
       {isVisible && (
         <motion.button
-          initial={{ opacity: 0, scale: 0.5 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.5 }}
+          initial={{ opacity: 0, scale: 0.6, y: 10 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.6, y: 10 }}
+          transition={{ duration: 0.25, ease: "easeOut" }}
           onClick={scrollToTop}
-          className="fixed bottom-8 right-8 z-50 p-3 bg-linear-to-r from-[#52CEDE] to-[#0A54B1] text-white rounded-full shadow-lg shadow-blue-500/30 hover:shadow-xl hover:scale-110 transition-all cursor-pointer"
+          // Safe positioning: avoids mini-player overlap on mobile (bottom-24 sm:bottom-8), right side clear of safe-area insets
+          className="fixed bottom-24 right-5 sm:bottom-8 sm:right-8 z-40 p-3.5 bg-[#0A54B1] hover:bg-[#08428C] text-white rounded-2xl shadow-lg shadow-blue-600/25 hover:shadow-xl hover:shadow-blue-600/30 hover:scale-110 active:scale-95 transition-all duration-200 cursor-pointer"
           aria-label="Scroll to top"
         >
-          <ArrowUp className="w-6 h-6" />
+          <ArrowUp className="w-5 h-5" />
         </motion.button>
       )}
     </AnimatePresence>
