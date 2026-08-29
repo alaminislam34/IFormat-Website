@@ -4,7 +4,6 @@ import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  User,
   Building2,
   Shield,
   CreditCard,
@@ -13,10 +12,14 @@ import {
   Sparkles,
   Briefcase,
   Layers,
+  Settings,
+  Calendar,
 } from "lucide-react";
 import { useAuthStore } from "@/stores/use-auth-store";
 import { toast } from "sonner";
 import { apiClient } from "@/lib/api/api-client";
+import { NotificationBell } from "@/components/layout/notification-bell";
+import { AccountSettingsModal } from "@/components/layout/account-settings-modal";
 
 interface UserMenuProps {
   variant?: "dark" | "light";
@@ -26,6 +29,7 @@ export function UserMenu({ variant = "light" }: UserMenuProps) {
   const router = useRouter();
   const { user, isAuthenticated, logout } = useAuthStore();
   const [isOpen, setIsOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown on click outside
@@ -95,7 +99,12 @@ export function UserMenu({ variant = "light" }: UserMenuProps) {
     : "Candidate Account";
 
   return (
-    <div className="relative" ref={menuRef}>
+    <div className="flex items-center gap-2">
+      {/* Notification Bell */}
+      <NotificationBell variant={variant} />
+
+      {/* Avatar + dropdown wrapper */}
+      <div className="relative" ref={menuRef}>
       {/* Trigger Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
@@ -204,6 +213,15 @@ export function UserMenu({ variant = "light" }: UserMenuProps) {
             </Link>
 
             <Link
+              href="/dashboard/bookings"
+              onClick={() => setIsOpen(false)}
+              className="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-slate-100 hover:text-[#0A54B1] transition-colors"
+            >
+              <Calendar className="w-4 h-4 text-[#0A54B1]" />
+              <span>Career Consultations</span>
+            </Link>
+
+            <Link
               href="/dashboard/billing"
               onClick={() => setIsOpen(false)}
               className="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-slate-100 hover:text-[#0A54B1] transition-colors"
@@ -211,6 +229,17 @@ export function UserMenu({ variant = "light" }: UserMenuProps) {
               <CreditCard className="w-4 h-4 text-[#0A54B1]" />
               <span>Membership & Plans</span>
             </Link>
+
+            <button
+              onClick={() => {
+                setIsOpen(false);
+                setIsSettingsOpen(true);
+              }}
+              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-slate-100 hover:text-[#0A54B1] transition-colors text-left cursor-pointer"
+            >
+              <Settings className="w-4 h-4 text-[#0A54B1]" />
+              <span>Profile & Password</span>
+            </button>
           </div>
 
           {/* Logout */}
@@ -224,6 +253,15 @@ export function UserMenu({ variant = "light" }: UserMenuProps) {
             </button>
           </div>
         </div>
+      )}
+      </div>
+
+      {/* Account Settings Modal */}
+      {isSettingsOpen && (
+        <AccountSettingsModal
+          isOpen={isSettingsOpen}
+          onClose={() => setIsSettingsOpen(false)}
+        />
       )}
     </div>
   );

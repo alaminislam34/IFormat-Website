@@ -14,12 +14,17 @@ import {
   Check,
   Loader2,
   FileText,
+  Edit3,
+  Trash2,
+  ExternalLink,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/stores/use-auth-store";
 import { cn } from "@/lib/utils";
 import { Job, Applicant } from "./job-card";
 import { ApplyModal } from "./apply-modal";
+import { EditJobModal } from "./edit-job-modal";
+import { useDeleteJob } from "@/hooks";
 import { toast } from "sonner";
 
 interface JobDetailsSheetProps {
@@ -44,12 +49,36 @@ export function JobDetailsSheet({
 
   const [activeTab, setActiveTab] = useState<"details" | "applicants">("details");
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [hasAppliedLocally, setHasAppliedLocally] = useState(false);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const [downloadAllState, setDownloadAllState] = useState<"idle" | "loading" | "success">("idle");
   const [downloadedApplicants, setDownloadedApplicants] = useState<Record<string, boolean>>({});
 
+  const deleteJobMutation = useDeleteJob();
+
   if (!job) return null;
+
+  const handleDeleteJob = async () => {
+    if (
+      !window.confirm(
+        `Are you sure you want to delete "${job.title}"? This will archive the posting and remove it from the job board.`
+      )
+    ) {
+      return;
+    }
+    try {
+      setIsDeleting(true);
+      await deleteJobMutation.mutateAsync(job.id);
+      toast.success(`Job "${job.title}" deleted successfully.`);
+      onClose();
+    } catch (err: any) {
+      toast.error(err?.message || "Failed to delete job posting.");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   const appliedState = isApplied || hasAppliedLocally;
   const applicants = job.applicants || [];
@@ -157,13 +186,35 @@ export function JobDetailsSheet({
                 </div>
               </div>
 
-              {/* Close Button */}
-              <button
-                onClick={onClose}
-                className="p-2 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors absolute top-6 right-6 cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
+              <div className="flex items-center gap-2">
+                {isEmployerOrAdmin && (
+                  <div className="flex items-center gap-1.5 mr-8">
+                    <button
+                      onClick={() => setIsEditModalOpen(true)}
+                      className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-sky-50 text-[#0A54B1] hover:bg-sky-100 font-bold text-xs border border-sky-100 transition-colors cursor-pointer"
+                      title="Edit this job posting"
+                    >
+                      <Edit3 className="w-3.5 h-3.5" /> Edit
+                    </button>
+                    <button
+                      onClick={handleDeleteJob}
+                      disabled={isDeleting}
+                      className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-rose-50 text-rose-600 hover:bg-rose-100 font-bold text-xs border border-rose-100 transition-colors cursor-pointer"
+                      title="Delete this job posting"
+                    >
+                      {isDeleting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+                    </button>
+                  </div>
+                )}
+
+                {/* Close Button */}
+                <button
+                  onClick={onClose}
+                  className="p-2 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors absolute top-6 right-6 cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
             </div>
 
             {/* Badges Bar */}
@@ -475,6 +526,15 @@ export function JobDetailsSheet({
             setHasAppliedLocally(true);
             onApplied?.(appliedJobId);
           }}
+        />
+      )}
+
+      {/* Edit Job Modal */}
+      {isEditModalOpen && (
+        <EditJobModal
+          job={job}
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
         />
       )}
     </>

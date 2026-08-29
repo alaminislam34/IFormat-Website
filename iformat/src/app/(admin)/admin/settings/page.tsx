@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Settings,
   Bot,
@@ -9,16 +9,54 @@ import {
   Sliders,
   Shield,
   Zap,
+  Loader2,
+  RefreshCw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { settingService } from "@/services/setting.service";
+import { toast } from "sonner";
 
 export default function AdminSettingsPage() {
   const [selectedModel, setSelectedModel] = useState<string>("gpt-4o-mini");
+  const [loading, setLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
-  const handleSave = () => {
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+  const loadSettings = async () => {
+    try {
+      setLoading(true);
+      const data = await settingService.getSettings();
+      if (data?.AI_MODEL_PREFERENCE) {
+        setSelectedModel(data.AI_MODEL_PREFERENCE);
+      }
+    } catch (err: any) {
+      toast.error(err?.message || "Failed to load system settings");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadSettings();
+  }, []);
+
+  const handleSave = async () => {
+    try {
+      setIsSaving(true);
+      setSaved(false);
+
+      await settingService.updateSettings({
+        AI_MODEL_PREFERENCE: selectedModel,
+      });
+
+      setSaved(true);
+      toast.success("AI model preference saved to system configuration!");
+      setTimeout(() => setSaved(false), 4000);
+    } catch (err: any) {
+      toast.error(err?.message || "Failed to save settings. Please try again.");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -26,7 +64,7 @@ export default function AdminSettingsPage() {
       {saved && (
         <div className="p-4 rounded-2xl bg-emerald-950/80 border border-emerald-800 text-emerald-300 text-xs font-semibold flex items-center gap-2">
           <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-          <span>System configuration updated successfully.</span>
+          <span>System configuration updated and persisted to database.</span>
         </div>
       )}
 
@@ -39,6 +77,15 @@ export default function AdminSettingsPage() {
             Configure AI screening models, match thresholds, and operational parameters.
           </p>
         </div>
+        <Button
+          variant="outline"
+          onClick={loadSettings}
+          disabled={loading || isSaving}
+          className="border-slate-800 bg-slate-900/50 hover:bg-slate-800 text-slate-300 text-xs h-9"
+        >
+          <RefreshCw className={`w-3.5 h-3.5 mr-2 ${loading ? "animate-spin" : ""}`} />
+          Refresh
+        </Button>
       </div>
 
       <div className="grid md:grid-cols-2 gap-6">
@@ -54,57 +101,81 @@ export default function AdminSettingsPage() {
             </div>
           </div>
 
-          <div className="space-y-3">
-            {[
-              {
-                id: "gpt-4o-mini",
-                name: "GPT-4o Mini (Default)",
-                desc: "High throughput, cost-efficient candidate screening & skill extraction",
-                speed: "Fast",
-                cost: "$0.15 / 1M tokens",
-              },
-              {
-                id: "gpt-4o",
-                name: "GPT-4o Omni",
-                desc: "Deep reasoning, comprehensive executive-level candidate evaluation",
-                speed: "Standard",
-                cost: "$2.50 / 1M tokens",
-              },
-            ].map((m) => (
-              <label
-                key={m.id}
-                onClick={() => setSelectedModel(m.id)}
-                className={`p-4 rounded-2xl border flex items-start gap-3 cursor-pointer transition-all ${
-                  selectedModel === m.id
-                    ? "bg-sky-950/40 border-sky-500 ring-1 ring-sky-500"
-                    : "bg-slate-950/60 border-slate-800 hover:border-slate-700"
-                }`}
-              >
-                <input
-                  type="radio"
-                  name="model"
-                  checked={selectedModel === m.id}
-                  onChange={() => setSelectedModel(m.id)}
-                  className="mt-1 text-sky-500"
-                />
-                <div className="flex-1">
-                  <div className="flex items-center justify-between">
-                    <p className="text-xs font-bold text-white">{m.name}</p>
-                    <span className="text-[10px] font-semibold text-emerald-400">{m.speed}</span>
-                  </div>
-                  <p className="text-[11px] text-slate-400 mt-0.5">{m.desc}</p>
-                  <p className="text-[10px] text-slate-500 mt-1 font-mono">{m.cost}</p>
-                </div>
-              </label>
-            ))}
-          </div>
+          {loading ? (
+            <div className="py-12 flex flex-col items-center justify-center space-y-2">
+              <Loader2 className="w-6 h-6 text-sky-400 animate-spin" />
+              <p className="text-xs text-slate-400">Loading current configuration...</p>
+            </div>
+          ) : (
+            <>
+              <div className="space-y-3">
+                {[
+                  {
+                    id: "gpt-4o-mini",
+                    name: "GPT-4o Mini (Default)",
+                    desc: "High throughput, cost-efficient candidate screening & skill extraction",
+                    speed: "Fast",
+                    cost: "$0.15 / 1M tokens",
+                  },
+                  {
+                    id: "gpt-4o",
+                    name: "GPT-4o Omni",
+                    desc: "Deep reasoning, comprehensive executive-level candidate evaluation",
+                    speed: "Standard",
+                    cost: "$2.50 / 1M tokens",
+                  },
+                  {
+                    id: "claude-3-5-sonnet",
+                    name: "Claude 3.5 Sonnet",
+                    desc: "Nuanced ATS keyword and semantic contextual reasoning",
+                    speed: "Balanced",
+                    cost: "$3.00 / 1M tokens",
+                  },
+                ].map((m) => (
+                  <label
+                    key={m.id}
+                    onClick={() => setSelectedModel(m.id)}
+                    className={`p-4 rounded-2xl border flex items-start gap-3 cursor-pointer transition-all ${
+                      selectedModel === m.id
+                        ? "bg-sky-950/40 border-sky-500 ring-1 ring-sky-500"
+                        : "bg-slate-950/60 border-slate-800 hover:border-slate-700"
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="model"
+                      checked={selectedModel === m.id}
+                      onChange={() => setSelectedModel(m.id)}
+                      className="mt-1 text-sky-500"
+                    />
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs font-bold text-white">{m.name}</p>
+                        <span className="text-[10px] font-semibold text-emerald-400">{m.speed}</span>
+                      </div>
+                      <p className="text-[11px] text-slate-400 mt-0.5">{m.desc}</p>
+                      <p className="text-[10px] text-slate-500 mt-1 font-mono">{m.cost}</p>
+                    </div>
+                  </label>
+                ))}
+              </div>
 
-          <Button
-            onClick={handleSave}
-            className="w-full h-10 bg-sky-500 hover:bg-sky-400 text-white rounded-xl text-xs font-bold"
-          >
-            Save Model Preference
-          </Button>
+              <Button
+                onClick={handleSave}
+                disabled={isSaving}
+                className="w-full h-10 bg-sky-500 hover:bg-sky-400 text-white rounded-xl text-xs font-bold transition-all"
+              >
+                {isSaving ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Saving to Database...
+                  </>
+                ) : (
+                  "Save Model Preference"
+                )}
+              </Button>
+            </>
+          )}
         </div>
 
         {/* Security & System Status */}

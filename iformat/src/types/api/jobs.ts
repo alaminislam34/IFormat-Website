@@ -10,6 +10,45 @@ export type ApplicationStatus =
   | "HIRED"
   | "REJECTED";
 
+export interface ScreeningScoreBreakdown {
+  skills?: number;
+  experience?: number;
+  education?: number;
+  domainMatch?: number;
+  [key: string]: number | undefined;
+}
+
+export interface ScreeningEvidence {
+  category: string;
+  finding: string;
+  source?: string;
+}
+
+export interface ScreeningResultDTO {
+  id: string;
+  applicationId: string;
+  score: number;
+  recommendation: "RECOMMEND" | "CONSIDER" | "DECLINE" | "STRONG_MATCH" | string;
+  summary: string;
+  strengths: string[];
+  gaps: string[];
+  rawAiResponse?: {
+    score?: number;
+    recommendation?: string;
+    summary?: string;
+    strengths?: string[];
+    gaps?: string[];
+    scoreBreakdown?: ScreeningScoreBreakdown;
+    evidence?: ScreeningEvidence[];
+    model?: string;
+    tokensUsed?: number;
+    [key: string]: any;
+  } | null;
+  modelUsed?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export interface JobApplicantDTO {
   id?: string;
   jobId?: string;
@@ -33,14 +72,7 @@ export interface JobApplicantDTO {
     avatarUrl?: string | null;
     phone?: string | null;
   };
-  screeningResult?: {
-    id: string;
-    score: number;
-    recommendation: string;
-    summary: string;
-    strengths?: string[];
-    gaps?: string[];
-  } | null;
+  screeningResult?: ScreeningResultDTO | null;
 }
 
 export interface JobDTO {

@@ -1,8 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2 } from "lucide-react";
+import { Loader2, AlertCircle, RefreshCw } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 import { membershipService } from "@/services/membership.service";
 import { useAuthStore } from "@/stores/use-auth-store";
 import { PlanDTO } from "@/types/api";
@@ -17,6 +19,7 @@ export function Pricing() {
   const [billingInterval, setBillingInterval] = useState<"MONTHLY" | "YEARLY">("MONTHLY");
   const [plans, setPlans] = useState<PlanDTO[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
   const [loadingPlanId, setLoadingPlanId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -29,22 +32,25 @@ export function Pricing() {
     }
   }, [user]);
 
-  useEffect(() => {
-    async function fetchPlans() {
-      try {
-        setLoading(true);
-        const data = await membershipService.getPlans();
-        if (data) {
-          setPlans(Array.isArray(data) ? data : (data as any).plans || []);
-        }
-      } catch (err) {
-        console.warn("Could not load dynamic plans, using fallback state:", err);
-      } finally {
-        setLoading(false);
+  const fetchPlans = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await membershipService.getPlans();
+      if (data) {
+        setPlans(Array.isArray(data) ? data : (data as any).plans || []);
       }
+    } catch (err: any) {
+      const msg = err?.message || "Could not load dynamic pricing plans.";
+      setError(msg);
+    } finally {
+      setLoading(false);
     }
-    fetchPlans();
   }, []);
+
+  useEffect(() => {
+    fetchPlans();
+  }, [fetchPlans]);
 
   const handleSelectPlan = async (plan: PlanDTO) => {
     if (plan.priceInCents === 0) {
@@ -74,7 +80,7 @@ export function Pricing() {
         window.location.href = session.url;
       }
     } catch (err: any) {
-      alert(err.message || "Failed to initiate Stripe Checkout session.");
+      toast.error(err?.message || "Failed to initiate Stripe Checkout session.");
     } finally {
       setLoadingPlanId(null);
     }
@@ -98,6 +104,39 @@ export function Pricing() {
         {loading ? (
           <div className="py-20 flex justify-center items-center">
             <Loader2 className="w-8 h-8 text-sky-500 animate-spin" />
+          </div>
+        ) : error || filteredPlans.length === 0 ? (
+          <div className="bg-white rounded-3xl border border-slate-200 p-8 sm:p-12 text-center max-w-xl mx-auto shadow-sm space-y-4">
+            <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto">
+              <AlertCircle className="w-6 h-6" />
+            </div>
+            <h3 className="text-lg font-bold text-slate-900">Pricing Catalog Updating</h3>
+            <p className="text-sm text-slate-500 max-w-md mx-auto leading-relaxed">
+              We are currently refreshing our dynamic subscription tiers. You can still access standard starter features or retry fetching the catalog.
+            </p>
+            <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
+              <Button
+                onClick={() =>
+                  router.push(
+                    isAuthenticated
+                      ? audience === "EMPLOYER"
+                        ? "/job-portal"
+                        : "/job-assistant"
+                      : "/signup"
+                  )
+                }
+                className="w-full sm:w-auto bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold h-10 px-6 rounded-xl"
+              >
+                Get Started Free
+              </Button>
+              <Button
+                variant="outline"
+                onClick={fetchPlans}
+                className="w-full sm:w-auto border-slate-300 text-slate-700 hover:bg-slate-50 text-xs h-10 px-4 rounded-xl"
+              >
+                <RefreshCw className="w-3.5 h-3.5 mr-2" /> Retry
+              </Button>
+            </div>
           </div>
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 items-stretch">

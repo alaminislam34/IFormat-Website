@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { AdminController } from "./admin.controller.js";
+import { SettingController } from "../setting/setting.controller.js";
 import { requireAuth } from "../../middlewares/auth.middleware.js";
 import { requireAdmin } from "../../middlewares/rbac.middleware.js";
 import { catchAsync } from "../../utils/catchAsync.js";
@@ -34,5 +35,9 @@ router.post("/subscriptions/override", catchAsync(AdminController.overrideSubscr
 
 // 6. Audit Trail
 router.get("/audit-logs", catchAsync(AdminController.listAuditLogs));
+
+// 7. System Settings & AI Model Preferences
+router.get("/settings", catchAsync(SettingController.getSettings));
+router.patch("/settings", catchAsync(SettingController.updateSettings));
 
 export const adminRouter = router;

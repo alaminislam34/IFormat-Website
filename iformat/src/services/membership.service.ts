@@ -75,6 +75,23 @@ export class MembershipService {
   static async resumeSubscription(): Promise<SubscriptionDTO> {
     return apiClient.post<SubscriptionDTO>("/payments/subscription/resume");
   }
+
+  /**
+   * Admin: Create a new membership plan tier
+   */
+  static async createPlan(data: import("@/types/api").CreatePlanDTO): Promise<PlanDTO> {
+    return apiClient.post<PlanDTO>("/plans", data);
+  }
+
+  /**
+   * Admin: Update an existing membership plan tier
+   */
+  static async updatePlan(
+    id: string,
+    data: import("@/types/api").UpdatePlanDTO
+  ): Promise<PlanDTO> {
+    return apiClient.patch<PlanDTO>(`/plans/${id}`, data);
+  }
 }
 
 export const membershipService = MembershipService;

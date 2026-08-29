@@ -154,7 +154,12 @@ export function ApplyModal({ job, isOpen, onClose, onApplied }: ApplyModalProps)
     let finalCvId: string | undefined = selectedCvId || undefined;
 
     // If user uploaded a new PDF file, save it to their cloud CVs automatically
-    if (resumeMode === "upload" && uploadedFile) {
+    if (resumeMode === "upload") {
+      if (!uploadedFile) {
+        toast.error("Please select a resume file to upload.");
+        return;
+      }
+
       try {
         setIsUploadingFile(true);
         const newCv = await cvService.createCV({
@@ -170,7 +175,8 @@ export function ApplyModal({ job, isOpen, onClose, onApplied }: ApplyModalProps)
         finalCvId = newCv.id;
         refetchCVs();
       } catch (err: any) {
-        toast.error("Could not register uploaded resume. Proceeding with application.");
+        toast.error("Failed to upload your resume. Please try again before submitting.");
+        return;
       } finally {
         setIsUploadingFile(false);
       }

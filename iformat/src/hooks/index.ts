@@ -1,6 +1,7 @@
 export * from "./queries/use-jobs";
 export * from "./queries/use-cvs";
 export * from "./queries/use-bookings";
+export * from "./queries/use-notifications";
 export * from "./mutations/use-job-mutations";
 export * from "./mutations/use-auth-mutations";
 export * from "./mutations/use-ai-mutations";

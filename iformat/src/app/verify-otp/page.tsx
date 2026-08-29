@@ -50,7 +50,8 @@ function VerifyOtpContent() {
         setCountdown(0);
         setCanResend(true);
       }
-    } catch {
+    } catch (err) {
+      console.error("Error reading OTP countdown from localStorage:", err);
       setCountdown(0);
       setCanResend(true);
     }
@@ -69,7 +70,9 @@ function VerifyOtpContent() {
           if (email) {
             try {
               localStorage.removeItem(`otp_resend_until_${email}`);
-            } catch {}
+            } catch (err) {
+              console.error("Error removing OTP countdown timestamp on expiry:", err);
+            }
           }
           return 0;
         }
@@ -151,7 +154,9 @@ function VerifyOtpContent() {
     setCountdown(60);
     try {
       localStorage.setItem(`otp_resend_until_${email}`, String(Date.now() + 60000));
-    } catch {}
+    } catch (err) {
+      console.error("Error saving OTP resend cooldown to localStorage:", err);
+    }
 
     resendOtpMutation.mutate(
       { email, type: "EMAIL_VERIFICATION" },
@@ -165,7 +170,9 @@ function VerifyOtpContent() {
           setCountdown(0);
           try {
             localStorage.removeItem(`otp_resend_until_${email}`);
-          } catch {}
+          } catch (storageErr) {
+            console.error("Error clearing OTP resend cooldown from localStorage:", storageErr);
+          }
         },
       }
     );

@@ -19,11 +19,17 @@ import {
   ShieldCheck,
   Building,
   UserCheck,
+  AlertCircle,
+  RefreshCw,
+  Edit3,
+  Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 import { useAuthStore } from "@/stores/use-auth-store";
 import { jobsService } from "@/services/jobs.service";
 import { JobApplicantDTO, JobDTO } from "@/types/api";
+import { EditJobModal } from "@/features/jobs/components/edit-job-modal";
 
 export default function UserDashboardPage() {
   const router = useRouter();
@@ -32,8 +38,55 @@ export default function UserDashboardPage() {
   const [applications, setApplications] = React.useState<JobApplicantDTO[]>([]);
   const [employerJobs, setEmployerJobs] = React.useState<JobDTO[]>([]);
   const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState<string | null>(null);
+  const [editingJob, setEditingJob] = React.useState<JobDTO | null>(null);
+  const [deletingJobId, setDeletingJobId] = React.useState<string | null>(null);
 
   const isEmployer = user?.role === "employer" || user?.role === "EMPLOYER";
+
+  const loadDashboardData = React.useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      if (isEmployer) {
+        const jobs = await jobsService.getEmployerJobs();
+        setEmployerJobs(jobs || []);
+      } else {
+        const apps = await jobsService.getCandidateApplications();
+        setApplications(apps || []);
+      }
+    } catch (err: any) {
+      const errMsg = err?.message || "Failed to load dashboard data. Please check your connection.";
+      setError(errMsg);
+      toast.error(errMsg);
+    } finally {
+      setLoading(false);
+    }
+  }, [isEmployer]);
+
+  const handleDeleteJob = async (jobId: string, title: string) => {
+    if (
+      !window.confirm(
+        `Are you sure you want to delete the job posting "${title}"? This will archive the posting and remove it from the active portal.`
+      )
+    ) {
+      return;
+    }
+    try {
+      setDeletingJobId(jobId);
+      await jobsService.deleteJob(jobId);
+      toast.success(`Job "${title}" deleted successfully.`);
+      setEmployerJobs((prev) => prev.filter((j) => j.id !== jobId));
+    } catch (err: any) {
+      toast.error(err?.message || "Failed to delete job.");
+    } finally {
+      setDeletingJobId(null);
+    }
+  };
+
+  const handleJobUpdated = (updated: JobDTO) => {
+    setEmployerJobs((prev) => prev.map((j) => (j.id === updated.id ? { ...j, ...updated } : j)));
+  };
 
   React.useEffect(() => {
     // If not authenticated, redirect to login
@@ -42,25 +95,8 @@ export default function UserDashboardPage() {
       return;
     }
 
-    const loadDashboardData = async () => {
-      try {
-        setLoading(true);
-        if (isEmployer) {
-          const jobs = await jobsService.getEmployerJobs();
-          setEmployerJobs(jobs || []);
-        } else {
-          const apps = await jobsService.getCandidateApplications();
-          setApplications(apps || []);
-        }
-      } catch (err) {
-        console.warn("Failed to load dashboard data:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     loadDashboardData();
-  }, [isAuthenticated, isEmployer, router]);
+  }, [isAuthenticated, loadDashboardData, router]);
 
   return (
     <main className="min-h-screen bg-slate-950 text-slate-100 pt-24 pb-16 px-4 sm:px-6 lg:px-8">
@@ -109,6 +145,28 @@ export default function UserDashboardPage() {
             </Link>
           </div>
         </div>
+
+        {/* Error Banner */}
+        {error && (
+          <div className="p-4 sm:p-5 rounded-2xl bg-rose-950/60 border border-rose-800/80 text-rose-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-lg">
+            <div className="flex items-center gap-3">
+              <AlertCircle className="w-5 h-5 text-rose-400 shrink-0" />
+              <div>
+                <h4 className="text-sm font-semibold text-white">Couldn&apos;t load your dashboard data</h4>
+                <p className="text-xs text-rose-300/80 mt-0.5">{error}</p>
+              </div>
+            </div>
+            <Button
+              onClick={loadDashboardData}
+              disabled={loading}
+              variant="outline"
+              size="sm"
+              className="border-rose-700 bg-rose-900/40 hover:bg-rose-800 text-rose-100 text-xs shrink-0"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${loading ? "animate-spin" : ""}`} /> Retry
+            </Button>
+          </div>
+        )}
 
         {/* Quick Stats Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -253,9 +311,13 @@ export default function UserDashboardPage() {
                     {employerJobs.map((job) => (
                       <div key={job.id} className="py-4 flex items-center justify-between gap-4">
                         <div className="space-y-1">
-                          <h3 className="font-medium text-white text-sm hover:text-indigo-400 transition-colors">
-                            {job.title}
-                          </h3>
+                          <Link
+                            href={`/dashboard/jobs/${job.id}/applicants`}
+                            className="font-medium text-white text-sm hover:text-indigo-400 transition-colors flex items-center gap-1.5 group"
+                          >
+                            <span>{job.title}</span>
+                            <ChevronRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all text-indigo-400" />
+                          </Link>
                           <div className="flex items-center gap-3 text-xs text-slate-400">
                             <span>{job.category}</span>
                             <span>•</span>
@@ -266,10 +328,40 @@ export default function UserDashboardPage() {
                             </span>
                           </div>
                         </div>
-                        <div className="flex items-center gap-3">
-                          <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-800 text-indigo-400 border border-slate-700">
-                            {job._count?.applications || job.applicants?.length || 0} applicants
-                          </span>
+                        <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+                          <Link href={`/dashboard/jobs/${job.id}/applicants`}>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-xs h-8 border-slate-700 bg-slate-800/80 hover:bg-slate-700 text-indigo-300 rounded-xl cursor-pointer"
+                            >
+                              <Users className="w-3.5 h-3.5 mr-1.5 text-indigo-400" />
+                              Applicants ({job._count?.applications || job.applicants?.length || 0})
+                            </Button>
+                          </Link>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => setEditingJob(job)}
+                            className="text-xs h-8 px-2.5 text-slate-300 hover:text-white hover:bg-slate-800 rounded-xl cursor-pointer"
+                            title="Edit Job Details"
+                          >
+                            <Edit3 className="w-3.5 h-3.5 mr-1 text-sky-400" /> Edit
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleDeleteJob(job.id, job.title)}
+                            disabled={deletingJobId === job.id}
+                            className="text-xs h-8 px-2.5 text-rose-400 hover:text-rose-300 hover:bg-rose-950/40 rounded-xl cursor-pointer"
+                            title="Delete Job Posting"
+                          >
+                            {deletingJobId === job.id ? (
+                              <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                            ) : (
+                              <Trash2 className="w-3.5 h-3.5" />
+                            )}
+                          </Button>
                         </div>
                       </div>
                     ))}
@@ -380,10 +472,10 @@ export default function UserDashboardPage() {
                   <Briefcase className="w-4 h-4 text-indigo-400" /> Browse Available Jobs
                 </Link>
                 <Link
-                  href="/services"
+                  href="/dashboard/bookings"
                   className="flex items-center gap-2 text-slate-300 hover:text-white py-1.5 transition-colors"
                 >
-                  <UserCheck className="w-4 h-4 text-emerald-400" /> Professional Consultations
+                  <UserCheck className="w-4 h-4 text-emerald-400" /> My Consultations & Coaching
                 </Link>
                 <Link
                   href="/about"
@@ -396,6 +488,16 @@ export default function UserDashboardPage() {
           </div>
         </div>
       </div>
+
+      {/* Edit Job Modal */}
+      {editingJob && (
+        <EditJobModal
+          job={editingJob}
+          isOpen={!!editingJob}
+          onClose={() => setEditingJob(null)}
+          onUpdated={handleJobUpdated}
+        />
+      )}
     </main>
   );
 }

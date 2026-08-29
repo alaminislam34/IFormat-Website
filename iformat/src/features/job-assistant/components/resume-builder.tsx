@@ -31,6 +31,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
+import { aiService } from "@/services/ai.service";
 import { useAuthStore } from "@/stores/use-auth-store";
 import { useUserCVs, useCreateCV, useSaveCVVersion, useDeleteCV } from "@/hooks";
 import { CVDTO } from "@/types/api";
@@ -364,12 +365,59 @@ export function ResumeBuilder() {
     }));
   };
 
-  const handleGenerate = () => {
-    setIsGenerating(true);
-    setTimeout(() => {
-      setIsGenerating(false);
+  const handleGenerate = async () => {
+    try {
+      setIsGenerating(true);
+
+      const rawNotes = [
+        data.summary ? `Professional Summary:\n${data.summary}` : "",
+        data.workExperience.length > 0
+          ? `Work Experience:\n${data.workExperience
+              .map(
+                (w) =>
+                  `- ${w.role} at ${w.company} (${w.duration || "Present"}) in ${w.location || "Remote"}:\n  ${w.description}`
+              )
+              .join("\n")}`
+          : "",
+        data.education.length > 0
+          ? `Education:\n${data.education
+              .map((e) => `- ${e.degree} at ${e.institution} (${e.duration || ""})`)
+              .join("\n")}`
+          : "",
+        data.skillGroups.length > 0
+          ? `Skills:\n${data.skillGroups.map((s) => `- ${s.category}: ${s.skills}`).join("\n")}`
+          : "",
+        data.certifications.length > 0
+          ? `Certifications:\n${data.certifications.map((c) => `- ${c.name} (${c.link || ""})`).join("\n")}`
+          : "",
+        data.languages ? `Languages: ${data.languages}` : "",
+        data.interests ? `Interests: ${data.interests}` : "",
+      ]
+        .filter(Boolean)
+        .join("\n\n");
+
+      await aiService.buildCv({
+        user_info: {
+          fullName: data.fullName,
+          jobTitle: data.jobTitle,
+          email: data.email,
+          phone: data.phone,
+          location: data.location,
+          linkedin: data.linkedin,
+          website: data.website,
+        },
+        raw_notes: rawNotes || `Resume for ${data.fullName} as ${data.jobTitle || "Professional"}`,
+        targetRole: data.jobTitle || "Software Engineer",
+        targetIndustry: "Technology",
+      });
+
+      toast.success("AI generated your CV successfully!");
       setStep(6); // Move to resume preview
-    }, 2000);
+    } catch (err: any) {
+      toast.error(err?.message || "Failed to generate CV. Please check your inputs and try again.");
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const handleCopy = () => {

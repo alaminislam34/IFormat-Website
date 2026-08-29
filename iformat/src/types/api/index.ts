@@ -6,3 +6,4 @@ export * from "./cv";
 export * from "./booking";
 export * from "./company";
 export * from "./membership";
+export * from "./notification";

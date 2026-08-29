@@ -1,0 +1,12 @@
+model SystemSetting {
+  id          String   @id @default(uuid())
+  key         String   @unique
+  value       String
+  updatedById String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  updatedBy   User?    @relation("UserUpdatedSettings", fields: [updatedById], references: [id], onDelete: SetNull)
+
+  @@index([key])
+}

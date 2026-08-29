@@ -222,6 +222,20 @@ export class AdminService {
       params,
     });
   }
+
+  /**
+   * Retrieve platform system settings
+   */
+  static async getSettings(): Promise<Record<string, any>> {
+    return apiClient.get<Record<string, any>>("/admin/settings");
+  }
+
+  /**
+   * Update platform system settings
+   */
+  static async updateSettings(settings: Record<string, any>): Promise<Record<string, any>> {
+    return apiClient.patch<Record<string, any>>("/admin/settings", { settings });
+  }
 }
 
 export const adminService = AdminService;

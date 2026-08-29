@@ -386,5 +386,37 @@ export const swaggerSpec = {
         },
       },
     },
+    "/admin/settings": {
+      get: {
+        tags: ["Admin"],
+        summary: "Retrieve all platform & AI system configuration settings",
+        security: [{ bearerAuth: [] }],
+        responses: {
+          200: { description: "Current system settings dictionary." },
+        },
+      },
+      patch: {
+        tags: ["Admin"],
+        summary: "Update or upsert platform & AI system configuration settings",
+        security: [{ bearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                example: {
+                  AI_MODEL_PREFERENCE: "gpt-4o",
+                  DEFAULT_MATCH_THRESHOLD: "80",
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          200: { description: "Updated system settings dictionary." },
+        },
+      },
+    },
   },
 };

@@ -14,7 +14,7 @@ export default function NotFoundPage() {
         </div>
 
         <h1 className="text-6xl md:text-8xl font-black text-slate-900 dark:text-white tracking-tight mb-4 font-mono">
-          4<span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500">0</span>4
+          4<span className="text-transparent bg-clip-text bg-linear-to-r from-blue-600 to-cyan-500">0</span>4
         </h1>
 
         <h2 className="text-2xl md:text-3xl font-bold text-slate-800 dark:text-slate-100 mb-4 tracking-tight">
@@ -53,7 +53,7 @@ export default function NotFoundPage() {
         {/* Main CTA */}
         <Link
           href="/"
-          className="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-2xl bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold text-sm shadow-xl shadow-blue-600/25 transition-all active:scale-[0.98]"
+          className="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-2xl bg-linear-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold text-sm shadow-xl shadow-blue-600/25 transition-all active:scale-[0.98]"
         >
           <ArrowLeft className="w-4 h-4" />
           Return to Homepage

@@ -86,3 +86,27 @@ export interface CheckoutSessionResponse {
 export interface CustomerPortalResponse {
   url: string;
 }
+
+export interface CreatePlanDTO {
+  code: string;
+  name: string;
+  description?: string;
+  priceInCents: number;
+  currency?: string;
+  billingInterval?: PlanBillingInterval;
+  targetAudience?: PlanAudience;
+  stripePriceId?: string;
+  stripeProductId?: string;
+  maxActiveJobs?: number | null;
+  maxApplicationsPerMonth?: number | null;
+  aiScreeningEnabled?: boolean;
+  featuredJobPlacement?: boolean;
+  unmaskedApplicantProfiles?: boolean;
+  unlimitedCvTemplates?: boolean;
+  consultationDiscountPercent?: number;
+  customFeatures?: Record<string, any>;
+}
+
+export type UpdatePlanDTO = Partial<CreatePlanDTO> & {
+  isActive?: boolean;
+};

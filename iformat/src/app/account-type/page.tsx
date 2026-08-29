@@ -9,6 +9,7 @@ import { RoleSelectionCard } from "@/features/auth/components/role-selection-car
 import { LoadingScreen } from "@/features/auth/components/loading-screen";
 import { AnimatePresence } from "framer-motion";
 
+import { toast } from "sonner";
 import { useAuthStore } from "@/stores/use-auth-store";
 
 type RoleType = "candidate" | "employer";
@@ -24,7 +25,7 @@ export default function AccountTypePage() {
       setIsLoading(true);
       const roleUpper = selectedRole.toUpperCase() as "CANDIDATE" | "EMPLOYER";
       const { apiClient } = await import("@/lib/api/api-client");
-      await apiClient.patch("/users/role", { role: roleUpper });
+      await apiClient.post("/users/role", { role: roleUpper });
       setRole(selectedRole);
 
       if (selectedRole === "candidate") {
@@ -32,13 +33,8 @@ export default function AccountTypePage() {
       } else {
         router.push("/company-details");
       }
-    } catch {
-      setRole(selectedRole);
-      if (selectedRole === "candidate") {
-        router.push("/job-portal");
-      } else {
-        router.push("/company-details");
-      }
+    } catch (err: any) {
+      toast.error(err?.message || "Failed to save role, please try again");
     } finally {
       setIsLoading(false);
     }

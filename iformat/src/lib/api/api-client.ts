@@ -15,7 +15,7 @@ class ApiClient {
 
   constructor() {
     this.baseUrl =
-      process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001/api/v1";
+      process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1";
   }
 
   private getAuthToken(): string | null {
@@ -130,26 +130,42 @@ class ApiClient {
 
     const authToken = token !== undefined ? token : this.getAuthToken();
 
+    const isFormData = typeof FormData !== "undefined" && body instanceof FormData;
+
     const defaultHeaders: Record<string, string> = {
-      "Content-Type": "application/json",
       Accept: "application/json",
     };
+
+    if (!isFormData) {
+      defaultHeaders["Content-Type"] = "application/json";
+    }
 
     if (authToken) {
       defaultHeaders["Authorization"] = `Bearer ${authToken}`;
     }
 
+    const finalHeaders: Record<string, string> = {
+      ...defaultHeaders,
+      ...(headers as Record<string, string> | undefined),
+    };
+
+    if (isFormData) {
+      delete finalHeaders["Content-Type"];
+      delete finalHeaders["content-type"];
+    }
+
     const config: RequestInit = {
       credentials: "include", // Enables HttpOnly cookies transmission cross-origin/same-origin
       ...customConfig,
-      headers: {
-        ...defaultHeaders,
-        ...headers,
-      },
+      headers: finalHeaders,
     };
 
     if (body !== undefined) {
-      config.body = typeof body === "string" ? body : JSON.stringify(body);
+      config.body = isFormData
+        ? (body as BodyInit)
+        : typeof body === "string"
+        ? body
+        : JSON.stringify(body);
     }
 
     const url = this.buildUrl(endpoint, params);

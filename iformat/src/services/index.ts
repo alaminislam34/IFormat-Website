@@ -6,3 +6,5 @@ export * from "./booking.service";
 export * from "./company.service";
 export * from "./membership.service";
 export * from "./admin.service";
+export * from "./notification.service";
+export * from "./user.service";

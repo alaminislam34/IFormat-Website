@@ -32,6 +32,7 @@ model User {
   usageRecords       SubscriptionUsage[]
   notifications      Notification[]
   auditLogs          AuditLog[]          @relation("AdminAuditLogs")
+  systemSettings     SystemSetting[]     @relation("UserUpdatedSettings")
 
   @@index([email])
   @@index([role])
