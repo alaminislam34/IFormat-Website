@@ -3,6 +3,7 @@ import { app } from "./app.js";
 import { env } from "./config/env.js";
 import { logger } from "./utils/logger.js";
 import { connectDatabase, prisma } from "./lib/prisma.js";
+import { seedDatabase } from "./lib/seed.js";
 
 const server = createServer(app);
 
@@ -10,6 +11,9 @@ const startServer = async () => {
   try {
     // 1. Connect to PostgreSQL via Prisma
     await connectDatabase();
+
+    // 2. Ensure essential default records (Admin, Plans) exist safely
+    await seedDatabase();
 
     // 2. Start HTTP Server
     server.listen(env.PORT, () => {

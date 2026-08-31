@@ -1,273 +1,176 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import {
-  Loader2,
-  AlertCircle,
-  RefreshCw,
-  ChevronLeft,
-  ChevronRight,
-  Sparkles,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { membershipService } from "@/services/membership.service";
 import { useAuthStore } from "@/stores/use-auth-store";
-import { PlanDTO } from "@/types/api";
 import { PricingHeader } from "./pricing-header";
-import { PricingCard } from "./pricing-card";
+import { PricingCard, PricingCardItem } from "./pricing-card";
+
+const DEFAULT_BRANDING_PLANS: PricingCardItem[] = [
+  {
+    code: "BRANDING_STARTER",
+    name: "Starter",
+    subtitle: "Maintain brand activity and engagement.",
+    price: "$149",
+    priceSuffix: "/month",
+    isPopular: false,
+    buttonText: "Get Started",
+    features: [
+      "Weekly engagement (4)",
+      "Email/Whatsapp support",
+      "Connections Strategy",
+      "Reporting & analytics",
+      "Job market advise",
+    ],
+  },
+  {
+    code: "BRANDING_PROFESSIONAL",
+    name: "Professional",
+    subtitle: "High-touch leadership advisory & brand authority",
+    price: "$449",
+    priceSuffix: "/month",
+    isPopular: true,
+    buttonText: "Get Started",
+    features: [
+      "Dedicated consultant",
+      "1:1 Brand Strategy",
+      "Recruiter Engagement",
+      "Brand Updates/Edits",
+      "Interview Coaching",
+      "Salary Negotiation",
+    ],
+  },
+  {
+    code: "BRANDING_GROW",
+    name: "Grow",
+    subtitle: "For career pivoters and specialized Brand visibility and job market alignment",
+    price: "$299",
+    priceSuffix: "/package",
+    isPopular: false,
+    buttonText: "Get Started",
+    features: [
+      "Weekly engagement (4)",
+      "Email/Whatsapp support",
+      "Connections Strategy",
+      "Reporting & analytics",
+      "Recruiter messaging",
+      "Quarterly LinkedIn Optimization",
+    ],
+  },
+  {
+    code: "BRANDING_ENTERPRISE",
+    name: "Enterprise Solutions",
+    subtitle: "Designed for career changers and niche pros to boost your brand and meet market needs",
+    price: "",
+    isPopular: false,
+    buttonText: "Contact US",
+    isContactUs: true,
+    features: [
+      "Outplacement Support",
+      "Startup Brand Equity",
+      "Stakeholder Brand Equity",
+      "Investor Brand Engagement",
+      "Restructuring",
+      "Workforce Transitions",
+    ],
+  },
+];
 
 export function Pricing() {
   const router = useRouter();
-  const { user, isAuthenticated } = useAuthStore();
+  const { isAuthenticated } = useAuthStore();
+  const [plans, setPlans] = useState<PricingCardItem[]>(DEFAULT_BRANDING_PLANS);
+  const [loadingPlanCode, setLoadingPlanCode] = useState<string | null>(null);
 
-  const [audience, setAudience] = useState<"EMPLOYER" | "CANDIDATE">("EMPLOYER");
-  const [billingInterval, setBillingInterval] = useState<"MONTHLY" | "YEARLY">("MONTHLY");
-  const [plans, setPlans] = useState<PlanDTO[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-  const [loadingPlanId, setLoadingPlanId] = useState<string | null>(null);
-
-  // Slider State
-  const sliderRef = useRef<HTMLDivElement>(null);
-  const [activeIndex, setActiveIndex] = useState(0);
-  const [canScrollLeft, setCanScrollLeft] = useState(false);
-  const [canScrollRight, setCanScrollRight] = useState(false);
-
-  useEffect(() => {
-    // If logged in, automatically default to user's role
-    const roleUpper = user?.role?.toUpperCase();
-    if (roleUpper === "CANDIDATE") {
-      setAudience("CANDIDATE");
-    } else if (roleUpper === "EMPLOYER") {
-      setAudience("EMPLOYER");
-    }
-  }, [user]);
-
-  const fetchPlans = useCallback(async () => {
+  const fetchDynamicPlans = useCallback(async () => {
     try {
-      setLoading(true);
-      setError(null);
       const data = await membershipService.getPlans();
-      if (data) {
-        setPlans(Array.isArray(data) ? data : (data as any).plans || []);
+      const rawPlans = Array.isArray(data) ? data : (data as any)?.plans;
+      if (rawPlans && rawPlans.length > 0) {
+        // Map dynamic plans if they match codes or IDs
+        const updated = DEFAULT_BRANDING_PLANS.map((defaultPlan) => {
+          const matched = rawPlans.find(
+            (p: any) =>
+              p.code === defaultPlan.code ||
+              p.name.toLowerCase() === defaultPlan.name.toLowerCase()
+          );
+          if (matched) {
+            return {
+              ...defaultPlan,
+              id: matched.id,
+              price: matched.priceInCents > 0 ? `$${matched.priceInCents / 100}` : defaultPlan.price,
+              features:
+                Array.isArray(matched.customFeatures) && matched.customFeatures.length > 0
+                  ? matched.customFeatures
+                  : defaultPlan.features,
+            };
+          }
+          return defaultPlan;
+        });
+        setPlans(updated);
       }
-    } catch (err: any) {
-      const msg = err?.message || "Could not load dynamic pricing plans.";
-      setError(msg);
-    } finally {
-      setLoading(false);
+    } catch {
+      // Use defaults seamlessly
+      setPlans(DEFAULT_BRANDING_PLANS);
     }
   }, []);
 
   useEffect(() => {
-    fetchPlans();
-  }, [fetchPlans]);
+    fetchDynamicPlans();
+  }, [fetchDynamicPlans]);
 
-  const handleSelectPlan = async (plan: PlanDTO) => {
-    if (plan.priceInCents === 0) {
-      if (!isAuthenticated) {
-        router.push("/signup");
-      } else {
-        router.push(audience === "EMPLOYER" ? "/job-portal" : "/job-assistant");
-      }
+  const handleSelectPlan = async (item: PricingCardItem) => {
+    if (item.isContactUs) {
+      router.push("/contact");
       return;
     }
 
     if (!isAuthenticated) {
-      router.push(`/login?redirect=${encodeURIComponent(`/services?selectedPlan=${plan.code}#pricing`)}`);
+      router.push(`/signup?plan=${encodeURIComponent(item.code)}`);
       return;
     }
 
     try {
-      setLoadingPlanId(plan.id);
+      setLoadingPlanCode(item.code);
       const origin = typeof window !== "undefined" ? window.location.origin : "";
-      const session = await membershipService.createCheckoutSession({
-        planId: plan.id,
-        successUrl: `${origin}/dashboard/billing?payment=success`,
-        cancelUrl: `${origin}/services?payment=cancelled#pricing`,
+      const res = await membershipService.createCheckoutSession({
+        planId: item.id || item.code,
+        successUrl: `${origin}/dashboard?payment=success`,
+        cancelUrl: `${origin}/#pricing`,
       });
 
-      if (session?.url) {
-        window.location.href = session.url;
+      if (res?.url) {
+        window.location.href = res.url;
+      } else {
+        router.push("/dashboard");
       }
     } catch (err: any) {
-      toast.error(err?.message || "Failed to initiate Stripe Checkout session.");
+      const errorMsg =
+        err?.response?.data?.message || err?.message || "Failed to initiate subscription checkout.";
+      toast.error(errorMsg);
     } finally {
-      setLoadingPlanId(null);
+      setLoadingPlanCode(null);
     }
   };
 
-  // Filter plans based on active audience tab
-  const filteredPlans = plans.filter(
-    (p) => p.targetAudience === audience || p.targetAudience === "BOTH"
-  );
-
-  // Update slider navigation buttons status
-  const updateScrollState = useCallback(() => {
-    if (!sliderRef.current) return;
-    const { scrollLeft, scrollWidth, clientWidth } = sliderRef.current;
-    setCanScrollLeft(scrollLeft > 10);
-    setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10);
-
-    // Estimate active index based on card width
-    const cardWidth = 380 + 32; // card width + gap
-    const index = Math.round(scrollLeft / cardWidth);
-    setActiveIndex(Math.min(index, filteredPlans.length - 1));
-  }, [filteredPlans.length]);
-
-  useEffect(() => {
-    const el = sliderRef.current;
-    if (!el) return;
-    updateScrollState();
-    el.addEventListener("scroll", updateScrollState, { passive: true });
-    window.addEventListener("resize", updateScrollState);
-    return () => {
-      el.removeEventListener("scroll", updateScrollState);
-      window.removeEventListener("resize", updateScrollState);
-    };
-  }, [updateScrollState, filteredPlans]);
-
-  const slideTo = (direction: "left" | "right") => {
-    if (!sliderRef.current) return;
-    const scrollAmount = 400;
-    sliderRef.current.scrollBy({
-      left: direction === "left" ? -scrollAmount : scrollAmount,
-      behavior: "smooth",
-    });
-  };
-
-  const slideToIndex = (index: number) => {
-    if (!sliderRef.current) return;
-    const cardWidth = 380 + 32;
-    sliderRef.current.scrollTo({
-      left: index * cardWidth,
-      behavior: "smooth",
-    });
-  };
-
   return (
-    <section id="pricing" className="py-24 px-6 bg-slate-50 relative overflow-hidden">
-      <div className="max-w-7xl mx-auto space-y-12">
-        <PricingHeader
-          audience={audience}
-          setAudience={setAudience}
-          billingInterval={billingInterval}
-          setBillingInterval={setBillingInterval}
-        />
+    <section id="pricing" className="py-24 px-6 bg-slate-50/50 relative overflow-hidden">
+      <div className="max-w-7xl mx-auto space-y-14">
+        <PricingHeader />
 
-        {loading ? (
-          <div className="py-20 flex justify-center items-center">
-            <Loader2 className="w-8 h-8 text-sky-500 animate-spin" />
-          </div>
-        ) : error || filteredPlans.length === 0 ? (
-          <div className="bg-white rounded-3xl border border-slate-200 p-8 sm:p-12 text-center max-w-xl mx-auto shadow-sm space-y-4">
-            <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto">
-              <AlertCircle className="w-6 h-6" />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
+          {plans.map((item) => (
+            <div key={item.code} className="flex">
+              <PricingCard
+                item={item}
+                loading={loadingPlanCode === item.code}
+                onSelect={handleSelectPlan}
+              />
             </div>
-            <h3 className="text-lg font-bold text-slate-900">Pricing Catalog Updating</h3>
-            <p className="text-sm text-slate-500 max-w-md mx-auto leading-relaxed">
-              We are currently refreshing our dynamic subscription tiers. You can still access standard starter features or retry fetching the catalog.
-            </p>
-            <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
-              <Button
-                onClick={() =>
-                  router.push(
-                    isAuthenticated
-                      ? audience === "EMPLOYER"
-                        ? "/job-portal"
-                        : "/job-assistant"
-                      : "/signup"
-                  )
-                }
-                className="w-full sm:w-auto bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold h-10 px-6 rounded-xl"
-              >
-                Get Started Free
-              </Button>
-              <Button
-                variant="outline"
-                onClick={fetchPlans}
-                className="w-full sm:w-auto border-slate-300 text-slate-700 hover:bg-slate-50 text-xs h-10 px-4 rounded-xl"
-              >
-                <RefreshCw className="w-3.5 h-3.5 mr-2" /> Retry
-              </Button>
-            </div>
-          </div>
-        ) : (
-          <div className="relative space-y-6">
-            {/* Slider Navigation Header Controls */}
-            <div className="flex items-center justify-between px-2">
-              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                {filteredPlans.length} {filteredPlans.length === 1 ? "Plan" : "Plans"} Available • Slide to compare
-              </span>
-
-              {/* Slider Arrows */}
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => slideTo("left")}
-                  disabled={!canScrollLeft}
-                  aria-label="Previous plan"
-                  className="w-10 h-10 rounded-2xl bg-white border border-slate-200 shadow-sm flex items-center justify-center text-slate-700 hover:bg-slate-100 hover:text-slate-900 disabled:opacity-40 disabled:hover:bg-white disabled:cursor-not-allowed transition-all cursor-pointer"
-                >
-                  <ChevronLeft className="w-5 h-5" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => slideTo("right")}
-                  disabled={!canScrollRight}
-                  aria-label="Next plan"
-                  className="w-10 h-10 rounded-2xl bg-white border border-slate-200 shadow-sm flex items-center justify-center text-slate-700 hover:bg-slate-100 hover:text-slate-900 disabled:opacity-40 disabled:hover:bg-white disabled:cursor-not-allowed transition-all cursor-pointer"
-                >
-                  <ChevronRight className="w-5 h-5" />
-                </button>
-              </div>
-            </div>
-
-            {/* Scrollable Pricing Cards Slider (No Auto-Slide, Smooth Manual Drag/Scroll) */}
-            <div
-              ref={sliderRef}
-              className="flex items-stretch gap-8 overflow-x-auto scroll-smooth snap-x snap-mandatory py-4 px-2 scrollbar-none"
-              style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-            >
-              {filteredPlans.map((plan, index) => (
-                <div
-                  key={plan.id ? `plan-${plan.id}` : `plan-${plan.code || "tier"}-${index}`}
-                  className="snap-center shrink-0 w-full sm:w-95 md:w-100 flex"
-                >
-                  <div className="w-full flex">
-                    <PricingCard
-                      plan={plan}
-                      billingInterval={billingInterval}
-                      loadingPlanId={loadingPlanId}
-                      onSelectPlan={handleSelectPlan}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Slider Pagination Dots */}
-            {filteredPlans.length > 1 && (
-              <div className="flex items-center justify-center gap-2 pt-4">
-                {filteredPlans.map((_, idx) => (
-                  <button
-                    key={idx}
-                    type="button"
-                    onClick={() => slideToIndex(idx)}
-                    aria-label={`Go to slide ${idx + 1}`}
-                    className={`h-2.5 rounded-full transition-all cursor-pointer ${
-                      activeIndex === idx
-                        ? "w-8 bg-[#0A54B1]"
-                        : "w-2.5 bg-slate-300 hover:bg-slate-400"
-                    }`}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-        )}
+          ))}
+        </div>
       </div>
     </section>
   );

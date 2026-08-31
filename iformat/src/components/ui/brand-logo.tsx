@@ -8,39 +8,50 @@ interface BrandLogoProps {
   subtitle?: string;
   size?: "sm" | "md" | "lg";
   href?: string;
+  className?: string;
 }
 
 export function BrandLogo({
   variant = "light",
-  subtitle = "Branding",
+  subtitle = "BRANDING",
   size = "md",
   href = "/",
+  className = "",
 }: BrandLogoProps) {
   const isDark = variant === "dark";
-  const sizeClasses = {
-    sm: "text-xl",
-    md: "text-2xl",
-    lg: "text-3xl",
+
+  const sizeStyles = {
+    sm: {
+      brand: "text-lg tracking-tight font-extrabold",
+      subtitle: "text-[10px] tracking-[0.2em] font-medium ml-2.5",
+    },
+    md: {
+      brand: "text-2xl tracking-tight font-extrabold",
+      subtitle: "text-xs tracking-[0.24em] font-medium ml-3",
+    },
+    lg: {
+      brand: "text-3xl tracking-tight font-extrabold",
+      subtitle: "text-sm tracking-[0.28em] font-medium ml-3.5",
+    },
   };
 
+  const currentSize = sizeStyles[size] || sizeStyles.md;
+
   const content = (
-    <div className="inline-flex flex-col group cursor-pointer select-none">
-      <div className="flex items-center gap-0.5 leading-none">
-        <span className={`font-extrabold tracking-tight text-[#52CEDE] transition-transform duration-200 group-hover:scale-105 ${sizeClasses[size]}`}>
-          i
-        </span>
-        <span
-          className={`font-extrabold tracking-tight transition-colors ${sizeClasses[size]} ${
-            isDark ? "text-white" : "text-[#0A54B1]"
-          }`}
-        >
-          Format
-        </span>
-      </div>
+    <div
+      className={`inline-flex items-baseline group cursor-pointer select-none transition-opacity hover:opacity-95 ${className}`}
+    >
+      <span
+        className={`${currentSize.brand} transition-colors duration-200 ${
+          isDark ? "text-white" : "text-[#0A54B1]"
+        }`}
+      >
+        iFormat
+      </span>
       {subtitle && (
         <span
-          className={`text-[7.5px] tracking-[0.28em] font-extrabold uppercase -mt-0.5 pl-0.5 ${
-            isDark ? "text-white/80" : "text-[#0A54B1]/80"
+          className={`${currentSize.subtitle} uppercase transition-colors duration-200 ${
+            isDark ? "text-white/85" : "text-[#0A54B1]/80"
           }`}
         >
           {subtitle}
@@ -50,7 +61,7 @@ export function BrandLogo({
   );
 
   if (href) {
-    return <Link href={href}>{content}</Link>;
+    return <Link href={href} className="inline-flex items-center">{content}</Link>;
   }
 
   return content;

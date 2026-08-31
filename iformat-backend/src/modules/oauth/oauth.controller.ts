@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { OAuthService } from "./oauth.service.js";
 import { setAuthCookies } from "../../utils/cookie.js";
-import { env } from "../../config/env.js";
+import { env, getFrontendUrl } from "../../config/env.js";
 import { Role } from "@prisma/client";
 
 export class OAuthController {
@@ -45,10 +45,10 @@ export class OAuthController {
       }
 
       if (user.role === Role.EMPLOYER) {
-        return res.redirect(`${env.CORS_ORIGIN}/company-details`);
+        return res.redirect(`${getFrontendUrl()}/company-details`);
       }
 
-      return res.redirect(`${env.CORS_ORIGIN}/job-portal`);
+      return res.redirect(`${getFrontendUrl()}/dashboard`);
     } catch {
       return res.redirect(env.OAUTH_FAILURE_REDIRECT_URL);
     }

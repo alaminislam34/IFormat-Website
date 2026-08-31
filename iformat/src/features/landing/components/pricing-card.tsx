@@ -1,162 +1,108 @@
-import React from "react";
-import { Check, Sparkles, Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { PlanDTO } from "@/types/api";
+"use client";
 
-interface PricingCardProps {
-  plan: PlanDTO;
-  billingInterval: "MONTHLY" | "YEARLY";
-  loadingPlanId: string | null;
-  onSelectPlan: (plan: PlanDTO) => void;
+import React from "react";
+import { Check, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+
+export interface PricingCardItem {
+  id?: string;
+  code: string;
+  name: string;
+  subtitle: string;
+  price: string;
+  priceSuffix?: string;
+  isPopular?: boolean;
+  features: string[];
+  buttonText: string;
+  isContactUs?: boolean;
 }
 
-export function PricingCard({
-  plan,
-  billingInterval,
-  loadingPlanId,
-  onSelectPlan,
-}: PricingCardProps) {
-  const isPro = plan.code.includes("PRO") || plan.code.includes("STARTER");
-  const isEnterprise = plan.code.includes("ENTERPRISE");
-  const isFree = plan.priceInCents === 0;
+interface PricingCardProps {
+  item: PricingCardItem;
+  loading?: boolean;
+  onSelect: (item: PricingCardItem) => void;
+}
 
-  // Calculate annual discount if yearly
-  let displayPrice = plan.priceInCents / 100;
-  if (billingInterval === "YEARLY" && !isFree) {
-    displayPrice = Math.round(displayPrice * 0.8);
-  }
-
-  const features: string[] = [];
-  if (plan.maxActiveJobs !== null) {
-    features.push(
-      plan.maxActiveJobs === 0
-        ? "No job postings"
-        : `${plan.maxActiveJobs === 999999 ? "Unlimited" : plan.maxActiveJobs} Active Job Postings`
-    );
-  }
-  if (plan.maxApplicationsPerMonth !== null) {
-    features.push(
-      plan.maxApplicationsPerMonth === 999999
-        ? "Unlimited Monthly Job Applications"
-        : `${plan.maxApplicationsPerMonth} Applications / Month`
-    );
-  }
-  if (plan.aiScreeningEnabled) {
-    features.push("AI Candidate Screening & Match Scoring");
-  }
-  if (plan.featuredJobPlacement) {
-    features.push("Priority Featured Job Placement");
-  }
-  if (plan.unmaskedApplicantProfiles) {
-    features.push("Full Unmasked Candidate Contact Info");
-  } else if (plan.targetAudience === "EMPLOYER") {
-    features.push("Standard Applicant Inbox (Masked Contact)");
-  }
-  if (plan.unlimitedCvTemplates) {
-    features.push("Unlimited Professional CV Templates");
-  }
-  if (plan.consultationDiscountPercent > 0) {
-    features.push(`${plan.consultationDiscountPercent}% Off 1-on-1 Career Consultations`);
-  }
+export function PricingCard({ item, loading = false, onSelect }: PricingCardProps) {
+  const isPopular = item.isPopular;
 
   return (
     <div
-      className={`w-full rounded-3xl p-8 border flex flex-col justify-between transition-all duration-300 relative ${
-        isPro
-          ? "bg-slate-900 text-white border-sky-500 ring-2 ring-sky-500/20 shadow-2xl scale-[1.02]"
-          : "bg-white text-slate-900 border-slate-200/80 hover:border-slate-300 shadow-sm"
+      className={`w-full rounded-[28px] p-7 sm:p-8 flex flex-col justify-between transition-all duration-300 relative bg-white ${
+        isPopular
+          ? "border-2 border-[#00D2EE] shadow-xl shadow-sky-500/10 ring-1 ring-[#00D2EE]/30"
+          : "border border-slate-200/90 shadow-sm hover:shadow-md hover:border-slate-300"
       }`}
     >
-      {isPro && (
-        <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-linear-to-r from-sky-500 to-blue-600 text-white text-xs font-black uppercase tracking-wider shadow-md">
+      {/* Most Popular Badge */}
+      {isPopular && (
+        <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-[#00D2EE] text-slate-900 text-xs font-black tracking-wide shadow-sm">
           Most Popular
         </div>
       )}
 
       <div>
-        <div className="flex items-center justify-between mb-3">
-          <span
-            className={`text-xs font-bold uppercase tracking-wider ${
-              isPro ? "text-sky-400" : "text-slate-500"
-            }`}
-          >
-            {plan.targetAudience === "EMPLOYER" ? "For Employers" : "For Candidates"}
-          </span>
-          {isEnterprise && (
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-purple-100 text-purple-700">
-              Enterprise
-            </span>
-          )}
-        </div>
+        {/* Title */}
+        <h3 className="text-2xl font-black text-slate-900 tracking-tight">{item.name}</h3>
 
-        <h3 className="text-2xl font-black">{plan.name}</h3>
-        <p className={`text-xs mt-1.5 min-h-9 ${isPro ? "text-slate-300" : "text-slate-500"}`}>
-          {plan.description || "Everything you need to advance your goals."}
+        {/* Subtitle */}
+        <p className="text-xs text-slate-500 mt-2 min-h-10 leading-relaxed">
+          {item.subtitle}
         </p>
 
-        <div className="my-6">
-          <div className="flex items-baseline gap-1">
-            <span className="text-4xl sm:text-5xl font-black">
-              {isFree ? "Free" : `$${displayPrice}`}
-            </span>
-            {!isFree && (
-              <span className={`text-xs font-semibold ${isPro ? "text-slate-400" : "text-slate-500"}`}>
-                /month
+        {/* Price Tag */}
+        <div className="my-6 min-h-14 flex items-baseline">
+          {item.price ? (
+            <div className="flex items-baseline gap-1">
+              <span className="text-4xl sm:text-[42px] font-black text-slate-900 tracking-tight">
+                {item.price}
               </span>
-            )}
-          </div>
-          {billingInterval === "YEARLY" && !isFree && (
-            <p className={`text-[11px] mt-1 font-medium ${isPro ? "text-sky-400" : "text-[#0A54B1]"}`}>
-              Billed annually (${displayPrice * 12}/yr)
-            </p>
+              {item.priceSuffix && (
+                <span className="text-xs font-semibold text-slate-500">
+                  {item.priceSuffix}
+                </span>
+              )}
+            </div>
+          ) : (
+            <div className="h-10 flex items-center">
+              <span className="text-sm font-semibold text-slate-400 italic">Custom Quote</span>
+            </div>
           )}
         </div>
 
         {/* Feature List */}
-        <div className={`space-y-3 pt-6 border-t ${isPro ? "border-slate-800" : "border-slate-100"}`}>
-          <p className={`text-xs font-bold uppercase tracking-wider ${isPro ? "text-slate-400" : "text-slate-500"}`}>
-            Included Features:
-          </p>
-
-          <ul className="space-y-2.5">
-            {features.map((feat, fIdx) => (
-              <li key={`feat-${fIdx}-${feat.slice(0, 15)}`} className="flex items-start gap-2.5 text-xs">
-                <Check
-                  className={`w-4 h-4 shrink-0 mt-0.5 ${
-                    isPro ? "text-sky-400" : "text-[#0A54B1]"
-                  }`}
-                />
-                <span className={isPro ? "text-slate-200" : "text-slate-700"}>{feat}</span>
+        <div className="pt-2">
+          <ul className="space-y-3.5">
+            {item.features.map((feature, fIdx) => (
+              <li key={`feat-${fIdx}`} className="flex items-start gap-3 text-xs leading-snug">
+                <Check className="w-4 h-4 shrink-0 mt-0.5 text-[#00A8FF]" strokeWidth={2.5} />
+                <span className="text-slate-700 font-medium">{feature}</span>
               </li>
             ))}
           </ul>
         </div>
       </div>
 
-      <div className="pt-8">
+      {/* Button */}
+      <div className="pt-8 mt-auto">
         <Button
-          onClick={() => onSelectPlan(plan)}
-          disabled={loadingPlanId === plan.id}
-          className={`w-full h-12 rounded-xl text-sm font-bold shadow-lg transition-all ${
-            isPro
-              ? "bg-linear-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white shadow-sky-500/25"
-              : isFree
-              ? "bg-slate-100 hover:bg-slate-200 text-slate-800"
-              : "bg-slate-900 hover:bg-slate-800 text-white shadow-slate-900/10"
+          onClick={() => onSelect(item)}
+          disabled={loading}
+          className={`w-full h-12 rounded-xl text-sm font-bold transition-all cursor-pointer ${
+            isPopular
+              ? "bg-linear-to-r from-[#00D2EE] to-[#1E6FEB] hover:from-[#00c0db] hover:to-[#175ecf] text-white shadow-md shadow-sky-400/20 border-0"
+              : item.isContactUs
+              ? "bg-[#0B1528] hover:bg-[#16233B] text-white"
+              : "bg-[#0B1528] hover:bg-[#16233B] text-white"
           }`}
         >
-          {loadingPlanId === plan.id ? (
+          {loading ? (
             <span className="flex items-center justify-center gap-2">
               <Loader2 className="w-4 h-4 animate-spin" />
-              Redirecting...
+              Processing...
             </span>
-          ) : isFree ? (
-            "Get Started Free"
           ) : (
-            <>
-              <Sparkles className="w-4 h-4 mr-1.5" />
-              Upgrade to {plan.name}
-            </>
+            item.buttonText || "Get Started"
           )}
         </Button>
       </div>

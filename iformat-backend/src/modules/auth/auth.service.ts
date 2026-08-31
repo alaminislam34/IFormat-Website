@@ -10,7 +10,7 @@ import {
 } from "../../utils/token.js";
 import { AuthError, ConflictError, NotFoundError } from "../../errors/index.js";
 import { sendEmail } from "../../lib/mailer.js";
-import { env } from "../../config/env.js";
+import { env, getFrontendUrl } from "../../config/env.js";
 import { logger } from "../../utils/logger.js";
 
 // Helper to project only safe, non-sensitive user fields
@@ -162,7 +162,7 @@ export class AuthService {
       template: "welcome",
       data: {
         name: user.name,
-        dashboardUrl: `${env.CORS_ORIGIN}/account-type`,
+        dashboardUrl: `${getFrontendUrl()}/account-type`,
       },
     });
 
@@ -469,7 +469,7 @@ export class AuthService {
       template: "password-reset",
       data: {
         name: user.name,
-        resetUrl: `${env.CORS_ORIGIN}/reset-password?token=${resetToken}&email=${encodeURIComponent(email)}`,
+        resetUrl: `${getFrontendUrl()}/reset-password?token=${resetToken}&email=${encodeURIComponent(email)}`,
         code: otpCode,
       },
     });

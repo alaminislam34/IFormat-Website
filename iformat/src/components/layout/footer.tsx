@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BrandLogo } from "@/components/ui/brand-logo";
 
 export function Footer() {
   return (
@@ -6,9 +7,8 @@ export function Footer() {
       <div className="max-w-7xl mx-auto px-8">
         <div className="grid md:grid-cols-12 gap-12 mb-16">
           <div className="md:col-span-6">
-            <div className="flex items-center gap-2 font-bold text-2xl tracking-tight mb-6">
-              <span className="text-[#22d3ee]">iFormat</span>
-              <span className="text-[10px] tracking-widest font-normal uppercase mt-1 opacity-80 text-white">Branding</span>
+            <div className="mb-6">
+              <BrandLogo variant="dark" size="lg" />
             </div>
             <p className="text-slate-400 text-sm leading-relaxed max-w-sm mb-8">
               Merging technology with psychology to build brands that resonate, inspire, and empower professional journeys globally.

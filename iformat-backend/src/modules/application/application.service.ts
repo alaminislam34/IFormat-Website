@@ -7,7 +7,7 @@ import {
   ValidationError,
 } from "../../errors/index.js";
 import { sendEmail } from "../../lib/mailer.js";
-import { env } from "../../config/env.js";
+import { env, getFrontendUrl } from "../../config/env.js";
 import { ScreeningService } from "../screening/screening.service.js";
 import { PaymentService } from "../payment/payment.service.js";
 import { getPagination, createPaginationMeta } from "../../utils/pagination.js";
@@ -364,7 +364,7 @@ export class ApplicationService {
         companyName: application.job.company,
         newStatus: input.status,
         feedback: input.employerFeedback || "",
-        portalUrl: `${env.CORS_ORIGIN}/job-portal`,
+        portalUrl: `${getFrontendUrl()}/dashboard`,
       },
     }).catch((err) => {
       console.error("Failed to send application status update email:", err);

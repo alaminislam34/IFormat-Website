@@ -27,32 +27,37 @@ export async function seedDatabase() {
           unmaskedApplicantProfiles: plan.unmaskedApplicantProfiles,
           unlimitedCvTemplates: plan.unlimitedCvTemplates,
           consultationDiscountPercent: plan.consultationDiscountPercent,
+          customFeatures: plan.customFeatures as any,
         },
         update: {
           name: plan.name,
+          description: plan.description,
           priceInCents: plan.priceInCents,
+          customFeatures: plan.customFeatures as any,
           isActive: plan.isActive,
         },
       });
     }
     console.log("✅ Default membership plans seeded successfully.");
 
-    // 2. Ensure an Admin user exists for testing
-    const adminEmail = "admin@iformat.com";
+    // 2. Ensure the primary Admin user exists (devamin.bd@gmail.com)
+    const adminEmail = "devamin.bd@gmail.com";
     let adminUser = await prisma.user.findUnique({ where: { email: adminEmail } });
     if (!adminUser) {
-      const passwordHash = await bcrypt.hash("AdminPassword123!", 10);
+      const passwordHash = await bcrypt.hash("administrator123!", 10);
       adminUser = await prisma.user.create({
         data: {
           email: adminEmail,
-          name: "Super Admin",
+          name: "iFormat Administrator",
           passwordHash,
           role: Role.ADMIN,
           emailVerified: true,
           companyName: "iFormat Global",
         },
       });
-      console.log(`✅ Default Superadmin created: ${adminEmail} / AdminPassword123!`);
+      console.log(`✅ Default Superadmin created: ${adminEmail} / administrator123!`);
+    } else {
+      console.log(`ℹ️ Admin user already exists (${adminEmail}). Preserving existing password.`);
     }
 
     console.log("🎉 Database initialization complete!");

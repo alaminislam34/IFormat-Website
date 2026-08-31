@@ -2,7 +2,7 @@ import { prisma } from "../../lib/prisma.js";
 import { BookingStatus } from "@prisma/client";
 import { NotFoundError, ConflictError } from "../../errors/index.js";
 import { sendEmail } from "../../lib/mailer.js";
-import { env } from "../../config/env.js";
+import { env, getFrontendUrl } from "../../config/env.js";
 
 export class BookingService {
   static async listAvailableSlots() {
@@ -92,7 +92,7 @@ export class BookingService {
         slotTitle: result.slot.title,
         advisorName: result.slot.advisor.name,
         sessionTime: new Date(result.slot.startTime).toLocaleString(),
-        bookingUrl: `${env.CORS_ORIGIN}/services`,
+        bookingUrl: `${getFrontendUrl()}/services`,
       },
     });
 

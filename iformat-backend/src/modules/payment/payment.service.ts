@@ -1,6 +1,6 @@
 import { prisma } from "../../lib/prisma.js";
 import { stripe } from "../../lib/stripe.js";
-import { env } from "../../config/env.js";
+import { env, getFrontendUrl } from "../../config/env.js";
 import { logger } from "../../utils/logger.js";
 import { ConflictError, NotFoundError, ValidationError, ForbiddenError } from "../../errors/index.js";
 import { PlanService } from "../plan/plan.service.js";
@@ -62,9 +62,9 @@ export class PaymentService {
 
     const successUrl =
       successUrlOverride ||
-      `${env.CORS_ORIGIN}/dashboard/billing?session_id={CHECKOUT_SESSION_ID}&plan=${targetPlan.code}`;
+      `${getFrontendUrl()}/dashboard/billing?session_id={CHECKOUT_SESSION_ID}&plan=${targetPlan.code}`;
     const cancelUrl =
-      cancelUrlOverride || `${env.CORS_ORIGIN}/pricing?canceled=true`;
+      cancelUrlOverride || `${getFrontendUrl()}/pricing?canceled=true`;
 
     // 1. Mock Mode (Local Development & CI)
     if (this.isMockStripe()) {
@@ -74,7 +74,7 @@ export class PaymentService {
 
       const mockSessionId = `cs_mock_${Date.now()}`;
       return {
-        url: `${env.CORS_ORIGIN}/dashboard/billing?mock_success=true&session_id=${mockSessionId}&plan=${targetPlan.code}`,
+        url: `${getFrontendUrl()}/dashboard/billing?mock_success=true&session_id=${mockSessionId}&plan=${targetPlan.code}`,
         sessionId: mockSessionId,
       };
     }
@@ -150,11 +150,11 @@ export class PaymentService {
 
     if (!user) throw new NotFoundError("User", userId);
 
-    const returnUrl = returnUrlOverride || `${env.CORS_ORIGIN}/dashboard/billing`;
+    const returnUrl = returnUrlOverride || `${getFrontendUrl()}/dashboard/billing`;
 
     if (this.isMockStripe() || !user.subscription?.stripeCustomerId) {
       return {
-        url: `${env.CORS_ORIGIN}/dashboard/billing?mock_portal=true`,
+        url: `${getFrontendUrl()}/dashboard/billing?mock_portal=true`,
       };
     }
 

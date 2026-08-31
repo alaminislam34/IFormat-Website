@@ -19,7 +19,7 @@ const envSchema = z.object({
 
   // Cookie
   COOKIE_DOMAIN: z.string().default("localhost"),
-  COOKIE_SECURE: z.coerce.boolean().default(false),
+  COOKIE_SECURE: z.preprocess((val) => val === "true" || val === true, z.boolean()).default(false),
 
   // CORS
   CORS_ORIGIN: z.string().default("http://localhost:3000"),
@@ -82,3 +82,8 @@ const parseEnv = () => {
 };
 
 export const env = parseEnv();
+
+export const getFrontendUrl = (): string => {
+  const origin = env.CORS_ORIGIN.split(",")[0]?.trim() || "http://localhost:3000";
+  return origin.replace(/\/+$/, "");
+};
