@@ -62,6 +62,11 @@ export function Navbar() {
 
         {/* Action Buttons & Profile */}
         <div className="flex items-center gap-3">
+          <Link href="/services">
+            <button className="hidden sm:inline-flex items-center px-5 h-10 rounded-xl bg-linear-to-r from-[#52CEDE] to-[#0A54B1] text-white text-xs sm:text-sm font-bold hover:opacity-95 transition-all shadow-md active:scale-95 cursor-pointer">
+              Book a Free Consult
+            </button>
+          </Link>
           <UserMenu variant={!isScrolled && isHomePage ? "dark" : "light"} />
 
           {/* Mobile Hamburger Button */}
@@ -118,13 +123,22 @@ export function Navbar() {
                 Job Portal
               </Link>
             </div>
-            <Link
-              href="/signup"
-              onClick={() => setIsMobileOpen(false)}
-              className="block w-full py-2.5 rounded-xl bg-linear-to-r from-[#52CEDE] to-[#0A54B1] text-white text-center text-xs font-bold shadow-sm"
-            >
-              Sign Up
-            </Link>
+            <div className="pt-2 space-y-2">
+              <Link
+                href="/services"
+                onClick={() => setIsMobileOpen(false)}
+                className="block w-full py-2.5 rounded-xl bg-linear-to-r from-[#52CEDE] to-[#0A54B1] text-white text-center text-xs font-bold shadow-sm"
+              >
+                Book a Free Consult
+              </Link>
+              <Link
+                href="/signup"
+                onClick={() => setIsMobileOpen(false)}
+                className="block w-full py-2.5 rounded-xl bg-slate-900 text-white text-center text-xs font-bold shadow-sm"
+              >
+                Sign Up
+              </Link>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

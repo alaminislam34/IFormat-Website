@@ -61,10 +61,10 @@ export function UserMenu({ variant = "light" }: UserMenuProps) {
       <div className="flex items-center">
         <Link
           href="/signup"
-          className={`px-5 py-2.5 rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer ${
+          className={`px-5 h-10 rounded-xl inline-flex items-center justify-center text-xs sm:text-sm font-bold transition-all shadow-md active:scale-95 cursor-pointer ${
             isDark
-              ? "bg-white text-slate-950 hover:bg-white/90"
-              : "bg-linear-to-r from-[#52CEDE] to-[#0A54B1] text-white hover:opacity-95 shadow-blue-500/15"
+              ? "bg-white text-[#0A54B1] hover:bg-slate-100 shadow-slate-900/10"
+              : "bg-[#0A54B1] text-white hover:bg-[#08428c] shadow-[#0A54B1]/20"
           }`}
         >
           Sign Up
