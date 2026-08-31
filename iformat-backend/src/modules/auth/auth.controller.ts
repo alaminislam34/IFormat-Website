@@ -35,7 +35,7 @@ export class AuthController {
     return ApiResponse.success(
       res,
       "Logged in successfully",
-      { user, token: accessToken }
+      { user, token: accessToken, accessToken, refreshToken }
     );
   }
 

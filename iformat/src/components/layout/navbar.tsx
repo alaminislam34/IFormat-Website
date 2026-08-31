@@ -62,11 +62,6 @@ export function Navbar() {
 
         {/* Action Buttons & Profile */}
         <div className="flex items-center gap-3">
-          <Link href="/services">
-            <button className="hidden sm:inline-flex items-center px-6 h-10 rounded-lg bg-linear-to-r from-[#52CEDE] to-[#0A54B1] text-white text-sm font-semibold hover:opacity-90 transition-opacity shadow-sm cursor-pointer">
-              Book a Free Consult
-            </button>
-          </Link>
           <UserMenu variant={!isScrolled && isHomePage ? "dark" : "light"} />
 
           {/* Mobile Hamburger Button */}
@@ -124,11 +119,11 @@ export function Navbar() {
               </Link>
             </div>
             <Link
-              href="/services"
+              href="/signup"
               onClick={() => setIsMobileOpen(false)}
               className="block w-full py-2.5 rounded-xl bg-linear-to-r from-[#52CEDE] to-[#0A54B1] text-white text-center text-xs font-bold shadow-sm"
             >
-              Book a Free Consult
+              Sign Up
             </Link>
           </motion.div>
         )}

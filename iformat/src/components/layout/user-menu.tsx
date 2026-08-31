@@ -58,26 +58,16 @@ export function UserMenu({ variant = "light" }: UserMenuProps) {
   if (!isAuthenticated || !user) {
     const isDark = variant === "dark";
     return (
-      <div className="flex items-center gap-3">
-        <Link
-          href="/login"
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition-colors ${
-            isDark
-              ? "text-white/80 hover:text-white hover:bg-white/10"
-              : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
-          }`}
-        >
-          Sign In
-        </Link>
+      <div className="flex items-center">
         <Link
           href="/signup"
-          className={`px-5 py-2.5 rounded-xl text-xs font-extrabold shadow-sm transition-all hover:scale-[1.02] active:scale-[0.98] ${
+          className={`px-5 py-2.5 rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer ${
             isDark
-              ? "bg-white text-slate-900 hover:bg-slate-100"
-              : "bg-brand-gradient text-white hover:opacity-95 shadow-blue-500/15"
+              ? "bg-white text-slate-950 hover:bg-white/90"
+              : "bg-linear-to-r from-[#52CEDE] to-[#0A54B1] text-white hover:opacity-95 shadow-blue-500/15"
           }`}
         >
-          Get Started
+          Sign Up
         </Link>
       </div>
     );

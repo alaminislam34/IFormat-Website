@@ -29,28 +29,53 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const { user, isAuthenticated, logout } = useAuthStore();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
 
   const isLoginPage = pathname === "/admin/login";
 
   useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isMounted) return;
+
     if (isLoginPage) {
       setAuthChecked(true);
       return;
     }
 
-    if (!isAuthenticated) {
+    let activeUser = user;
+    let isAuthed = isAuthenticated;
+
+    if (!isAuthed && typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem("iformat-auth-storage");
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed?.state?.isAuthenticated && parsed?.state?.user) {
+            activeUser = parsed.state.user;
+            isAuthed = true;
+          }
+        }
+      } catch {
+        // ignore
+      }
+    }
+
+    if (!isAuthed) {
       router.replace("/admin/login");
       return;
     }
 
-    const roleUpper = user?.role?.toUpperCase();
+    const roleUpper = activeUser?.role?.toUpperCase();
     if (roleUpper !== "ADMIN") {
       router.replace("/admin/login");
       return;
     }
 
     setAuthChecked(true);
-  }, [isAuthenticated, isLoginPage, router, user]);
+  }, [isAuthenticated, isLoginPage, isMounted, router, user]);
 
   if (isLoginPage) {
     return <>{children}</>;

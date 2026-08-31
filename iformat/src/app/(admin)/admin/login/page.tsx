@@ -49,7 +49,8 @@ export default function AdminLoginPage() {
         return;
       }
 
-      setAuth(response.user, response.accessToken || "", response.refreshToken);
+      const token = response.token || response.accessToken || "";
+      setAuth(response.user, token, response.refreshToken);
       router.push("/admin");
     } catch (err: any) {
       setError(err.message || "Invalid credentials. Administrative login failed.");
