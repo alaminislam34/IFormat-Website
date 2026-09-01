@@ -2,66 +2,56 @@
 
 import React from "react";
 import Link from "next/link";
+import Image from "next/image";
 
 interface BrandLogoProps {
-  variant?: "dark" | "light";
-  subtitle?: string;
-  size?: "sm" | "md" | "lg";
+  variant?: "dark" | "light" | "color" | "white";
+  size?: "sm" | "md" | "lg" | "xl";
   href?: string;
   className?: string;
+  priority?: boolean;
 }
 
 export function BrandLogo({
   variant = "light",
-  subtitle = "BRANDING",
   size = "md",
   href = "/",
   className = "",
+  priority = true,
 }: BrandLogoProps) {
-  const isDark = variant === "dark";
+  const isDark = variant === "dark" || variant === "white";
 
-  const sizeStyles = {
-    sm: {
-      brand: "text-lg tracking-tight font-extrabold",
-      subtitle: "text-[10px] tracking-[0.2em] font-medium ml-2.5",
-    },
-    md: {
-      brand: "text-2xl tracking-tight font-extrabold",
-      subtitle: "text-xs tracking-[0.24em] font-medium ml-3",
-    },
-    lg: {
-      brand: "text-3xl tracking-tight font-extrabold",
-      subtitle: "text-sm tracking-[0.28em] font-medium ml-3.5",
-    },
+  const sizeDimensions = {
+    sm: { width: 104, height: 36, className: "h-8 w-auto" },
+    md: { width: 128, height: 44, className: "h-10 w-auto" },
+    lg: { width: 156, height: 54, className: "h-12 w-auto" },
+    xl: { width: 196, height: 68, className: "h-16 w-auto" },
   };
 
-  const currentSize = sizeStyles[size] || sizeStyles.md;
+  const currentSize = sizeDimensions[size] || sizeDimensions.md;
+  const logoSrc = isDark ? "/logo-white.png" : "/logo-horizontal.png";
 
   const content = (
     <div
-      className={`inline-flex items-baseline group cursor-pointer select-none transition-opacity hover:opacity-95 ${className}`}
+      className={`inline-flex items-center group cursor-pointer select-none transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98] ${className}`}
     >
-      <span
-        className={`${currentSize.brand} transition-colors duration-200 ${
-          isDark ? "text-white" : "text-[#0A54B1]"
-        }`}
-      >
-        iFormat
-      </span>
-      {subtitle && (
-        <span
-          className={`${currentSize.subtitle} uppercase transition-colors duration-200 ${
-            isDark ? "text-white/85" : "text-[#0A54B1]/80"
-          }`}
-        >
-          {subtitle}
-        </span>
-      )}
+      <Image
+        src={logoSrc}
+        alt="iFormat Branding"
+        width={currentSize.width}
+        height={currentSize.height}
+        className={`${currentSize.className} object-contain transition-opacity duration-200 group-hover:opacity-95`}
+        priority={priority}
+      />
     </div>
   );
 
   if (href) {
-    return <Link href={href} className="inline-flex items-center">{content}</Link>;
+    return (
+      <Link href={href} className="inline-flex items-center">
+        {content}
+      </Link>
+    );
   }
 
   return content;

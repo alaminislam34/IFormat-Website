@@ -4,6 +4,7 @@ import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
+import { BrandLogo } from "@/components/ui/brand-logo";
 
 interface AuthLayoutProps {
   children: React.ReactNode;
@@ -24,19 +25,7 @@ export function AuthLayout({ children, illustrationType }: AuthLayoutProps) {
           <div className="w-full max-w-115 bg-white rounded-3xl border border-slate-100 shadow-xl shadow-slate-200/50 p-8 md:p-10 relative overflow-hidden">
             {/* Logo */}
             <div className="mb-8">
-              <Link href="/" className="inline-flex flex-col group">
-                <div className="flex items-center gap-0.5">
-                  <span className="font-extrabold text-2xl tracking-tight text-[#52CEDE] transition-transform duration-300 group-hover:scale-105">
-                    i
-                  </span>
-                  <span className="font-extrabold text-2xl tracking-tight text-[#0A54B1] ">
-                    Format
-                  </span>
-                </div>
-                <span className="text-[7px] tracking-[0.3em] font-bold uppercase text-[#0A54B1] -mt-1 pl-0.5 opacity-80">
-                  Branding
-                </span>
-              </Link>
+              <BrandLogo size="lg" />
             </div>
 
             {/* Form Content */}
