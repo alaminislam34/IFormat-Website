@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { Navbar } from "./navbar";
 
 // Routes where the public consumer navbar should not appear
-const EXCLUDED_PREFIXES = ["/admin"];
+const EXCLUDED_PREFIXES = ["/admin", "/dashboard"];
 const EXCLUDED_ROUTES = [
   "/login",
   "/signup",

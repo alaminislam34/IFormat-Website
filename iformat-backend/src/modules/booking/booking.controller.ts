@@ -19,7 +19,14 @@ export class BookingController {
   }
 
   static async listMyBookings(req: Request, res: Response) {
-    const bookings = await BookingService.listUserBookings(req.user!.id);
+    const bookings = await BookingService.listUserBookings(req.user!);
     return ApiResponse.success(res, "Bookings retrieved successfully", bookings);
+  }
+
+  static async updateStatus(req: Request, res: Response) {
+    const { id } = req.params;
+    const { status } = req.body;
+    const updated = await BookingService.updateBookingStatus(id, status);
+    return ApiResponse.success(res, "Booking status updated successfully", updated);
   }
 }

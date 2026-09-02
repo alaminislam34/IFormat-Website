@@ -1,6 +1,7 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -46,26 +47,33 @@ export function ProductDetailModal({
   onOrderNow,
   onBookConsultation,
 }: ProductDetailModalProps) {
-  if (!product) return null;
+  const [mounted, setMounted] = useState(false);
 
-  return (
-    <AnimatePresence>
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted || !product) return null;
+
+  const modalContent = (
+    <AnimatePresence mode="wait">
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
-          {/* Backdrop */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-            className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm"
-          />
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.18, ease: "easeOut" }}
+          className="fixed inset-0 z-[99999] flex items-center justify-center p-4 sm:p-6 bg-slate-950/70 backdrop-blur-md overflow-y-auto"
+        >
+          {/* Backdrop click-away */}
+          <div className="absolute inset-0" onClick={onClose} />
 
           {/* Modal Container */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            initial={{ opacity: 0, scale: 0.96, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            exit={{ opacity: 0, scale: 0.96, y: 10 }}
+            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
             className="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-100 z-10 my-8 max-h-[90vh] flex flex-col"
           >
             {/* Header Image & Close Button */}
@@ -76,7 +84,7 @@ export function ProductDetailModal({
                 fill
                 className="object-cover opacity-80"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/40 to-transparent" />
+              <div className="absolute inset-0 bg-linear-to-t from-slate-950/90 via-slate-950/40 to-transparent" />
 
               {/* Close button */}
               <button
@@ -88,128 +96,112 @@ export function ProductDetailModal({
 
               {/* Badges on Image */}
               <div className="absolute top-4 left-4 flex flex-wrap gap-2">
-                <span className="px-3 py-1 rounded-full text-[11px] font-extrabold uppercase tracking-wider bg-[#52CEDE] text-slate-950 shadow-md">
+                <span className="px-3 py-1 rounded-full text-[11px] font-extrabold uppercase tracking-wider bg-white/95 text-slate-900 shadow-sm">
                   {product.category}
                 </span>
                 {product.badge && (
-                  <span className="px-3 py-1 rounded-full text-[11px] font-extrabold uppercase tracking-wider bg-[#0A54B1] text-white shadow-md">
+                  <span className="px-3 py-1 rounded-full text-[11px] font-extrabold uppercase tracking-wider bg-[#0A54B1] text-white shadow-sm">
                     {product.badge}
                   </span>
                 )}
               </div>
 
-              {/* Header Title inside banner */}
-              <div className="absolute bottom-4 left-6 right-6 flex items-end justify-between">
+              {/* Price & Delivery on Image Bottom */}
+              <div className="absolute bottom-4 left-6 right-6 flex items-end justify-between text-white">
                 <div>
-                  <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+                  <h2 className="text-xl sm:text-2xl font-black leading-tight drop-shadow-md">
                     {product.title}
                   </h2>
-                  <p className="text-xs sm:text-sm text-cyan-200/90 font-medium mt-0.5">
-                    {product.tagline}
+                  <p className="text-xs text-slate-200 mt-1 flex items-center gap-1.5 font-medium">
+                    <Clock className="w-3.5 h-3.5 text-cyan-300" /> Delivery: {product.deliveryTime}
                   </p>
                 </div>
-                <div className="text-right shrink-0">
-                  <span className="text-2xl sm:text-3xl font-black text-white">
+                <div className="text-right">
+                  <span className="text-2xl sm:text-3xl font-black text-white drop-shadow-md">
                     {product.price}
                   </span>
-                  <p className="text-[10px] text-slate-300 font-semibold uppercase tracking-wider">
-                    One-time
-                  </p>
                 </div>
               </div>
             </div>
 
-            {/* Modal Body */}
-            <div className="p-6 sm:p-8 space-y-6 overflow-y-auto flex-1">
-              {/* Quick Specs Bar */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-xs">
-                <div className="flex items-center gap-2 text-slate-700">
-                  <Clock className="w-4 h-4 text-[#0A54B1] shrink-0" />
-                  <div>
-                    <p className="text-[10px] text-slate-400 font-bold uppercase">Turnaround</p>
-                    <p className="font-bold">{product.deliveryTime}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 text-slate-700">
-                  <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
-                  <div>
-                    <p className="text-[10px] text-slate-400 font-bold uppercase">ATS Pass Rate</p>
-                    <p className="font-bold">99.8% Guaranteed</p>
-                  </div>
-                </div>
-                <div className="col-span-2 sm:col-span-1 flex items-center gap-2 text-slate-700">
-                  <Sparkles className="w-4 h-4 text-amber-500 shrink-0" />
-                  <div>
-                    <p className="text-[10px] text-slate-400 font-bold uppercase">Methodology</p>
-                    <p className="font-bold">NLP & Psycholinguistics</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Description */}
+            {/* Scrollable Content */}
+            <div className="p-6 sm:p-8 overflow-y-auto space-y-6 flex-1">
+              {/* Tagline / Overview */}
               <div>
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
-                  Service Overview
+                <h4 className="text-xs font-bold uppercase tracking-wider text-[#0A54B1] mb-1.5 flex items-center gap-1">
+                  <Sparkles className="w-3.5 h-3.5" /> Service Overview
                 </h4>
-                <p className="text-sm text-slate-700 leading-relaxed">
+                <p className="text-sm font-semibold text-slate-800 leading-relaxed">
+                  {product.tagline}
+                </p>
+                <p className="text-xs text-slate-600 mt-2 leading-relaxed">
                   {product.description}
                 </p>
               </div>
 
-              {/* Deliverables */}
-              <div>
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">
-                  What is Included in this Package
+              {/* Deliverables List */}
+              <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100 space-y-3">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                  <ShieldCheck className="w-4 h-4 text-[#0A54B1]" /> What You Get (Deliverables)
                 </h4>
-                <div className="grid sm:grid-cols-2 gap-2.5">
+                <ul className="grid sm:grid-cols-2 gap-2.5">
                   {product.deliverables.map((item, idx) => (
-                    <div
-                      key={idx}
-                      className="flex items-start gap-2.5 p-2.5 rounded-xl bg-slate-50/70 border border-slate-100 text-xs text-slate-800 font-medium"
-                    >
-                      <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                    <li key={idx} className="flex items-start gap-2 text-xs text-slate-700">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
                       <span>{item}</span>
-                    </div>
+                    </li>
                   ))}
-                </div>
+                </ul>
               </div>
 
               {/* Target Audience & Methodology */}
-              <div className="p-4 rounded-2xl bg-blue-50/50 border border-blue-100/60 text-xs text-slate-700 space-y-1.5">
-                <p className="font-bold text-[#0A54B1]">
-                  Ideal for: <span className="font-normal text-slate-700">{product.audience}</span>
-                </p>
-                <p className="text-slate-600">
-                  <strong>Scientific Approach:</strong> {product.methodology}
-                </p>
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div className="p-4 rounded-2xl bg-blue-50/50 border border-blue-100/80">
+                  <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#0A54B1]">
+                    Ideal For
+                  </span>
+                  <p className="text-xs text-slate-700 mt-1 font-medium leading-relaxed">
+                    {product.audience}
+                  </p>
+                </div>
+                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                  <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-600">
+                    Methodology
+                  </span>
+                  <p className="text-xs text-slate-700 mt-1 font-medium leading-relaxed">
+                    {product.methodology}
+                  </p>
+                </div>
               </div>
             </div>
 
-            {/* Footer Action Buttons */}
-            <div className="p-4 sm:p-6 bg-slate-50 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
-              <button
-                onClick={() => {
-                  onClose();
-                  onBookConsultation(product);
-                }}
-                className="w-full sm:w-auto px-5 py-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-800 font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer"
-              >
-                <Calendar className="w-4 h-4 text-[#0A54B1]" /> Book Consultation Session
-              </button>
+            {/* Sticky Modal Action Footer */}
+            <div className="p-4 sm:p-6 border-t border-slate-100 bg-white flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
+              <div className="flex items-center gap-2 text-xs text-slate-500 w-full sm:w-auto justify-center sm:justify-start">
+                <span className="font-bold text-slate-900">{product.price}</span>
+                <span>• 100% Satisfaction Guarantee</span>
+              </div>
 
-              <Button
-                onClick={() => {
-                  onClose();
-                  onOrderNow(product);
-                }}
-                className="w-full sm:w-auto px-8 py-3 rounded-xl bg-linear-to-r from-[#52CEDE] to-[#0A54B1] hover:opacity-95 text-white font-extrabold text-xs shadow-lg shadow-blue-500/20 hover:shadow-xl transition-all cursor-pointer flex items-center justify-center gap-2"
-              >
-                <ShoppingBag className="w-4 h-4" /> Order Now ({product.price}) <ArrowRight className="w-3.5 h-3.5" />
-              </Button>
+              <div className="flex items-center gap-2.5 w-full sm:w-auto">
+                <button
+                  onClick={() => onBookConsultation(product)}
+                  className="flex-1 sm:flex-initial px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <Calendar className="w-3.5 h-3.5" /> Consult First
+                </button>
+                <button
+                  onClick={() => onOrderNow(product)}
+                  className="flex-1 sm:flex-initial px-6 py-2.5 rounded-xl bg-linear-to-r from-[#52CEDE] to-[#0A54B1] hover:opacity-95 text-white font-extrabold text-xs shadow-md shadow-blue-500/20 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <ShoppingBag className="w-3.5 h-3.5" /> Order Package <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
             </div>
           </motion.div>
-        </div>
+        </motion.div>
       )}
     </AnimatePresence>
   );
+
+  return createPortal(modalContent, document.body);
 }

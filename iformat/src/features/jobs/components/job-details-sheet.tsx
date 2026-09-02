@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, Sparkles, ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/stores/use-auth-store";
 import { cn } from "@/lib/utils";
@@ -33,6 +34,7 @@ export function JobDetailsSheet({
   onApplied,
 }: JobDetailsSheetProps) {
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
   const { user, isAuthenticated } = useAuthStore();
   const userRole = user?.role?.toUpperCase();
   const isEmployerOrAdmin = userRole === "EMPLOYER" || userRole === "ADMIN";
@@ -45,7 +47,11 @@ export function JobDetailsSheet({
 
   const deleteJobMutation = useDeleteJob();
 
-  if (!job) return null;
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted || !job) return null;
 
   const handleDeleteJob = async () => {
     if (
@@ -87,30 +93,36 @@ export function JobDetailsSheet({
     setIsApplyModalOpen(true);
   };
 
-  return (
-    <>
-      <AnimatePresence>
-        {isOpen && (
-          <div key="job-details-sheet-container">
-            {/* Backdrop Overlay */}
-            <motion.div
-              key="job-details-backdrop"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={onClose}
-              className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-50 transition-opacity"
-            />
+  const handleAiAnalyserClick = () => {
+    onClose();
+    router.push(
+      `/job-assistant?tab=cover-letter&role=${encodeURIComponent(job.title)}&company=${encodeURIComponent(
+        job.company
+      )}`
+    );
+  };
 
-            {/* Drawer Sheet Container */}
+  const sheetContent = (
+    <>
+      <AnimatePresence mode="wait">
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.18, ease: "easeOut" }}
+            className="fixed inset-0 z-99999 flex justify-end bg-slate-950/60 backdrop-blur-xs p-0 sm:p-4"
+          >
+            {/* Backdrop Click-away */}
+            <div className="absolute inset-0" onClick={onClose} />
+
+            {/* Drawer Sheet Container matching Figma */}
             <motion.div
-              key="job-details-drawer"
-              initial={{ x: "100%", opacity: 0.95 }}
+              initial={{ x: "100%", opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
-              exit={{ x: "100%", opacity: 0.95 }}
-              transition={{ type: "spring", damping: 30, stiffness: 280 }}
-              data-lenis-prevent
-              className="fixed top-4 right-4 bottom-4 w-full max-w-xl bg-white rounded-3xl shadow-2xl z-50 flex flex-col overflow-hidden border border-slate-100"
+              exit={{ x: "100%", opacity: 0 }}
+              transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+              className="relative h-full w-full max-w-md bg-white rounded-l-3xl sm:rounded-3xl shadow-2xl flex flex-col overflow-hidden border border-slate-100 z-10"
             >
               {/* Header */}
               <JobDetailsHeader
@@ -122,39 +134,39 @@ export function JobDetailsSheet({
                 onClose={onClose}
               />
 
-              {/* Badges Bar */}
+              {/* Badges Bar (Full Time, Remote, Salary, Posted) */}
               <JobDetailsBadges job={job} />
 
-              {/* Tab Switcher */}
+              {/* Tab Switcher for Employers */}
               {isEmployerOrAdmin && (
-                <div className="flex bg-white px-6 border-b border-slate-100">
+                <div className="flex bg-white px-6 border-b border-slate-100 shrink-0">
                   <button
                     onClick={() => setActiveTab("details")}
-                    className="relative py-4 pr-6 text-sm font-bold focus:outline-none cursor-pointer"
+                    className="relative py-3.5 pr-6 text-xs font-bold focus:outline-none cursor-pointer"
                   >
-                    <span className={activeTab === "details" ? "text-primary" : "text-slate-500 hover:text-slate-700"}>
+                    <span className={activeTab === "details" ? "text-primary font-black" : "text-slate-500 hover:text-slate-700"}>
                       Job Details
                     </span>
                     {activeTab === "details" && (
                       <motion.div
                         layoutId="active-tab-underline"
-                        className="absolute bottom-0 left-0 right-6 h-0.5 bg-primary"
+                        className="absolute bottom-0 left-0 right-6 h-0.5 bg-primary rounded-full"
                       />
                     )}
                   </button>
                   <button
                     onClick={() => setActiveTab("applicants")}
-                    className="relative py-4 px-6 text-sm font-bold focus:outline-none cursor-pointer flex items-center gap-1.5"
+                    className="relative py-3.5 px-6 text-xs font-bold focus:outline-none cursor-pointer flex items-center gap-2"
                   >
-                    <span className={activeTab === "applicants" ? "text-primary" : "text-slate-500 hover:text-slate-700"}>
+                    <span className={activeTab === "applicants" ? "text-primary font-black" : "text-slate-500 hover:text-slate-700"}>
                       Applicants
                     </span>
                     <span
                       className={cn(
-                        "text-xs font-semibold px-2 py-0.5 rounded-full",
+                        "px-2 py-0.5 text-[10px] rounded-full font-bold transition-colors",
                         activeTab === "applicants"
                           ? "bg-primary/10 text-primary"
-                          : "bg-slate-100 text-slate-500"
+                          : "bg-slate-100 text-slate-600"
                       )}
                     >
                       {applicantsCount}
@@ -162,15 +174,15 @@ export function JobDetailsSheet({
                     {activeTab === "applicants" && (
                       <motion.div
                         layoutId="active-tab-underline"
-                        className="absolute bottom-0 left-6 right-6 h-0.5 bg-primary"
+                        className="absolute bottom-0 left-6 right-6 h-0.5 bg-primary rounded-full"
                       />
                     )}
                   </button>
                 </div>
               )}
 
-              {/* Scrollable Content */}
-              <div className="flex-1 overflow-y-auto p-6 scrollbar-thin scrollbar-thumb-slate-200">
+              {/* Scrollable Content Area */}
+              <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6">
                 {activeTab === "details" ? (
                   <JobDetailsContent job={job} />
                 ) : (
@@ -178,46 +190,62 @@ export function JobDetailsSheet({
                 )}
               </div>
 
-              {/* Bottom Apply Action Bar (Visible only on Details tab) */}
-              {activeTab === "details" && (
-                <div className="p-6 border-t border-slate-100 bg-slate-50/50 flex items-center justify-between gap-4">
-                  <div className="flex flex-col">
-                    <span className="text-xs font-semibold text-slate-400">Offered Compensation</span>
-                    <span className="text-base font-extrabold text-[#0A54B1]">{job.salary}</span>
-                  </div>
+              {/* Sticky Action Footer Matching Figma Design */}
+              {!isEmployerOrAdmin && activeTab === "details" && (
+                <div className="p-5 border-t border-slate-100 bg-white space-y-2.5 shrink-0">
+                  {/* Button 1: AI Job Analyser */}
+                  <button
+                    onClick={handleAiAnalyserClick}
+                    className="w-full h-11 rounded-2xl bg-linear-to-r from-[#00D2EE] via-[#00B4D8] to-[#0A54B1] hover:opacity-95 text-white font-extrabold text-xs shadow-md shadow-sky-400/20 active:scale-98 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    <span>AI Job Analyser</span>
+                    <Sparkles className="w-3.5 h-3.5" />
+                  </button>
 
-                  {appliedState ? (
-                    <button
-                      disabled
-                      className="bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold text-sm px-6 py-3 rounded-2xl flex items-center gap-2 cursor-default shadow-xs"
-                    >
-                      <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                      Applied Successfully
-                    </button>
-                  ) : (
-                    <button
-                      onClick={handleApplyClick}
-                      className="bg-primary hover:bg-primary/95 text-white font-bold text-sm px-6 py-3 rounded-2xl shadow-lg shadow-blue-500/20 hover:shadow-xl hover:shadow-blue-500/30 transition-all active:scale-95 cursor-pointer"
-                    >
-                      Apply for this Position
-                    </button>
-                  )}
+                  {/* Button 2: Apply Now */}
+                  <button
+                    disabled={appliedState}
+                    onClick={handleApplyClick}
+                    className={cn(
+                      "w-full h-11 rounded-2xl font-extrabold text-xs transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer active:scale-98",
+                      appliedState
+                        ? "bg-emerald-50 text-emerald-700 border border-emerald-200 cursor-default"
+                        : "bg-[#0A54B1] hover:bg-[#08428C] text-white shadow-blue-500/15"
+                    )}
+                  >
+                    {appliedState ? (
+                      <>
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                        <span>Application Submitted</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>Apply Now</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </>
+                    )}
+                  </button>
+
+                  {/* Footer Subtext */}
+                  <p className="text-[11px] text-slate-400 text-center font-medium pt-0.5">
+                    Usually responds within 3–5 business days
+                  </p>
                 </div>
               )}
             </motion.div>
-          </div>
+          </motion.div>
         )}
       </AnimatePresence>
 
       {/* Apply Modal */}
       {isApplyModalOpen && (
         <ApplyModal
-          job={job}
+          job={job as any}
           isOpen={isApplyModalOpen}
           onClose={() => setIsApplyModalOpen(false)}
-          onApplied={(appliedJobId) => {
+          onApplied={(jobId) => {
             setHasAppliedLocally(true);
-            onApplied?.(appliedJobId);
+            onApplied?.(jobId);
           }}
         />
       )}
@@ -225,11 +253,17 @@ export function JobDetailsSheet({
       {/* Edit Job Modal */}
       {isEditModalOpen && (
         <EditJobModal
-          job={job}
+          job={job as any}
           isOpen={isEditModalOpen}
           onClose={() => setIsEditModalOpen(false)}
+          onUpdated={() => {
+            setIsEditModalOpen(false);
+            onClose();
+          }}
         />
       )}
     </>
   );
+
+  return createPortal(sheetContent, document.body);
 }

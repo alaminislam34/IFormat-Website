@@ -105,6 +105,7 @@ export function EditJobModal({ job, isOpen, onClose, onUpdated }: EditJobModalPr
         jobType: data.jobType,
         location: data.location,
         salary: data.salary.trim() ? data.salary : "Competitive",
+        validity: data.validity ? new Date(data.validity).toISOString() : undefined,
         status: jobStatus,
         description: data.description.trim(),
         requirements: data.requirements

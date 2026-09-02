@@ -33,4 +33,11 @@ router.post(
   catchAsync(BookingController.createSlot)
 );
 
+// Admin / Advisor updates booking status (e.g. COMPLETED / CANCELLED)
+router.patch(
+  "/:id/status",
+  requireRole(Role.ADMIN, Role.EMPLOYER),
+  catchAsync(BookingController.updateStatus)
+);
+
 export const bookingRouter = router;

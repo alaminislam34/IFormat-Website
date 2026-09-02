@@ -41,15 +41,15 @@ export default function CandidateBookingsPage() {
   };
 
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-100 pt-24 pb-16 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto space-y-8">
+    <div className="text-slate-900 py-8">
+      <div className="w-11/12 mx-auto space-y-8">
         <CandidateBookingsHeader
           onBookClick={() => setIsBookModalOpen(true)}
           onRefresh={handleRefresh}
         />
 
         {/* Bookings Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
           {/* Scheduled Sessions (2 cols) */}
           <div className="lg:col-span-2 space-y-6">
             <CandidateBookingsList
@@ -83,6 +83,6 @@ export default function CandidateBookingsPage() {
           }}
         />
       )}
-    </main>
+    </div>
   );
 }

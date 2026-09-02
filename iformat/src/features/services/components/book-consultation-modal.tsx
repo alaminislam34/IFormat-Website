@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   X,
@@ -31,9 +32,14 @@ export function BookConsultationModal({
   serviceTitle = "1-on-1 Career Strategy Consultation",
 }: BookConsultationModalProps) {
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
   const { isAuthenticated, user } = useAuthStore();
   const { data: slots, isLoading: loadingSlots } = useAvailableSlots();
   const bookSlotMutation = useBookSlot();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const [selectedSlotId, setSelectedSlotId] = useState<string>("");
   const [notes, setNotes] = useState<string>("");
@@ -53,51 +59,49 @@ export function BookConsultationModal({
       return;
     }
 
-    const slotToBook = selectedSlotId || (slots && slots[0]?.id);
-    if (!slotToBook) {
-      toast.error("Please select a valid consultation time slot");
+    const slotIdToBook = selectedSlotId || (slots && slots[0]?.id);
+    if (!slotIdToBook) {
+      toast.error("Please select a session timing slot");
       return;
     }
 
-    bookSlotMutation.mutate(
-      {
-        slotId: slotToBook,
-        notes: notes || `Requested consultation for ${serviceTitle}`,
-      },
-      {
-        onSuccess: () => {
-          setIsSuccess(true);
-          toast.success("Consultation session confirmed!");
-          setTimeout(() => {
-            setIsSuccess(false);
-            onClose();
-          }, 2500);
-        },
-        onError: (err: any) => {
-          toast.error(err?.message || "Failed to confirm booking. Please try again.");
-        },
-      }
-    );
+    try {
+      await bookSlotMutation.mutateAsync({
+        slotId: slotIdToBook,
+        notes: notes.trim() || undefined,
+      });
+
+      setIsSuccess(true);
+      toast.success("Consultation booked successfully!");
+      setTimeout(() => {
+        setIsSuccess(false);
+        onClose();
+      }, 2500);
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || err?.message || "Failed to book session");
+    }
   };
 
-  return (
-    <AnimatePresence>
+  if (!mounted) return null;
+
+  const modalContent = (
+    <AnimatePresence mode="wait">
       {isOpen && (
-        <div key="consultation-modal-container" className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <motion.div
-            key="consultation-backdrop"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-            className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity"
-          />
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.18, ease: "easeOut" }}
+          className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md"
+        >
+          {/* Backdrop click-away */}
+          <div className="absolute inset-0" onClick={onClose} />
 
           <motion.div
-            key="consultation-content"
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            initial={{ opacity: 0, scale: 0.96, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            exit={{ opacity: 0, scale: 0.96, y: 10 }}
+            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
             className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl p-6 md:p-8 z-10 overflow-hidden border border-slate-100"
           >
             <div className="flex items-start justify-between mb-6">
@@ -128,58 +132,56 @@ export function BookConsultationModal({
                 </p>
               </div>
             ) : (
-              <form onSubmit={handleBooking} className="space-y-4">
-                {/* Available Slots */}
-                <div>
-                  <label className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 flex items-center justify-between">
-                    <span className="flex items-center gap-1.5">
-                      <Calendar className="w-3.5 h-3.5 text-[#0A54B1]" /> Select Time Slot
-                    </span>
-                    {slots && slots.length > 0 && (
-                      <span className="text-[10px] text-emerald-600 font-semibold bg-emerald-50 px-2 py-0.5 rounded-full">
-                        {slots.length} available
-                      </span>
-                    )}
+              <form onSubmit={handleBooking} className="space-y-5">
+                {/* Available Slots Selector */}
+                <div className="space-y-2">
+                  <label className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                    <Calendar className="w-4 h-4 text-[#0A54B1]" /> Select Time Slot
                   </label>
 
                   {loadingSlots ? (
-                    <div className="flex items-center gap-2 text-xs text-slate-400 py-3">
-                      <Loader2 className="w-4 h-4 animate-spin text-blue-600" /> Loading available schedule...
+                    <div className="flex items-center justify-center py-6 text-slate-400 text-xs">
+                      <Loader2 className="w-4 h-4 animate-spin mr-2" /> Checking available advisors...
                     </div>
                   ) : !slots || slots.length === 0 ? (
-                    <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-600 space-y-1">
-                      <p className="font-semibold text-slate-800">Next Available Live Session: Tomorrow, 3:00 PM (EST)</p>
-                      <p className="text-slate-500">Live booking queue is active. Your request will be instantly locked in.</p>
+                    <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs">
+                      No public open calendar slots at the moment. You can still submit your request below and an advisor will contact you within 24 hours.
                     </div>
                   ) : (
-                    <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                    <div className="grid grid-cols-1 gap-2 max-h-44 overflow-y-auto pr-1">
                       {slots.map((slot) => {
+                        const dateStr = new Date(slot.startTime).toLocaleDateString("en-US", {
+                          weekday: "short",
+                          month: "short",
+                          day: "numeric",
+                        });
+                        const timeStr = new Date(slot.startTime).toLocaleTimeString("en-US", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        });
                         const isSelected = selectedSlotId === slot.id;
+
                         return (
                           <div
                             key={slot.id}
                             onClick={() => setSelectedSlotId(slot.id)}
-                            className={`p-3 rounded-xl border transition-all cursor-pointer flex items-center justify-between text-xs ${
+                            className={`p-3 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${
                               isSelected
-                                ? "bg-blue-50/80 border-[#0A54B1] text-slate-900 font-semibold"
-                                : "bg-slate-50/50 border-slate-200 text-slate-700 hover:bg-slate-50"
+                                ? "bg-blue-50/80 border-[#0A54B1] text-[#0A54B1] shadow-xs"
+                                : "bg-slate-50 border-slate-200/80 hover:bg-slate-100 text-slate-700"
                             }`}
                           >
-                            <div className="space-y-0.5">
-                              <div className="font-bold text-slate-900">{slot.title}</div>
-                              <div className="flex items-center gap-2 text-slate-500">
-                                <span>{new Date(slot.startTime).toLocaleDateString()}</span>
-                                <span>•</span>
-                                <span>
-                                  {new Date(slot.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                </span>
+                            <div className="flex items-center gap-2.5">
+                              <Clock className="w-4 h-4 text-[#0A54B1]" />
+                              <div>
+                                <div className="text-xs font-bold">{dateStr} at {timeStr}</div>
+                                <div className="text-[10px] text-slate-500">Advisor: {slot.advisor?.name || "Career Specialist"}</div>
                               </div>
                             </div>
-                            <div className="text-right">
-                              <span className="font-extrabold text-[#0A54B1]">
-                                ${(slot.priceInCents / 100).toFixed(0)}
-                              </span>
-                            </div>
+
+                            <span className="text-xs font-black">
+                              {slot.priceInCents ? `$${(slot.priceInCents / 100).toFixed(0)}` : "Free"}
+                            </span>
                           </div>
                         );
                       })}
@@ -187,51 +189,47 @@ export function BookConsultationModal({
                   )}
                 </div>
 
-                {/* Consultation Notes */}
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                {/* Additional Notes */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold uppercase tracking-wider text-slate-700">
                     What would you like to focus on? (Optional)
                   </label>
                   <textarea
                     rows={3}
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
-                    placeholder="e.g. Preparing for Senior Full-Stack technical interview, review portfolio and resume structure..."
-                    className="flex w-full rounded-xl border border-slate-200 bg-slate-50/50 p-3 text-sm text-slate-950 placeholder:text-slate-400 focus:outline-none focus:ring-4 focus:ring-[#0A54B1]/20 focus:border-[#0A54B1] transition-all resize-none"
+                    placeholder="e.g. CV review for Senior Product Manager, salary negotiation strategies, executive presence..."
+                    className="w-full text-xs p-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0A54B1]/20 focus:border-[#0A54B1] transition-all resize-none"
                   />
                 </div>
 
-                {/* Actions */}
-                <div className="pt-3 flex items-center justify-end gap-3">
+                {/* Submit Action */}
+                <div className="pt-2">
                   <button
-                    type="button"
-                    onClick={onClose}
-                    className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 font-semibold text-xs transition-colors cursor-pointer"
-                  >
-                    Cancel
-                  </button>
-
-                  <Button
                     type="submit"
                     disabled={bookSlotMutation.isPending}
-                    className="bg-[#0A54B1] hover:bg-[#0A54B1]/95 text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow-md shadow-blue-500/20 hover:shadow-lg transition-all active:scale-95 flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                    className="w-full h-11 rounded-xl bg-linear-to-r from-[#52CEDE] to-[#0A54B1] hover:opacity-95 text-white font-extrabold text-xs shadow-md shadow-blue-500/20 active:scale-98 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
                   >
                     {bookSlotMutation.isPending ? (
                       <>
-                        <Loader2 className="w-3.5 h-3.5 animate-spin" /> Confirming...
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>Confirming Appointment...</span>
                       </>
                     ) : (
                       <>
-                        <UserCheck className="w-3.5 h-3.5" /> Confirm Consultation
+                        <Send className="w-3.5 h-3.5" />
+                        <span>Confirm Consultation Booking</span>
                       </>
                     )}
-                  </Button>
+                  </button>
                 </div>
               </form>
             )}
           </motion.div>
-        </div>
+        </motion.div>
       )}
     </AnimatePresence>
   );
+
+  return createPortal(modalContent, document.body);
 }

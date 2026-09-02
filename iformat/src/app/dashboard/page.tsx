@@ -10,6 +10,7 @@ import { useAuthStore } from "@/stores/use-auth-store";
 import { jobsService } from "@/services/jobs.service";
 import { JobApplicantDTO, JobDTO } from "@/types/api";
 import { EditJobModal } from "@/features/jobs/components/edit-job-modal";
+import { AddJobModal } from "@/features/jobs/components/add-job-modal";
 
 import { DashboardWelcomeHeader } from "@/features/dashboard/components/dashboard-welcome-header";
 import { DashboardStatsGrid } from "@/features/dashboard/components/dashboard-stats-grid";
@@ -25,6 +26,7 @@ export default function UserDashboardPage() {
   const [employerJobs, setEmployerJobs] = React.useState<JobDTO[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
+  const [isAddJobModalOpen, setIsAddJobModalOpen] = React.useState(false);
   const [editingJob, setEditingJob] = React.useState<JobDTO | null>(null);
   const [deletingJobId, setDeletingJobId] = React.useState<string | null>(null);
 
@@ -49,6 +51,17 @@ export default function UserDashboardPage() {
       setLoading(false);
     }
   }, [isEmployer]);
+
+  const handleAddJob = async (jobData: any) => {
+    try {
+      await jobsService.createJob(jobData);
+      toast.success("Job posting created successfully!");
+      setIsAddJobModalOpen(false);
+      loadDashboardData();
+    } catch (err: any) {
+      toast.error(err?.message || "Failed to create job posting.");
+    }
+  };
 
   const handleDeleteJob = async (jobId: string, title: string) => {
     if (
@@ -83,71 +96,69 @@ export default function UserDashboardPage() {
   }, [isAuthenticated, loadDashboardData, router]);
 
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-100 pt-24 pb-16 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto space-y-8">
-        {/* Welcome Header */}
+    <div className="text-slate-900 py-8 ">
+      <div className="w-11/12 mx-auto space-y-8">
         <DashboardWelcomeHeader
           userName={user?.name}
           isEmployer={isEmployer}
           emailVerified={user?.emailVerified}
+          onPostJobClick={() => setIsAddJobModalOpen(true)}
         />
 
-        {/* Error Banner */}
         {error && (
-          <div className="p-4 sm:p-5 rounded-2xl bg-rose-950/60 border border-rose-800/80 text-rose-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-lg">
+          <div className="p-4 sm:p-5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
             <div className="flex items-center gap-3">
-              <AlertCircle className="w-5 h-5 text-rose-400 shrink-0" />
+              <AlertCircle className="w-5 h-5 text-rose-500 shrink-0" />
               <div>
-                <h4 className="text-sm font-semibold text-white">Couldn&apos;t load your dashboard data</h4>
-                <p className="text-xs text-rose-300/80 mt-0.5">{error}</p>
+                <h4 className="text-sm font-bold text-slate-900">Couldn&apos;t load your dashboard data</h4>
+                <p className="text-xs text-rose-700 mt-0.5">{error}</p>
               </div>
             </div>
-            <Button
+            <button
               onClick={loadDashboardData}
               disabled={loading}
-              variant="outline"
-              size="sm"
-              className="border-rose-700 bg-rose-900/40 hover:bg-rose-800 text-rose-100 text-xs shrink-0 cursor-pointer"
+              className="px-4 py-2 rounded-xl bg-white border border-rose-200 hover:bg-rose-50 text-rose-700 text-xs font-bold shrink-0 cursor-pointer transition-colors"
             >
-              <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${loading ? "animate-spin" : ""}`} /> Retry
-            </Button>
+              <RefreshCw className={`w-3.5 h-3.5 inline mr-1.5 ${loading ? "animate-spin" : ""}`} /> Retry
+            </button>
           </div>
         )}
 
-        {/* Quick Stats Grid */}
         <DashboardStatsGrid
           isEmployer={isEmployer}
           employerJobs={employerJobs}
           applications={applications}
         />
 
-        {/* Main Content Area */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left / Primary Column (2 cols) */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
           <div className="lg:col-span-2 space-y-6">
-            <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-6">
-              <div className="flex items-center justify-between mb-6">
+            <div className="bg-white border border-slate-200/80 rounded-3xl p-6 sm:p-8 shadow-sm">
+              <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
                 <div>
-                  <h2 className="text-lg font-semibold text-white">
-                    {isEmployer ? "My Job Listings" : "Recent Applications"}
+                  <h2 className="text-lg font-extrabold text-slate-900 tracking-tight">
+                    {isEmployer ? "Active Job Postings" : "Recent Applications"}
                   </h2>
-                  <p className="text-xs text-slate-400">
+                  <p className="text-xs text-slate-500 mt-0.5">
                     {isEmployer
-                      ? "Manage your company job posts and evaluate submissions."
-                      : "Real-time status updates of your submitted applications."}
+                      ? "Manage and review candidates across your active vacancies."
+                      : "Overview of your applied positions and recruitment milestones."}
                   </p>
                 </div>
                 {isEmployer ? (
-                  <Link href="/company-details">
-                    <Button variant="ghost" size="sm" className="text-xs text-indigo-400 hover:text-indigo-300 cursor-pointer">
-                      Manage Jobs <ChevronRight className="w-3.5 h-3.5 ml-1" />
-                    </Button>
-                  </Link>
+                  <button
+                    onClick={() => setIsAddJobModalOpen(true)}
+                    className="text-xs font-extrabold text-[#0A54B1] hover:underline flex items-center gap-1 cursor-pointer"
+                  >
+                    <span>Post A Job</span>
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
                 ) : (
-                  <Link href="/job-portal">
-                    <Button variant="ghost" size="sm" className="text-xs text-indigo-400 hover:text-indigo-300 cursor-pointer">
-                      Explore More Jobs <ChevronRight className="w-3.5 h-3.5 ml-1" />
-                    </Button>
+                  <Link
+                    href="/job-portal"
+                    className="text-xs font-extrabold text-[#0A54B1] hover:underline flex items-center gap-1"
+                  >
+                    <span>Explore More Jobs</span>
+                    <ChevronRight className="w-3.5 h-3.5" />
                   </Link>
                 )}
               </div>
@@ -157,8 +168,9 @@ export default function UserDashboardPage() {
                   employerJobs={employerJobs}
                   loading={loading}
                   deletingJobId={deletingJobId}
-                  onEditJob={setEditingJob}
+                  onEditJob={(job) => setEditingJob(job)}
                   onDeleteJob={handleDeleteJob}
+                  onPostJobClick={() => setIsAddJobModalOpen(true)}
                 />
               ) : (
                 <CandidateApplicationsList
@@ -169,20 +181,31 @@ export default function UserDashboardPage() {
             </div>
           </div>
 
-          {/* Right / Shortcut Column (1 col) */}
-          <DashboardSidebarShortcuts />
+          <div className="space-y-6">
+            <DashboardSidebarShortcuts />
+          </div>
         </div>
       </div>
 
-      {/* Edit Job Modal */}
-      {editingJob && (
-        <EditJobModal
-          job={editingJob}
-          isOpen={!!editingJob}
-          onClose={() => setEditingJob(null)}
-          onUpdated={handleJobUpdated}
+      {isAddJobModalOpen && (
+        <AddJobModal
+          isOpen={isAddJobModalOpen}
+          onClose={() => setIsAddJobModalOpen(false)}
+          onSubmit={handleAddJob}
         />
       )}
-    </main>
+
+      {editingJob && (
+        <EditJobModal
+          job={editingJob as any}
+          isOpen={!!editingJob}
+          onClose={() => setEditingJob(null)}
+          onUpdated={() => {
+            setEditingJob(null);
+            loadDashboardData();
+          }}
+        />
+      )}
+    </div>
   );
 }

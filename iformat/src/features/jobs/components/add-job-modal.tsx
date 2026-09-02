@@ -10,6 +10,8 @@ import { createJobSchema, CreateJobFormData } from "@/lib/validations";
 import { JobFormFields } from "./modal/job-form-fields";
 import { JobAiAdvicePanel } from "./modal/job-ai-advice-panel";
 
+import { useAuthStore } from "@/stores/use-auth-store";
+
 interface AddJobModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -17,6 +19,7 @@ interface AddJobModalProps {
 }
 
 export function AddJobModal({ isOpen, onClose, onSubmit }: AddJobModalProps) {
+  const { user } = useAuthStore();
   const [showAiConsult, setShowAiConsult] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [isSuccess, setIsSuccess] = React.useState(false);
@@ -32,18 +35,38 @@ export function AddJobModal({ isOpen, onClose, onSubmit }: AddJobModalProps) {
     resolver: zodResolver(createJobSchema),
     defaultValues: {
       title: "",
-      company: "",
+      company: user?.companyName || user?.name || "",
       category: "Technology & Engineering",
       jobType: "Full Time",
       location: "Remote",
       salary: "$100,000 - $130,000",
-      validity: new Date().toISOString().split("T")[0],
+      validity: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
       description: "",
       requirements: "",
       niceToHave: "",
       perks: "",
     },
   });
+
+  React.useEffect(() => {
+    if (isOpen) {
+      reset({
+        title: "",
+        company: user?.companyName || user?.name || "",
+        category: "Technology & Engineering",
+        jobType: "Full Time",
+        location: "Remote",
+        salary: "$100,000 - $130,000",
+        validity: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+        description: "",
+        requirements: "",
+        niceToHave: "",
+        perks: "",
+      });
+      setIsSuccess(false);
+      setIsSubmitting(false);
+    }
+  }, [isOpen, user, reset]);
 
   const selectedJobType = useWatch({ control, name: "jobType" });
   const selectedLocation = useWatch({ control, name: "location" });
@@ -52,42 +75,45 @@ export function AddJobModal({ isOpen, onClose, onSubmit }: AddJobModalProps) {
     try {
       setIsSubmitting(true);
 
+      const validityDate = data.validity
+        ? new Date(data.validity).toISOString()
+        : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+
       await onSubmit({
-        title: data.title,
-        company: data.company,
+        title: data.title.trim(),
+        company: data.company.trim() || user?.companyName || "iFormat Partner",
         category: data.category,
         jobType: data.jobType,
         location: data.location,
         salary: data.salary.trim() ? data.salary : "Competitive",
+        validity: validityDate,
         status: "PUBLISHED",
         date: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" }),
-        description: data.description,
+        description: data.description.trim(),
         responsibilities: [
-          "Contribute to the team's core goals and roadmap items",
-          "Collaborate cross-functionally to implement new features",
-          "Maintain high-quality standards through peer code reviews",
+          "Contribute to team core goals and roadmap execution",
+          "Collaborate cross-functionally to deliver high impact deliverables",
+          "Ensure code quality, documentation, and engineering excellence",
         ],
         requirements: data.requirements.trim()
           ? data.requirements.split("\n").filter((r) => r.trim() !== "")
-          : ["3+ years of relevant industry experience", "Strong communication skills"],
+          : ["Relevant industry experience", "Strong communication and execution skills"],
         niceToHave: data.niceToHave?.trim()
           ? data.niceToHave.split("\n").filter((n) => n.trim() !== "")
           : ["Experience with modern cloud platforms"],
         perks: data.perks?.trim()
           ? data.perks.split("\n").filter((p) => p.trim() !== "")
-          : ["Competitive salary", "Remote-first culture", "Flexible PTO"],
+          : ["Competitive compensation", "Remote flexibility", "Generous PTO"],
       });
 
       setIsSuccess(true);
-      toast.success("Job posted successfully to database!");
-
       setTimeout(() => {
         reset();
         setIsSuccess(false);
         onClose();
-      }, 500);
+      }, 300);
     } catch (err: any) {
-      toast.error(err.message || "Failed to post job. Please ensure you are logged in.");
+      toast.error(err?.message || "Failed to post job. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -114,7 +140,6 @@ export function AddJobModal({ isOpen, onClose, onSubmit }: AddJobModalProps) {
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.95, opacity: 0, y: 15 }}
             transition={{ type: "spring", duration: 0.4 }}
-            data-lenis-prevent
             className="relative bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col border border-slate-100 z-10"
           >
             {/* Header */}

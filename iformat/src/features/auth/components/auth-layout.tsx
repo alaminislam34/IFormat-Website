@@ -22,7 +22,7 @@ export function AuthLayout({ children, illustrationType }: AuthLayoutProps) {
           transition={{ duration: 0.8, ease: "easeOut" }}
           className="lg:col-span-6 xl:col-span-5 w-full flex justify-center lg:justify-end"
         >
-          <div className="w-full max-w-115 bg-white rounded-3xl border border-slate-100 shadow-xl shadow-slate-200/50 p-8 md:p-10 relative overflow-hidden">
+          <div className="w-full max-w-115 bg-white rounded-3xl border border-slate-100 shadow-xl shadow-slate-200/50 p-8 sm:p-10 pb-10 sm:pb-12 relative overflow-hidden">
             {/* Logo */}
             <div className="mb-8">
               <BrandLogo size="lg" />

@@ -5,7 +5,7 @@ import { logger } from "../../utils/logger.js";
 import { ConflictError, NotFoundError, ValidationError, ForbiddenError } from "../../errors/index.js";
 import { PlanService } from "../plan/plan.service.js";
 import { UserSubscriptionDetails } from "./payment.types.js";
-import { Role, SubscriptionStatus, PlanAudience } from "@prisma/client";
+import { Role, SubscriptionStatus, PlanAudience, PlanBillingInterval } from "@prisma/client";
 
 export class PaymentService {
   /**
@@ -69,10 +69,39 @@ export class PaymentService {
     // 1. Mock Mode (Local Development & CI)
     if (this.isMockStripe()) {
       logger.info(
-        `💳 [Mock Stripe] Simulating Checkout Session for user: ${user.email} (Plan: ${targetPlan.name})`
+        `💳 [Mock Stripe] Simulating Checkout Session & activating plan for user: ${user.email} (Plan: ${targetPlan.name})`
       );
 
+      const periodStart = new Date();
+      const periodEnd = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
       const mockSessionId = `cs_mock_${Date.now()}`;
+      const mockCustomerId = user.subscription?.stripeCustomerId || `cus_mock_${user.id}`;
+      const mockSubId = `sub_mock_${Date.now()}`;
+
+      await prisma.subscription.upsert({
+        where: { userId: user.id },
+        create: {
+          userId: user.id,
+          planId: targetPlan.id,
+          stripeCustomerId: mockCustomerId,
+          stripeSubscriptionId: mockSubId,
+          status: SubscriptionStatus.ACTIVE,
+          currentPeriodStart: periodStart,
+          currentPeriodEnd: periodEnd,
+          cancelAtPeriodEnd: false,
+        },
+        update: {
+          planId: targetPlan.id,
+          stripeCustomerId: mockCustomerId,
+          stripeSubscriptionId: mockSubId,
+          status: SubscriptionStatus.ACTIVE,
+          currentPeriodStart: periodStart,
+          currentPeriodEnd: periodEnd,
+          cancelAtPeriodEnd: false,
+          canceledAt: null,
+        },
+      });
+
       return {
         url: `${getFrontendUrl()}/dashboard/billing?mock_success=true&session_id=${mockSessionId}&plan=${targetPlan.code}`,
         sessionId: mockSessionId,
@@ -80,16 +109,13 @@ export class PaymentService {
     }
 
     // 2. Production / Live Stripe Mode
-    let customerId = user.subscription?.stripeCustomerId;
+    const customerId = await this.getOrCreateStripeCustomer(user);
 
-    if (!customerId) {
-      const customer = await stripe.customers.create({
-        email: user.email,
-        name: user.name,
-        metadata: { userId: user.id, role: user.role },
-      });
-      customerId = customer.id;
-    }
+    const stripeInterval: "month" | "year" =
+      targetPlan.billingInterval === PlanBillingInterval.YEARLY ||
+      String(targetPlan.billingInterval).toUpperCase() === "YEARLY"
+        ? "year"
+        : "month";
 
     const stripePriceId = (targetPlan as any).stripePriceId;
     const lineItems = stripePriceId
@@ -104,7 +130,7 @@ export class PaymentService {
               },
               unit_amount: targetPlan.priceInCents,
               recurring: {
-                interval: targetPlan.billingInterval.toLowerCase() as "month" | "year",
+                interval: stripeInterval,
               },
             },
             quantity: 1,
@@ -140,6 +166,45 @@ export class PaymentService {
   }
 
   /**
+   * Safe helper to ensure a valid Stripe customer ID exists on Stripe
+   */
+  private static async getOrCreateStripeCustomer(user: any): Promise<string> {
+    let customerId = user.subscription?.stripeCustomerId;
+
+    if (
+      customerId &&
+      !customerId.startsWith("cus_comped") &&
+      !customerId.startsWith("cus_mock")
+    ) {
+      try {
+        const existing = await stripe.customers.retrieve(customerId);
+        if (existing && !existing.deleted) {
+          return existing.id;
+        }
+      } catch (err: any) {
+        logger.warn(
+          `Customer ${customerId} not found in Stripe (${err.message}). Creating fresh customer.`
+        );
+      }
+    }
+
+    const customer = await stripe.customers.create({
+      email: user.email,
+      name: user.name,
+      metadata: { userId: user.id, role: user.role },
+    });
+
+    if (user.subscription) {
+      await prisma.subscription.update({
+        where: { id: user.subscription.id },
+        data: { stripeCustomerId: customer.id },
+      });
+    }
+
+    return customer.id;
+  }
+
+  /**
    * Create a Stripe Customer Billing Portal Session
    */
   static async createCustomerPortalSession(userId: string, returnUrlOverride?: string) {
@@ -152,18 +217,31 @@ export class PaymentService {
 
     const returnUrl = returnUrlOverride || `${getFrontendUrl()}/dashboard/billing`;
 
-    if (this.isMockStripe() || !user.subscription?.stripeCustomerId) {
+    const rawCustomerId = user.subscription?.stripeCustomerId;
+    if (
+      this.isMockStripe() ||
+      !rawCustomerId ||
+      rawCustomerId.startsWith("cus_comped") ||
+      rawCustomerId.startsWith("cus_mock")
+    ) {
       return {
         url: `${getFrontendUrl()}/dashboard/billing?mock_portal=true`,
       };
     }
 
-    const session = await stripe.billingPortal.sessions.create({
-      customer: user.subscription.stripeCustomerId,
-      return_url: returnUrl,
-    });
+    try {
+      const session = await stripe.billingPortal.sessions.create({
+        customer: rawCustomerId,
+        return_url: returnUrl,
+      });
 
-    return { url: session.url };
+      return { url: session.url };
+    } catch (err: any) {
+      logger.warn(`Stripe Billing Portal error for ${rawCustomerId}:`, err.message);
+      return {
+        url: `${getFrontendUrl()}/dashboard/billing?mock_portal=true`,
+      };
+    }
   }
 
   /**
@@ -229,9 +307,197 @@ export class PaymentService {
   }
 
   /**
+   * Automatically sync Stripe subscription status into database
+   */
+  static async syncUserSubscriptionWithStripe(userId: string, sessionId?: string) {
+    if (this.isMockStripe()) return;
+
+    try {
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        include: { subscription: true },
+      });
+      if (!user) return;
+
+      // 1. Check direct Stripe Checkout Session if provided
+      if (sessionId && sessionId.startsWith("cs_") && !sessionId.startsWith("cs_mock_")) {
+        const session = await stripe.checkout.sessions.retrieve(sessionId);
+        const isPaidOrComplete =
+          session.payment_status === "paid" ||
+          session.payment_status === "no_payment_required" ||
+          session.status === "complete";
+
+        if (isPaidOrComplete) {
+          const planCode = session.metadata?.planCode || session.metadata?.plan;
+          const planId = session.metadata?.planId;
+
+          let targetPlan: any;
+          if (planId) {
+            targetPlan = await prisma.plan.findUnique({ where: { id: planId } });
+          }
+          if (!targetPlan && planCode) {
+            targetPlan = await PlanService.getPlanByIdOrCode(planCode);
+          }
+          if (!targetPlan) {
+            targetPlan = await PlanService.getPlanByIdOrCode("EMPLOYER_PRO");
+          }
+
+          const customerId = (session.customer as string) || user.subscription?.stripeCustomerId || `cus_${userId}`;
+          const subscriptionId = session.subscription as string;
+
+          let periodStart = new Date();
+          let periodEnd = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+
+          if (subscriptionId) {
+            try {
+              const stripeSub: any = await stripe.subscriptions.retrieve(subscriptionId);
+              if (stripeSub.current_period_start) {
+                periodStart = new Date(stripeSub.current_period_start * 1000);
+              }
+              if (stripeSub.current_period_end) {
+                periodEnd = new Date(stripeSub.current_period_end * 1000);
+              }
+            } catch (err: any) {
+              logger.warn(`Could not retrieve Stripe subscription: ${err.message}`);
+            }
+          }
+
+          await prisma.subscription.upsert({
+            where: { userId },
+            create: {
+              userId,
+              planId: targetPlan.id,
+              stripeCustomerId: customerId,
+              stripeSubscriptionId: subscriptionId || `sub_${userId}`,
+              status: SubscriptionStatus.ACTIVE,
+              currentPeriodStart: periodStart,
+              currentPeriodEnd: periodEnd,
+              cancelAtPeriodEnd: false,
+            },
+            update: {
+              planId: targetPlan.id,
+              stripeCustomerId: customerId,
+              stripeSubscriptionId: subscriptionId || undefined,
+              status: SubscriptionStatus.ACTIVE,
+              currentPeriodStart: periodStart,
+              currentPeriodEnd: periodEnd,
+              cancelAtPeriodEnd: false,
+              canceledAt: null,
+            },
+          });
+          logger.info(`✅ [Sync] User ${userId} subscription synced via session ${sessionId}`);
+          return;
+        }
+      }
+
+      // 2. Check active Stripe subscriptions for this customer / existing subscription
+      const subId = user.subscription?.stripeSubscriptionId;
+      const customerId = user.subscription?.stripeCustomerId;
+
+      if (subId && !subId.startsWith("sub_mock") && !subId.startsWith("sub_comped")) {
+        try {
+          const stripeSub: any = await stripe.subscriptions.retrieve(subId);
+          if (stripeSub) {
+            const status = this.mapStripeStatus(stripeSub.status);
+            const periodStart = stripeSub.current_period_start
+              ? new Date(stripeSub.current_period_start * 1000)
+              : undefined;
+            const periodEnd = stripeSub.current_period_end
+              ? new Date(stripeSub.current_period_end * 1000)
+              : undefined;
+
+            await prisma.subscription.update({
+              where: { id: user.subscription!.id },
+              data: {
+                status,
+                cancelAtPeriodEnd: stripeSub.cancel_at_period_end,
+                currentPeriodStart: periodStart,
+                currentPeriodEnd: periodEnd,
+                canceledAt: stripeSub.canceled_at ? new Date(stripeSub.canceled_at * 1000) : null,
+              },
+            });
+            logger.info(`✅ [Sync] User ${userId} subscription status updated from Stripe (${status})`);
+            return;
+          }
+        } catch (err: any) {
+          logger.warn(`⚠️ [Sync] Could not retrieve Stripe sub ${subId}: ${err.message}`);
+        }
+      }
+
+      if (customerId && !customerId.startsWith("cus_comped") && !customerId.startsWith("cus_mock")) {
+        const stripeSubs = await stripe.subscriptions.list({
+          customer: customerId,
+          status: "all",
+          limit: 1,
+        });
+
+        if (stripeSubs.data && stripeSubs.data.length > 0) {
+          const latestSub = stripeSubs.data[0];
+          if (latestSub.status === "active" || latestSub.status === "trialing") {
+            const planCode = latestSub.metadata?.planCode || latestSub.metadata?.plan;
+            const planId = latestSub.metadata?.planId;
+
+            let targetPlan: any;
+            if (planId) {
+              targetPlan = await prisma.plan.findUnique({ where: { id: planId } });
+            }
+            if (!targetPlan && planCode) {
+              targetPlan = await PlanService.getPlanByIdOrCode(planCode);
+            }
+            if (!targetPlan) {
+              const itemPrice = latestSub.items?.data?.[0]?.price;
+              if (itemPrice?.unit_amount) {
+                targetPlan = await prisma.plan.findFirst({
+                  where: { priceInCents: itemPrice.unit_amount, isDeleted: false },
+                });
+              }
+            }
+            if (!targetPlan) {
+              targetPlan = await PlanService.getPlanByIdOrCode("EMPLOYER_PRO");
+            }
+
+            const periodStart = new Date(latestSub.current_period_start * 1000);
+            const periodEnd = new Date(latestSub.current_period_end * 1000);
+
+            await prisma.subscription.upsert({
+              where: { userId },
+              create: {
+                userId,
+                planId: targetPlan.id,
+                stripeCustomerId: customerId,
+                stripeSubscriptionId: latestSub.id,
+                status: SubscriptionStatus.ACTIVE,
+                currentPeriodStart: periodStart,
+                currentPeriodEnd: periodEnd,
+                cancelAtPeriodEnd: latestSub.cancel_at_period_end,
+              },
+              update: {
+                planId: targetPlan.id,
+                stripeCustomerId: customerId,
+                stripeSubscriptionId: latestSub.id,
+                status: SubscriptionStatus.ACTIVE,
+                currentPeriodStart: periodStart,
+                currentPeriodEnd: periodEnd,
+                cancelAtPeriodEnd: latestSub.cancel_at_period_end,
+                canceledAt: latestSub.canceled_at ? new Date(latestSub.canceled_at * 1000) : null,
+              },
+            });
+            logger.info(`✅ [Sync] User ${userId} subscription synced via Stripe customer ${customerId}`);
+          }
+        }
+      }
+    } catch (err: any) {
+      logger.warn(`⚠️ [Sync] Auto-sync with Stripe skipped: ${err.message}`);
+    }
+  }
+
+  /**
    * Get user's complete subscription status, limits, and usage
    */
-  static async getUserSubscriptionDetails(userId: string): Promise<UserSubscriptionDetails> {
+  static async getUserSubscriptionDetails(userId: string, sessionId?: string): Promise<UserSubscriptionDetails> {
+    // Proactively sync Stripe session/customer status if needed
+    await this.syncUserSubscriptionWithStripe(userId, sessionId);
+
     const user = await prisma.user.findUnique({
       where: { id: userId },
       include: {
@@ -242,14 +508,16 @@ export class PaymentService {
     if (!user) throw new NotFoundError("User", userId);
 
     const activeSub = user.subscription;
+    const isPaidPlan = Boolean(activeSub?.plan && activeSub.plan.priceInCents > 0);
     const isPaidActive =
       activeSub !== null &&
+      isPaidPlan &&
       (activeSub.status === SubscriptionStatus.ACTIVE ||
         activeSub.status === SubscriptionStatus.TRIALING) &&
       (!activeSub.currentPeriodEnd || activeSub.currentPeriodEnd > new Date());
 
     let plan: any;
-    if (isPaidActive && activeSub?.plan) {
+    if (activeSub?.plan) {
       plan = activeSub.plan;
     } else {
       plan = PlanService.getDefaultPlanForRole(user.role);
@@ -284,10 +552,10 @@ export class PaymentService {
     return {
       subscription: activeSub,
       plan,
-      status: activeSub ? activeSub.status : "FREE",
+      status: isPaidActive && activeSub ? activeSub.status : "FREE",
       isPaidActive,
-      cancelAtPeriodEnd: activeSub ? activeSub.cancelAtPeriodEnd : false,
-      currentPeriodEnd: activeSub ? activeSub.currentPeriodEnd : null,
+      cancelAtPeriodEnd: isPaidActive && activeSub ? activeSub.cancelAtPeriodEnd : false,
+      currentPeriodEnd: isPaidActive && activeSub ? activeSub.currentPeriodEnd : null,
       usage,
       effectiveLimits: {
         maxActiveJobs: plan.maxActiveJobs,

@@ -8,7 +8,7 @@ import { useAuthStore } from "@/stores/use-auth-store";
 import { PricingHeader } from "./pricing-header";
 import { PricingCard, PricingCardItem } from "./pricing-card";
 
-const DEFAULT_BRANDING_PLANS: PricingCardItem[] = [
+export const DEFAULT_BRANDING_PLANS: PricingCardItem[] = [
   {
     code: "BRANDING_STARTER",
     name: "Starter",
@@ -56,7 +56,7 @@ const DEFAULT_BRANDING_PLANS: PricingCardItem[] = [
       "Connections Strategy",
       "Reporting & analytics",
       "Recruiter messaging",
-      "Quarterly LinkedIn Optimization",
+      "Quarterly Linkdin Optimization",
     ],
   },
   {
@@ -68,11 +68,11 @@ const DEFAULT_BRANDING_PLANS: PricingCardItem[] = [
     buttonText: "Contact US",
     isContactUs: true,
     features: [
-      "Executive Positioning & Thought Leadership",
-      "Startup & Founder Brand Equity",
+      "Outplacement Support",
+      "Startup Brand Equity",
       "Stakeholder Brand Equity",
       "Investor Brand Engagement",
-      "C-Suite Reputation Management",
+      "Workforce Transitions",
       "Corporate Brand Advisory",
     ],
   },
@@ -89,7 +89,6 @@ export function Pricing() {
       const data = await membershipService.getPlans();
       const rawPlans = Array.isArray(data) ? data : (data as any)?.plans;
       if (rawPlans && rawPlans.length > 0) {
-        // Map dynamic plans if they match codes or IDs
         const updated = DEFAULT_BRANDING_PLANS.map((defaultPlan) => {
           const matched = rawPlans.find(
             (p: any) =>
@@ -101,10 +100,6 @@ export function Pricing() {
               ...defaultPlan,
               id: matched.id,
               price: matched.priceInCents > 0 ? `$${matched.priceInCents / 100}` : defaultPlan.price,
-              features:
-                Array.isArray(matched.customFeatures) && matched.customFeatures.length > 0
-                  ? matched.customFeatures
-                  : defaultPlan.features,
             };
           }
           return defaultPlan;
@@ -112,7 +107,6 @@ export function Pricing() {
         setPlans(updated);
       }
     } catch {
-      // Use defaults seamlessly
       setPlans(DEFAULT_BRANDING_PLANS);
     }
   }, []);
@@ -137,14 +131,14 @@ export function Pricing() {
       const origin = typeof window !== "undefined" ? window.location.origin : "";
       const res = await membershipService.createCheckoutSession({
         planId: item.id || item.code,
-        successUrl: `${origin}/dashboard?payment=success`,
+        successUrl: `${origin}/dashboard/billing?session_id={CHECKOUT_SESSION_ID}&payment=success`,
         cancelUrl: `${origin}/#pricing`,
       });
 
       if (res?.url) {
         window.location.href = res.url;
       } else {
-        router.push("/dashboard");
+        router.push("/dashboard/billing");
       }
     } catch (err: any) {
       const errorMsg =

@@ -58,7 +58,7 @@ export function StepWorkExperience({
                 <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Company</label>
                 <input
                   type="text"
-                  value={work.company}
+                  value={work.company ?? ""}
                   onChange={(e) => onChange(work.id, "company", e.target.value)}
                   placeholder="e.g. Vercel Inc"
                   className="w-full h-11 px-4 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0A54B1]/20 focus:border-[#0A54B1] text-sm font-medium"
@@ -68,7 +68,7 @@ export function StepWorkExperience({
                 <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Role</label>
                 <input
                   type="text"
-                  value={work.role}
+                  value={work.role ?? ""}
                   onChange={(e) => onChange(work.id, "role", e.target.value)}
                   placeholder="e.g. Senior Full Stack Developer"
                   className="w-full h-11 px-4 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0A54B1]/20 focus:border-[#0A54B1] text-sm font-medium"
@@ -78,7 +78,7 @@ export function StepWorkExperience({
                 <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Duration</label>
                 <input
                   type="text"
-                  value={work.duration}
+                  value={work.duration ?? ""}
                   onChange={(e) => onChange(work.id, "duration", e.target.value)}
                   placeholder="e.g. Jan 2020 - Present"
                   className="w-full h-11 px-4 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0A54B1]/20 focus:border-[#0A54B1] text-sm font-medium"
@@ -88,7 +88,7 @@ export function StepWorkExperience({
                 <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Location</label>
                 <input
                   type="text"
-                  value={work.location}
+                  value={work.location ?? ""}
                   onChange={(e) => onChange(work.id, "location", e.target.value)}
                   placeholder="e.g. Remote / Paris, France"
                   className="w-full h-11 px-4 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0A54B1]/20 focus:border-[#0A54B1] text-sm font-medium"
@@ -98,7 +98,7 @@ export function StepWorkExperience({
                 <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Description (One point per line)</label>
                 <textarea
                   rows={4}
-                  value={work.description}
+                  value={work.description ?? ""}
                   onChange={(e) => onChange(work.id, "description", e.target.value)}
                   placeholder="Led a team of developers...&#10;Built and optimized APIs..."
                   className="w-full p-4 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0A54B1]/20 focus:border-[#0A54B1] text-sm font-medium leading-relaxed resize-none"

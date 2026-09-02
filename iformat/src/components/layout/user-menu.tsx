@@ -9,17 +9,13 @@ import {
   CreditCard,
   LogOut,
   ChevronDown,
-  Sparkles,
-  Briefcase,
-  Layers,
+  LayoutDashboard,
   Settings,
   Calendar,
 } from "lucide-react";
 import { useAuthStore } from "@/stores/use-auth-store";
 import { toast } from "sonner";
 import { apiClient } from "@/lib/api/api-client";
-import { NotificationBell } from "@/components/layout/notification-bell";
-import { AccountSettingsModal } from "@/components/layout/account-settings-modal";
 
 interface UserMenuProps {
   variant?: "dark" | "light";
@@ -29,7 +25,6 @@ export function UserMenu({ variant = "light" }: UserMenuProps) {
   const router = useRouter();
   const { user, isAuthenticated, logout } = useAuthStore();
   const [isOpen, setIsOpen] = useState(false);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown on click outside
@@ -76,7 +71,6 @@ export function UserMenu({ variant = "light" }: UserMenuProps) {
   const role = user.role?.toUpperCase() || "CANDIDATE";
   const isAdmin = role === "ADMIN";
   const isEmployer = role === "EMPLOYER";
-  const isCandidate = role === "CANDIDATE";
 
   const initial = user.name ? user.name.charAt(0).toUpperCase() : "U";
   const isDark = variant === "dark";
@@ -90,9 +84,6 @@ export function UserMenu({ variant = "light" }: UserMenuProps) {
 
   return (
     <div className="flex items-center gap-2">
-      {/* Notification Bell */}
-      <NotificationBell variant={variant} />
-
       {/* Avatar + dropdown wrapper */}
       <div className="relative" ref={menuRef}>
       {/* Trigger Button */}
@@ -148,64 +139,44 @@ export function UserMenu({ variant = "light" }: UserMenuProps) {
             </div>
           </div>
 
-          {/* Navigation Links */}
+          {/* Navigation Links (Essential Account Options Only) */}
           <div className="space-y-0.5 text-xs font-semibold text-slate-700">
+            {/* Primary Dashboard Hub */}
+            <Link
+              href="/dashboard"
+              onClick={() => setIsOpen(false)}
+              className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-slate-100 hover:text-[#0A54B1] transition-colors"
+            >
+              <LayoutDashboard className="w-4 h-4 text-[#0A54B1]" />
+              <span>My Dashboard</span>
+            </Link>
+
             {isAdmin && (
               <Link
                 href="/admin"
                 onClick={() => setIsOpen(false)}
-                className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-[#0A54B1] hover:bg-sky-50 transition-colors font-bold"
+                className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-[#0A54B1] hover:bg-sky-50 transition-colors font-bold"
               >
                 <Shield className="w-4 h-4 text-[#0A54B1]" />
-                <span>Admin Dashboard</span>
+                <span>Admin Command Center</span>
               </Link>
             )}
 
             {isEmployer && (
-              <>
-                <Link
-                  href="/company-details"
-                  onClick={() => setIsOpen(false)}
-                  className="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-slate-100 hover:text-[#0A54B1] transition-colors"
-                >
-                  <Building2 className="w-4 h-4 text-[#0A54B1]" />
-                  <span>Company Details</span>
-                </Link>
-                <Link
-                  href="/job-portal"
-                  onClick={() => setIsOpen(false)}
-                  className="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-slate-100 hover:text-[#0A54B1] transition-colors"
-                >
-                  <Briefcase className="w-4 h-4 text-[#0A54B1]" />
-                  <span>Manage Jobs</span>
-                </Link>
-              </>
-            )}
-
-            {isCandidate && (
               <Link
-                href="/job-assistant"
+                href="/company-details"
                 onClick={() => setIsOpen(false)}
-                className="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-slate-100 hover:text-[#0A54B1] transition-colors"
+                className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-slate-100 hover:text-[#0A54B1] transition-colors"
               >
-                <Briefcase className="w-4 h-4 text-[#0A54B1]" />
-                <span>AI Job Assistant & CV</span>
+                <Building2 className="w-4 h-4 text-[#0A54B1]" />
+                <span>Company Details</span>
               </Link>
             )}
 
             <Link
-              href="/job-portal"
-              onClick={() => setIsOpen(false)}
-              className="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-slate-100 hover:text-[#0A54B1] transition-colors"
-            >
-              <Layers className="w-4 h-4 text-slate-400" />
-              <span>Job Portal</span>
-            </Link>
-
-            <Link
               href="/dashboard/bookings"
               onClick={() => setIsOpen(false)}
-              className="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-slate-100 hover:text-[#0A54B1] transition-colors"
+              className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-slate-100 hover:text-[#0A54B1] transition-colors"
             >
               <Calendar className="w-4 h-4 text-[#0A54B1]" />
               <span>Career Consultations</span>
@@ -214,29 +185,27 @@ export function UserMenu({ variant = "light" }: UserMenuProps) {
             <Link
               href="/dashboard/billing"
               onClick={() => setIsOpen(false)}
-              className="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-slate-100 hover:text-[#0A54B1] transition-colors"
+              className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-slate-100 hover:text-[#0A54B1] transition-colors"
             >
               <CreditCard className="w-4 h-4 text-[#0A54B1]" />
               <span>Membership & Plans</span>
             </Link>
 
-            <button
-              onClick={() => {
-                setIsOpen(false);
-                setIsSettingsOpen(true);
-              }}
-              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-slate-100 hover:text-[#0A54B1] transition-colors text-left cursor-pointer"
+            <Link
+              href="/dashboard/profile"
+              onClick={() => setIsOpen(false)}
+              className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-slate-100 hover:text-[#0A54B1] transition-colors"
             >
               <Settings className="w-4 h-4 text-[#0A54B1]" />
-              <span>Profile & Password</span>
-            </button>
+              <span>Profile & Settings</span>
+            </Link>
           </div>
 
           {/* Logout */}
           <div className="pt-1.5 mt-1.5 border-t border-slate-100">
             <button
               onClick={handleLogout}
-              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-600 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+              className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
             >
               <LogOut className="w-4 h-4" />
               <span>Sign Out</span>
@@ -245,14 +214,6 @@ export function UserMenu({ variant = "light" }: UserMenuProps) {
         </div>
       )}
       </div>
-
-      {/* Account Settings Modal */}
-      {isSettingsOpen && (
-        <AccountSettingsModal
-          isOpen={isSettingsOpen}
-          onClose={() => setIsSettingsOpen(false)}
-        />
-      )}
     </div>
   );
 }

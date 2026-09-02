@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Send, Loader2, User, Mail } from "lucide-react";
 import { useForm } from "react-hook-form";
@@ -38,6 +39,7 @@ interface ApplyModalProps {
 
 export function ApplyModal({ job, isOpen, onClose, onApplied }: ApplyModalProps) {
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
   const { user, isAuthenticated } = useAuthStore();
   const applyJobMutation = useApplyJob();
   const generateLetterMutation = useGenerateCoverLetter();
@@ -49,6 +51,10 @@ export function ApplyModal({ job, isOpen, onClose, onApplied }: ApplyModalProps)
   const [isUploadingFile, setIsUploadingFile] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const {
     register,
@@ -67,116 +73,101 @@ export function ApplyModal({ job, isOpen, onClose, onApplied }: ApplyModalProps)
   });
 
   const coverNoteValue = watch("coverNote") || "";
-  const candidateNameValue = watch("candidateName") || user?.name || "";
+
+  useEffect(() => {
+    if (user) {
+      setValue("candidateName", user.name || "");
+      setValue("candidateEmail", user.email || "");
+    }
+  }, [user, setValue]);
 
   useEffect(() => {
     if (userCVs && userCVs.length > 0 && !selectedCvId) {
-      setSelectedCvId(userCVs[0].id);
-      setResumeMode("cloud");
-    } else if (!userCVs || userCVs.length === 0) {
-      setResumeMode("upload");
+      const primaryCv = userCVs.find((c: any) => c.isPrimary) || userCVs[0];
+      setSelectedCvId(primaryCv.id);
     }
   }, [userCVs, selectedCvId]);
 
+  if (!mounted) return null;
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (file.type !== "application/pdf" && !file.name.endsWith(".pdf")) {
-      toast.error("Please select a valid PDF file (.pdf)");
-      return;
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error("File size cannot exceed 5MB.");
+        return;
+      }
+      setUploadedFile(file);
     }
-
-    if (file.size > 10 * 1024 * 1024) {
-      toast.error("File size must be under 10MB");
-      return;
-    }
-
-    setUploadedFile(file);
-    toast.success(`Attached ${file.name}`);
   };
 
-  const handleRemoveFile = () => {
-    setUploadedFile(null);
-    if (fileInputRef.current) fileInputRef.current.value = "";
-  };
-
-  const handleAiDraftCoverNote = () => {
-    generateLetterMutation.mutate(
-      {
+  const handleGenerateCoverLetter = async () => {
+    try {
+      const res: any = await generateLetterMutation.mutateAsync({
         role: job.title,
         company: job.company,
-        recipient: "Hiring Manager",
-        jobDescription: job.description || (job.requirements || []).join(". "),
-        candidateProfile: {
-          name: candidateNameValue,
-          experienceYears: 4,
-          skills: job.requirements?.slice(0, 3) || [],
-        },
-      },
-      {
-        onSuccess: (letter) => {
-          setValue("coverNote", letter.slice(0, 2000));
-          toast.success("AI drafted your cover note!");
-        },
-        onError: () => {
-          toast.error("Failed to generate AI draft. Please try again.");
-        },
+        jobDescription: job.description,
+      });
+      const letterText = typeof res === "string" ? res : res?.letter || "";
+      if (letterText) {
+        setValue("coverNote", letterText);
+        toast.success("AI Cover Letter generated and populated.");
       }
-    );
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || err?.message || "Failed to generate AI Cover Letter.");
+    }
   };
 
   const onSubmit = async (data: ApplyFormData) => {
-    if (!isAuthenticated) {
-      toast.info("Please sign in to submit your job application.");
-      onClose();
-      router.push(`/login?redirect=${encodeURIComponent(`/job-portal?job=${job.id}`)}`);
-      return;
-    }
-
-    let finalCvId: string | undefined = selectedCvId || undefined;
+    let finalCvId = selectedCvId;
 
     if (resumeMode === "upload") {
       if (!uploadedFile) {
-        toast.error("Please select a resume file to upload.");
+        toast.error("Please upload a CV document (PDF, DOCX).");
         return;
       }
 
       try {
         setIsUploadingFile(true);
-        const newCv = await cvService.createCV({
-          title: `${uploadedFile.name.replace(/\.pdf$/i, "")}`,
+        const uploadRes = await cvService.createCV({
+          title: `Application CV: ${job.title}`,
           content: {
             fileName: uploadedFile.name,
-            fileSize: `${(uploadedFile.size / 1024).toFixed(1)} KB`,
+            fileSize: uploadedFile.size,
+            fileType: uploadedFile.type,
             uploadedAt: new Date().toISOString(),
-            candidateName: data.candidateName,
-            candidateEmail: data.candidateEmail,
           },
         });
-        finalCvId = newCv.id;
+        finalCvId = uploadRes.id;
         refetchCVs();
       } catch (err: any) {
-        toast.error("Failed to upload your resume. Please try again before submitting.");
+        toast.error(err?.message || "Failed to upload resume file.");
+        setIsUploadingFile(false);
         return;
       } finally {
         setIsUploadingFile(false);
+      }
+    } else {
+      if (!finalCvId && (!userCVs || userCVs.length === 0)) {
+        toast.error("No cloud CV available. Please upload a file.");
+        setResumeMode("upload");
+        return;
       }
     }
 
     applyJobMutation.mutate(
       {
         jobId: job.id,
-        cvId: finalCvId,
         candidateName: data.candidateName,
         candidateEmail: data.candidateEmail,
-        coverNote: data.coverNote || null,
+        cvId: finalCvId || undefined,
+        coverNote: data.coverNote?.trim() || undefined,
       },
       {
         onSuccess: () => {
           setIsSuccess(true);
+          toast.success("Your job application has been submitted successfully!");
           onApplied?.(job.id);
-          toast.success("Application submitted! AI screening in progress...");
           setTimeout(() => {
             setIsSuccess(false);
             onClose();
@@ -191,26 +182,24 @@ export function ApplyModal({ job, isOpen, onClose, onApplied }: ApplyModalProps)
     );
   };
 
-  return (
-    <AnimatePresence>
+  const modalContent = (
+    <AnimatePresence mode="wait">
       {isOpen && (
-        <div key="apply-modal-container" className="fixed inset-0 z-70 flex items-center justify-center p-4">
-          <motion.div
-            key="apply-modal-backdrop"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-            className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity"
-          />
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.18, ease: "easeOut" }}
+          className="fixed inset-0 z-99999 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md"
+        >
+          {/* Backdrop Click-away */}
+          <div className="absolute inset-0" onClick={onClose} />
 
           <motion.div
-            key="apply-modal-content"
-            initial={{ opacity: 0, scale: 0.95, y: 15 }}
+            initial={{ opacity: 0, scale: 0.96, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 15 }}
-            transition={{ duration: 0.25, ease: "easeOut" }}
-            data-lenis-prevent
+            exit={{ opacity: 0, scale: 0.96, y: 10 }}
+            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
             className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl p-6 md:p-8 z-10 overflow-hidden border border-slate-100 max-h-[90vh] overflow-y-auto"
           >
             <ApplyFormHeader job={job} onClose={onClose} />
@@ -225,56 +214,52 @@ export function ApplyModal({ job, isOpen, onClose, onApplied }: ApplyModalProps)
                 <ApplyResumeSelector
                   resumeMode={resumeMode}
                   setResumeMode={setResumeMode}
+                  userCVs={userCVs || []}
+                  loadingCVs={loadingCVs}
                   selectedCvId={selectedCvId}
                   setSelectedCvId={setSelectedCvId}
-                  userCVs={userCVs}
-                  loadingCVs={loadingCVs}
                   uploadedFile={uploadedFile}
                   fileInputRef={fileInputRef}
                   onFileChange={handleFileChange}
-                  onRemoveFile={handleRemoveFile}
+                  onRemoveFile={() => setUploadedFile(null)}
                 />
 
-                {/* Cover Note with AI Generator */}
+                {/* Cover Note Field with AI Generator */}
                 <ApplyCoverNoteField
                   register={register}
                   errors={errors}
                   coverNoteLength={coverNoteValue.length}
                   isAiGenerating={generateLetterMutation.isPending}
-                  onAiDraft={handleAiDraftCoverNote}
+                  onAiDraft={handleGenerateCoverLetter}
                 />
 
-                {/* Actions */}
-                <div className="pt-2 flex items-center justify-end gap-3">
+                {/* Submit Action */}
+                <div className="pt-2">
                   <button
-                    type="button"
-                    onClick={onClose}
-                    className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 font-semibold text-xs transition-colors cursor-pointer"
-                  >
-                    Cancel
-                  </button>
-
-                  <Button
                     type="submit"
-                    disabled={isSubmitting || isUploadingFile || applyJobMutation.isPending}
-                    className="bg-[#0A54B1] hover:bg-[#0A54B1]/95 text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow-md shadow-blue-500/20 hover:shadow-lg transition-all active:scale-95 flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                    disabled={isSubmitting || applyJobMutation.isPending || isUploadingFile}
+                    className="w-full h-11 rounded-xl bg-linear-to-r from-[#52CEDE] to-[#0A54B1] hover:opacity-95 text-white font-extrabold text-xs shadow-md shadow-blue-500/20 active:scale-98 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
                   >
-                    {isSubmitting || isUploadingFile || applyJobMutation.isPending ? (
+                    {isSubmitting || applyJobMutation.isPending || isUploadingFile ? (
                       <>
-                        <Loader2 className="w-3.5 h-3.5 animate-spin" /> Submitting...
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>Submitting Application...</span>
                       </>
                     ) : (
                       <>
-                        <Send className="w-3.5 h-3.5" /> Submit Application
+                        <Send className="w-3.5 h-3.5" />
+                        <span>Submit Job Application</span>
                       </>
                     )}
-                  </Button>
+                  </button>
                 </div>
               </form>
             )}
           </motion.div>
-        </div>
+        </motion.div>
       )}
     </AnimatePresence>
   );
+
+  return createPortal(modalContent, document.body);
 }

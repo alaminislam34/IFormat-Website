@@ -3,29 +3,18 @@
 import { useEffect, useState } from "react";
 import { ArrowUp } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useLenis } from "lenis/react";
 
 export function ScrollToTop() {
   const [isVisible, setIsVisible] = useState(false);
-  const lenis = useLenis(({ scroll }) => {
-    // Use Lenis's own scroll value — stays in sync with smooth scroll
-    setIsVisible(scroll > 400);
-  });
 
-  // Fallback for environments without Lenis
   useEffect(() => {
-    if (lenis) return;
     const onScroll = () => setIsVisible(window.scrollY > 400);
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
-  }, [lenis]);
+  }, []);
 
   const scrollToTop = () => {
-    if (lenis) {
-      lenis.scrollTo(0, { duration: 1.2, easing: (t: number) => 1 - Math.pow(1 - t, 4) });
-    } else {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   return (

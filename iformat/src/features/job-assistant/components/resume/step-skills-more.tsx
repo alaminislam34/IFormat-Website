@@ -57,14 +57,14 @@ export function StepSkillsMore({
               <div key={group.id} className="flex gap-3 items-center">
                 <input
                   type="text"
-                  value={group.category}
+                  value={group.category ?? ""}
                   onChange={(e) => onSkillGroupChange(group.id, "category", e.target.value)}
                   placeholder="Group name (e.g. Frontend)"
                   className="w-1/3 h-11 px-4 rounded-xl border border-slate-200 bg-white text-slate-800 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#0A54B1]/20 focus:border-[#0A54B1]"
                 />
                 <input
                   type="text"
-                  value={group.skills}
+                  value={group.skills ?? ""}
                   onChange={(e) => onSkillGroupChange(group.id, "skills", e.target.value)}
                   placeholder="React, Next.js, HTML, CSS"
                   className="flex-1 h-11 px-4 rounded-xl border border-slate-200 bg-white text-slate-800 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#0A54B1]/20 focus:border-[#0A54B1]"
@@ -94,14 +94,14 @@ export function StepSkillsMore({
               <div key={cert.id} className="flex gap-3 items-center">
                 <input
                   type="text"
-                  value={cert.name}
+                  value={cert.name ?? ""}
                   onChange={(e) => onCertChange(cert.id, "name", e.target.value)}
                   placeholder="Certificate Name"
                   className="w-1/2 h-11 px-4 rounded-xl border border-slate-200 bg-white text-slate-800 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#0A54B1]/20 focus:border-[#0A54B1]"
                 />
                 <input
                   type="text"
-                  value={cert.link}
+                  value={cert.link ?? ""}
                   onChange={(e) => onCertChange(cert.id, "link", e.target.value)}
                   placeholder="Verification Link"
                   className="flex-1 h-11 px-4 rounded-xl border border-slate-200 bg-white text-slate-800 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#0A54B1]/20 focus:border-[#0A54B1]"
@@ -128,7 +128,7 @@ export function StepSkillsMore({
             <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Languages (e.g. English: Native, French: B2)</label>
             <textarea
               rows={3}
-              value={data.languages}
+              value={data?.languages ?? ""}
               onChange={(e) => onChange("languages", e.target.value)}
               placeholder="e.g. English: Fluent, Spanish: Conversational"
               className="w-full p-4 rounded-xl border border-slate-200 bg-white text-slate-800 text-sm font-medium leading-relaxed resize-none focus:outline-none focus:ring-2 focus:ring-[#0A54B1]/20 focus:border-[#0A54B1]"
@@ -138,7 +138,7 @@ export function StepSkillsMore({
             <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Interests</label>
             <textarea
               rows={3}
-              value={data.interests}
+              value={data?.interests ?? ""}
               onChange={(e) => onChange("interests", e.target.value)}
               placeholder="e.g. Open Source, Hiking, Design Systems"
               className="w-full p-4 rounded-xl border border-slate-200 bg-white text-slate-800 text-sm font-medium leading-relaxed resize-none focus:outline-none focus:ring-2 focus:ring-[#0A54B1]/20 focus:border-[#0A54B1]"

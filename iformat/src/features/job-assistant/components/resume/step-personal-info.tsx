@@ -33,7 +33,7 @@ export function StepPersonalInfo({ data, onChange, onNext }: StepPersonalInfoPro
           <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Full Name</label>
           <input
             type="text"
-            value={data.fullName}
+            value={data?.fullName ?? ""}
             onChange={(e) => onChange("fullName", e.target.value)}
             placeholder="e.g. MD Sifat Islam"
             className="w-full h-12 px-4 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0A54B1]/20 focus:border-[#0A54B1] focus:bg-white transition-all text-sm font-medium"
@@ -43,7 +43,7 @@ export function StepPersonalInfo({ data, onChange, onNext }: StepPersonalInfoPro
           <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Job Title</label>
           <input
             type="text"
-            value={data.jobTitle}
+            value={data?.jobTitle ?? ""}
             onChange={(e) => onChange("jobTitle", e.target.value)}
             placeholder="e.g. Senior Full Stack Developer"
             className="w-full h-12 px-4 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0A54B1]/20 focus:border-[#0A54B1] focus:bg-white transition-all text-sm font-medium"
@@ -53,7 +53,7 @@ export function StepPersonalInfo({ data, onChange, onNext }: StepPersonalInfoPro
           <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Email Address</label>
           <input
             type="email"
-            value={data.email}
+            value={data?.email ?? ""}
             onChange={(e) => onChange("email", e.target.value)}
             placeholder="e.g. sifat70640@gmail.com"
             className="w-full h-12 px-4 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0A54B1]/20 focus:border-[#0A54B1] focus:bg-white transition-all text-sm font-medium"
@@ -63,7 +63,7 @@ export function StepPersonalInfo({ data, onChange, onNext }: StepPersonalInfoPro
           <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Phone Number</label>
           <input
             type="text"
-            value={data.phone}
+            value={data?.phone ?? ""}
             onChange={(e) => onChange("phone", e.target.value)}
             placeholder="e.g. +33 6 12 34 56 78"
             className="w-full h-12 px-4 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0A54B1]/20 focus:border-[#0A54B1] focus:bg-white transition-all text-sm font-medium"
@@ -73,7 +73,7 @@ export function StepPersonalInfo({ data, onChange, onNext }: StepPersonalInfoPro
           <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Location</label>
           <input
             type="text"
-            value={data.location}
+            value={data?.location ?? ""}
             onChange={(e) => onChange("location", e.target.value)}
             placeholder="e.g. Paris, France"
             className="w-full h-12 px-4 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0A54B1]/20 focus:border-[#0A54B1] focus:bg-white transition-all text-sm font-medium"
@@ -83,7 +83,7 @@ export function StepPersonalInfo({ data, onChange, onNext }: StepPersonalInfoPro
           <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">LinkedIn URL</label>
           <input
             type="text"
-            value={data.linkedin}
+            value={data?.linkedin ?? ""}
             onChange={(e) => onChange("linkedin", e.target.value)}
             placeholder="e.g. linkedin.com/in/johndoe"
             className="w-full h-12 px-4 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0A54B1]/20 focus:border-[#0A54B1] focus:bg-white transition-all text-sm font-medium"
@@ -93,7 +93,7 @@ export function StepPersonalInfo({ data, onChange, onNext }: StepPersonalInfoPro
           <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Personal Website</label>
           <input
             type="text"
-            value={data.website}
+            value={data?.website ?? ""}
             onChange={(e) => onChange("website", e.target.value)}
             placeholder="e.g. johndoe.com"
             className="w-full h-12 px-4 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0A54B1]/20 focus:border-[#0A54B1] focus:bg-white transition-all text-sm font-medium"

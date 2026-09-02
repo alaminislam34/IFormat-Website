@@ -34,14 +34,14 @@ export function BillingHeader({ onRefresh, refreshing }: BillingHeaderProps) {
           onClick={onRefresh}
           disabled={refreshing}
           variant="outline"
-          className="rounded-2xl border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold flex items-center gap-2 h-11 px-4 shadow-xs cursor-pointer transition-all hover:border-slate-300"
+          className="rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold flex items-center gap-2 h-11 px-4 shadow-xs cursor-pointer transition-all hover:border-slate-300 active:scale-95"
         >
-          <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? "animate-spin text-sky-500" : "text-slate-400"}`} />
+          <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? "animate-spin text-[#0A54B1]" : "text-slate-400"}`} />
           <span>{refreshing ? "Updating..." : "Refresh"}</span>
         </Button>
 
         <a href="#available-plans">
-          <Button className="bg-linear-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white rounded-2xl text-xs font-extrabold flex items-center gap-2 h-11 px-5 shadow-lg shadow-sky-500/20 cursor-pointer transition-all hover:scale-[1.02] active:scale-[0.98]">
+          <Button className="bg-linear-to-r from-[#52CEDE] to-[#0A54B1] hover:opacity-95 text-white rounded-xl text-xs font-bold flex items-center gap-2 h-11 px-5 shadow-md shadow-sky-500/15 cursor-pointer transition-all hover:scale-[1.02] active:scale-95">
             <Sparkles className="w-3.5 h-3.5" />
             <span>Explore Plans</span>
           </Button>

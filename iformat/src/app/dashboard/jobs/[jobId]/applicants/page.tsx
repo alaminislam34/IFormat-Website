@@ -132,8 +132,8 @@ export default function JobApplicantsPage() {
   });
 
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-100 pt-24 pb-16 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto space-y-8">
+    <section className="min-h-screen bg-slate-950 text-slate-100 pt-24 pb-16">
+      <div className="w-11/12 mx-auto space-y-8">
         <ApplicantsHeader
           job={job}
           userCompanyName={user?.companyName}
@@ -225,6 +225,6 @@ export default function JobApplicantsPage() {
         onRerunScreening={handleRerunScreening}
         onUpdateStatus={handleUpdateStatus}
       />
-    </main>
+    </section>
   );
 }

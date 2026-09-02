@@ -45,8 +45,10 @@ export class MembershipService {
   /**
    * Retrieve current authenticated user's subscription details, plan limits, and usage
    */
-  static async getUserSubscription(): Promise<UserSubscriptionDetailsDTO> {
-    return apiClient.get<UserSubscriptionDetailsDTO>("/payments/subscription");
+  static async getUserSubscription(sessionId?: string): Promise<UserSubscriptionDetailsDTO> {
+    return apiClient.get<UserSubscriptionDetailsDTO>("/payments/subscription", {
+      params: sessionId ? { sessionId } : undefined,
+    });
   }
 
   /**

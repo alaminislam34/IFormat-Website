@@ -99,9 +99,10 @@ export class BookingService {
     return result;
   }
 
-  static async listUserBookings(userId: string) {
+  static async listUserBookings(user: { id: string; role: any }) {
+    const where: any = user.role === "ADMIN" ? { isDeleted: false } : { userId: user.id, isDeleted: false };
     return prisma.booking.findMany({
-      where: { userId },
+      where,
       include: {
         slot: {
           include: {
@@ -114,8 +115,36 @@ export class BookingService {
             },
           },
         },
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            phone: true,
+            avatarUrl: true,
+          },
+        },
       },
       orderBy: { createdAt: "desc" },
+    });
+  }
+
+  static async updateBookingStatus(bookingId: string, status: BookingStatus) {
+    const booking = await prisma.booking.findUnique({
+      where: { id: bookingId },
+    });
+
+    if (!booking) {
+      throw new NotFoundError("Booking", bookingId);
+    }
+
+    return prisma.booking.update({
+      where: { id: bookingId },
+      data: { status },
+      include: {
+        slot: { include: { advisor: true } },
+        user: true,
+      },
     });
   }
 }

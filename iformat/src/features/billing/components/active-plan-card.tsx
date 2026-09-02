@@ -21,8 +21,13 @@ export function ActivePlanCard({
   onOpenCancelModal,
 }: ActivePlanCardProps) {
   const currentPlan = subscription?.plan;
-  const isPaidActive = subscription?.isPaidActive;
-  const cancelAtPeriodEnd = subscription?.cancelAtPeriodEnd;
+  const isFreePlan =
+    !currentPlan ||
+    (currentPlan.priceInCents ?? 0) === 0 ||
+    currentPlan.code?.toLowerCase().includes("free") ||
+    currentPlan.name?.toLowerCase().includes("free");
+  const isPaidActive = Boolean(subscription?.isPaidActive && !isFreePlan);
+  const cancelAtPeriodEnd = Boolean(subscription?.cancelAtPeriodEnd && isPaidActive);
 
   return (
     <div className="relative rounded-3xl overflow-hidden bg-linear-to-br from-slate-900 via-[#0B1528] to-slate-950 text-white p-8 md:p-10 shadow-2xl border border-slate-800">
@@ -90,12 +95,12 @@ export function ActivePlanCard({
                 onClick={onOpenPortal}
                 disabled={actionLoading === "portal"}
                 variant="outline"
-                className="rounded-2xl flex items-center justify-center gap-2 text-xs font-bold text-slate-900 bg-white hover:bg-slate-100 h-12 px-6 shadow-md cursor-pointer transition-all hover:scale-[1.02] active:scale-[0.98]"
+                className="rounded-xl flex items-center justify-center gap-2 text-xs font-bold text-slate-900 bg-white hover:bg-slate-100 h-11 px-5 shadow-sm cursor-pointer transition-all hover:scale-[1.02] active:scale-95 border-0"
               >
                 {actionLoading === "portal" ? (
-                  <Loader2 className="w-4 h-4 animate-spin text-sky-500" />
+                  <Loader2 className="w-4 h-4 animate-spin text-[#0A54B1]" />
                 ) : (
-                  <CreditCard className="w-4 h-4 text-sky-500" />
+                  <CreditCard className="w-4 h-4 text-[#0A54B1]" />
                 )}
                 <span>Manage Billing & Invoices</span>
               </Button>
@@ -104,7 +109,7 @@ export function ActivePlanCard({
                 <Button
                   onClick={onResumeSubscription}
                   disabled={actionLoading === "resume"}
-                  className="rounded-2xl bg-[#0A54B1] hover:bg-[#0A54B1]/90 text-white flex items-center justify-center gap-2 text-xs font-extrabold h-12 px-6 shadow-lg shadow-blue-600/20 cursor-pointer transition-all hover:scale-[1.02]"
+                  className="rounded-xl bg-linear-to-r from-[#52CEDE] to-[#0A54B1] hover:opacity-95 text-white flex items-center justify-center gap-2 text-xs font-bold h-11 px-5 shadow-md shadow-sky-500/20 cursor-pointer transition-all hover:scale-[1.02] active:scale-95"
                 >
                   {actionLoading === "resume" ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -117,7 +122,7 @@ export function ActivePlanCard({
                 <Button
                   onClick={onOpenCancelModal}
                   variant="ghost"
-                  className="rounded-2xl text-slate-400 hover:text-rose-400 hover:bg-white/5 text-xs font-bold h-10 px-4 cursor-pointer"
+                  className="rounded-xl text-slate-400 hover:text-rose-400 hover:bg-white/5 text-xs font-bold h-10 px-4 cursor-pointer transition-colors"
                 >
                   <XCircle className="w-3.5 h-3.5 mr-1.5" />
                   <span>Cancel Subscription</span>
@@ -126,7 +131,7 @@ export function ActivePlanCard({
             </>
           ) : (
             <a href="#available-plans" className="w-full sm:w-auto">
-              <Button className="w-full sm:w-auto rounded-2xl bg-linear-to-r from-sky-500 via-blue-600 to-indigo-600 hover:from-sky-400 hover:to-blue-500 text-white font-extrabold text-xs h-12 px-7 shadow-xl shadow-sky-500/25 flex items-center justify-center gap-2 cursor-pointer transition-all hover:scale-[1.02] active:scale-[0.98]">
+              <Button className="w-full sm:w-auto rounded-xl bg-linear-to-r from-[#52CEDE] to-[#0A54B1] hover:opacity-95 text-white font-bold text-xs sm:text-sm h-11 px-6 shadow-md shadow-sky-500/20 flex items-center justify-center gap-2 cursor-pointer transition-all hover:scale-[1.02] active:scale-95">
                 <Zap className="w-4 h-4 fill-white" />
                 <span>Upgrade to Premium</span>
               </Button>

@@ -29,4 +29,11 @@ export const bookingService = {
   async createSlot(payload: CreateSlotRequest): Promise<ConsultationSlotDTO> {
     return apiClient.post<ConsultationSlotDTO>("/bookings/slots", payload);
   },
+
+  /**
+   * Admin / Advisor: Update booking status
+   */
+  async updateStatus(bookingId: string, status: "CONFIRMED" | "COMPLETED" | "CANCELLED"): Promise<BookingDTO> {
+    return apiClient.patch<BookingDTO>(`/bookings/${bookingId}/status`, { status });
+  },
 };

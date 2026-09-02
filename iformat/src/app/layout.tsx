@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { LenisProvider } from "@/providers/lenis-provider";
 import { QueryProvider } from "@/providers/query-provider";
 import { ScrollToTop } from "@/components/layout/scroll-to-top";
 import { GlobalNavbar } from "@/components/layout/global-navbar";
@@ -34,12 +33,10 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <QueryProvider>
-          <LenisProvider>
-            <GlobalNavbar />
-            {children}
-            <ScrollToTop />
-            <Toaster position="top-right" richColors />
-          </LenisProvider>
+          <GlobalNavbar />
+          {children}
+          <ScrollToTop />
+          <Toaster position="top-right" richColors />
         </QueryProvider>
       </body>
     </html>

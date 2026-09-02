@@ -18,12 +18,13 @@ export const createJobSchema = z.object({
   salary: z.string().default("Competitive"),
   salaryMin: z.number().int().positive().optional(),
   salaryMax: z.number().int().positive().optional(),
-  salaryCurrency: z.string().default("USD"),
   validity: z
     .string()
-    .datetime({ message: "Validity must be a valid ISO date" })
     .optional()
-    .nullable(),
+    .nullable()
+    .refine((val) => !val || !isNaN(Date.parse(val)), {
+      message: "Validity must be a valid date string",
+    }),
   description: z
     .string({ required_error: "Job description is required" })
     .min(20, "Job description must be at least 20 characters"),

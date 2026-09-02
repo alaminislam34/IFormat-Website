@@ -28,55 +28,53 @@ export function PricingCard({ item, loading = false, onSelect }: PricingCardProp
 
   return (
     <div
-      className={`w-full rounded-[28px] p-7 sm:p-8 flex flex-col justify-between transition-all duration-300 relative bg-white ${
+      className={`w-full rounded-[24px] p-8 flex flex-col justify-between transition-all duration-300 relative bg-white ${
         isPopular
-          ? "border-2 border-[#00D2EE] shadow-xl shadow-sky-500/10 ring-1 ring-[#00D2EE]/30"
-          : "border border-slate-200/90 shadow-sm hover:shadow-md hover:border-slate-300"
+          ? "border-2 border-[#00D2EE] shadow-[0_0_30px_rgba(0,210,238,0.22)] ring-1 ring-[#00D2EE]/40"
+          : "border border-slate-100 shadow-sm hover:shadow-md"
       }`}
     >
       {/* Most Popular Badge */}
       {isPopular && (
-        <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-[#00D2EE] text-slate-900 text-xs font-black tracking-wide shadow-sm">
+        <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-[#00D2EE] text-white text-xs font-bold tracking-wide shadow-xs whitespace-nowrap">
           Most Popular
         </div>
       )}
 
       <div>
         {/* Title */}
-        <h3 className="text-2xl font-black text-slate-900 tracking-tight">{item.name}</h3>
+        <h3 className="text-2xl font-bold text-[#0B1528] tracking-tight">{item.name}</h3>
 
         {/* Subtitle */}
-        <p className="text-xs text-slate-500 mt-2 min-h-10 leading-relaxed">
+        <p className="text-xs text-[#64748B] mt-2 mb-6 min-h-[38px] leading-relaxed">
           {item.subtitle}
         </p>
 
         {/* Price Tag */}
-        <div className="my-6 min-h-14 flex items-baseline">
+        <div className="mb-6 min-h-[44px] flex items-baseline">
           {item.price ? (
             <div className="flex items-baseline gap-1">
-              <span className="text-4xl sm:text-[42px] font-black text-slate-900 tracking-tight">
+              <span className="text-4xl font-extrabold text-[#0B1528] tracking-tight">
                 {item.price}
               </span>
               {item.priceSuffix && (
-                <span className="text-xs font-semibold text-slate-500">
+                <span className="text-xs font-semibold text-[#64748B]">
                   {item.priceSuffix}
                 </span>
               )}
             </div>
           ) : (
-            <div className="h-10 flex items-center">
-              <span className="text-sm font-semibold text-slate-400 italic">Custom Quote</span>
-            </div>
+            <div className="h-10" />
           )}
         </div>
 
         {/* Feature List */}
-        <div className="pt-2">
+        <div>
           <ul className="space-y-3.5">
             {item.features.map((feature, fIdx) => (
-              <li key={`feat-${fIdx}`} className="flex items-start gap-3 text-xs leading-snug">
-                <Check className="w-4 h-4 shrink-0 mt-0.5 text-[#00A8FF]" strokeWidth={2.5} />
-                <span className="text-slate-700 font-medium">{feature}</span>
+              <li key={`feat-${fIdx}`} className="flex items-start gap-2.5 text-xs leading-snug">
+                <Check className="w-4 h-4 shrink-0 mt-0.5 text-[#0099FF] stroke-[2.5]" />
+                <span className="text-[#334155] font-medium leading-relaxed">{feature}</span>
               </li>
             ))}
           </ul>
@@ -88,11 +86,9 @@ export function PricingCard({ item, loading = false, onSelect }: PricingCardProp
         <Button
           onClick={() => onSelect(item)}
           disabled={loading}
-          className={`w-full h-12 rounded-xl text-sm font-bold transition-all cursor-pointer ${
-            isPopular
-              ? "bg-linear-to-r from-[#00D2EE] to-[#1E6FEB] hover:from-[#00c0db] hover:to-[#175ecf] text-white shadow-md shadow-sky-400/20 border-0"
-              : item.isContactUs
-              ? "bg-[#0B1528] hover:bg-[#16233B] text-white"
+          className={`w-full h-11 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            isPopular || item.isContactUs
+              ? "bg-linear-to-r from-[#00D2EE] via-[#00B4D8] to-[#0A54B1] hover:opacity-95 text-white shadow-md shadow-sky-400/20 border-0"
               : "bg-[#0B1528] hover:bg-[#16233B] text-white"
           }`}
         >

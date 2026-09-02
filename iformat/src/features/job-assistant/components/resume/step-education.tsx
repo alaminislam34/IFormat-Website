@@ -61,7 +61,7 @@ export function StepEducation({
                 <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Institution</label>
                 <input
                   type="text"
-                  value={edu.institution}
+                  value={edu.institution ?? ""}
                   onChange={(e) => onChange(edu.id, "institution", e.target.value)}
                   placeholder="e.g. Sorbonne University"
                   className="w-full h-11 px-4 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0A54B1]/20 focus:border-[#0A54B1] text-sm font-medium"
@@ -71,7 +71,7 @@ export function StepEducation({
                 <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Degree</label>
                 <input
                   type="text"
-                  value={edu.degree}
+                  value={edu.degree ?? ""}
                   onChange={(e) => onChange(edu.id, "degree", e.target.value)}
                   placeholder="e.g. Master of Computer Science"
                   className="w-full h-11 px-4 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0A54B1]/20 focus:border-[#0A54B1] text-sm font-medium"
@@ -81,7 +81,7 @@ export function StepEducation({
                 <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Duration</label>
                 <input
                   type="text"
-                  value={edu.duration}
+                  value={edu.duration ?? ""}
                   onChange={(e) => onChange(edu.id, "duration", e.target.value)}
                   placeholder="e.g. 2018 - 2020"
                   className="w-full h-11 px-4 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0A54B1]/20 focus:border-[#0A54B1] text-sm font-medium"
@@ -91,7 +91,7 @@ export function StepEducation({
                 <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Location</label>
                 <input
                   type="text"
-                  value={edu.location}
+                  value={edu.location ?? ""}
                   onChange={(e) => onChange(edu.id, "location", e.target.value)}
                   placeholder="e.g. Paris, France"
                   className="w-full h-11 px-4 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0A54B1]/20 focus:border-[#0A54B1] text-sm font-medium"

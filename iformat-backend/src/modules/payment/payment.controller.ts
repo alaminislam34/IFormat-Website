@@ -23,7 +23,8 @@ export class PaymentController {
   }
 
   static async getSubscription(req: Request, res: Response) {
-    const subDetails = await PaymentService.getUserSubscriptionDetails(req.user!.id);
+    const sessionId = (req.query.sessionId || req.query.session_id) as string | undefined;
+    const subDetails = await PaymentService.getUserSubscriptionDetails(req.user!.id, sessionId);
     return ApiResponse.success(res, "Subscription status retrieved successfully", subDetails);
   }
 

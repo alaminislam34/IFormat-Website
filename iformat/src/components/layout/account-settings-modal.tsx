@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { X, User, KeyRound } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
@@ -17,6 +18,7 @@ interface AccountSettingsModalProps {
 
 export function AccountSettingsModal({ isOpen, onClose }: AccountSettingsModalProps) {
   const { user, updateUser } = useAuthStore();
+  const [mounted, setMounted] = useState(false);
   const [activeTab, setActiveTab] = useState<"profile" | "security">("profile");
 
   // Profile Form State
@@ -31,13 +33,17 @@ export function AccountSettingsModal({ isOpen, onClose }: AccountSettingsModalPr
   const [isChangingPassword, setIsChangingPassword] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
     if (user) {
       setName(user.name || "");
       setPhone(user.phone || "");
     }
   }, [user]);
 
-  if (!user) return null;
+  if (!user || !mounted) return null;
 
   const initial = (name || user.email || "U").charAt(0).toUpperCase();
 
@@ -56,31 +62,31 @@ export function AccountSettingsModal({ isOpen, onClose }: AccountSettingsModalPr
       });
 
       updateUser({
-        name: updated?.name || name.trim(),
-        phone: updated?.phone || phone.trim(),
+        name: updated.name,
+        phone: updated.phone,
       });
 
       toast.success("Profile updated successfully!");
       onClose();
     } catch (err: any) {
-      toast.error(err?.message || "Failed to update profile.");
+      toast.error(err?.message || "Failed to update profile details.");
     } finally {
       setIsSavingProfile(false);
     }
   };
 
-  const handlePasswordSubmit = async (e: React.FormEvent) => {
+  const handleChangePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentPassword) {
-      toast.error("Please enter your current password.");
+      toast.error("Current password is required.");
       return;
     }
-    if (newPassword.length < 6) {
-      toast.error("New password must be at least 6 characters.");
+    if (newPassword.length < 8) {
+      toast.error("New password must be at least 8 characters.");
       return;
     }
     if (newPassword !== confirmPassword) {
-      toast.error("New passwords do not match.");
+      toast.error("New password and confirm password do not match.");
       return;
     }
 
@@ -103,15 +109,25 @@ export function AccountSettingsModal({ isOpen, onClose }: AccountSettingsModalPr
     }
   };
 
-  return (
-    <AnimatePresence>
+  const modalContent = (
+    <AnimatePresence mode="wait">
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.18, ease: "easeOut" }}
+          className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md"
+        >
+          {/* Backdrop click-away */}
+          <div className="absolute inset-0" onClick={onClose} />
+
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 15 }}
+            initial={{ opacity: 0, scale: 0.96, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 15 }}
-            className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-100 flex flex-col"
+            exit={{ opacity: 0, scale: 0.96, y: 10 }}
+            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-100 flex flex-col z-10"
           >
             {/* Header */}
             <div className="p-6 border-b border-slate-100 flex items-start justify-between bg-slate-50/50 shrink-0">
@@ -134,34 +150,32 @@ export function AccountSettingsModal({ isOpen, onClose }: AccountSettingsModalPr
               </button>
             </div>
 
-            {/* Navigation Tabs */}
-            <div className="flex bg-white px-6 border-b border-slate-100">
+            {/* Tab Navigation */}
+            <div className="flex border-b border-slate-100 px-6 bg-white gap-6">
               <button
-                type="button"
                 onClick={() => setActiveTab("profile")}
-                className={`py-3.5 pr-6 text-xs font-extrabold transition-colors cursor-pointer flex items-center gap-2 border-b-2 -mb-px ${
+                className={`flex items-center gap-2 py-3 text-xs font-bold border-b-2 transition-all cursor-pointer ${
                   activeTab === "profile"
                     ? "border-[#0A54B1] text-[#0A54B1]"
-                    : "border-transparent text-slate-500 hover:text-slate-800"
+                    : "border-transparent text-slate-400 hover:text-slate-700"
                 }`}
               >
-                <User className="w-4 h-4" /> Personal Details
+                <User className="w-4 h-4" /> Profile Details
               </button>
               <button
-                type="button"
                 onClick={() => setActiveTab("security")}
-                className={`py-3.5 px-6 text-xs font-extrabold transition-colors cursor-pointer flex items-center gap-2 border-b-2 -mb-px ${
+                className={`flex items-center gap-2 py-3 text-xs font-bold border-b-2 transition-all cursor-pointer ${
                   activeTab === "security"
                     ? "border-[#0A54B1] text-[#0A54B1]"
-                    : "border-transparent text-slate-500 hover:text-slate-800"
+                    : "border-transparent text-slate-400 hover:text-slate-700"
                 }`}
               >
                 <KeyRound className="w-4 h-4" /> Password & Security
               </button>
             </div>
 
-            {/* Tab Contents */}
-            <div className="p-6 space-y-5">
+            {/* Modal Body */}
+            <div className="p-6 overflow-y-auto max-h-[70vh]">
               {activeTab === "profile" ? (
                 <ProfileSettingsTab
                   user={user}
@@ -181,13 +195,15 @@ export function AccountSettingsModal({ isOpen, onClose }: AccountSettingsModalPr
                   confirmPassword={confirmPassword}
                   setConfirmPassword={setConfirmPassword}
                   isChanging={isChangingPassword}
-                  onSubmit={handlePasswordSubmit}
+                  onSubmit={handleChangePasswordSubmit}
                 />
               )}
             </div>
           </motion.div>
-        </div>
+        </motion.div>
       )}
     </AnimatePresence>
   );
+
+  return createPortal(modalContent, document.body);
 }

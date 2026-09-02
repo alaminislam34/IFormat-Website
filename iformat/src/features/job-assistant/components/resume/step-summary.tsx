@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { FileText, Mic, MicOff, ChevronRight, Loader2, Volume2 } from "lucide-react";
+import { FileText, Mic, MicOff, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { toast } from "sonner";
 
 interface StepSummaryProps {
@@ -132,7 +132,7 @@ export function StepSummary({ summary, onChange, onPrev, onNext }: StepSummaryPr
       <div className="relative">
         <textarea
           rows={8}
-          value={summary}
+          value={summary ?? ""}
           onChange={(e) => onChange(e.target.value)}
           placeholder="Write or dictate about yourself, your career highlights, major achievements, and core skills..."
           className={`w-full p-5 rounded-2xl border text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0A54B1]/20 focus:border-[#0A54B1] focus:bg-white transition-all text-sm font-medium leading-relaxed resize-none ${

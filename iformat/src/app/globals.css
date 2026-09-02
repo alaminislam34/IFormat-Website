@@ -52,9 +52,8 @@
 }
 
 html {
-  /* Smooth native scroll fallback when Lenis is not active (e.g. SSR or reduced-motion) */
   scroll-behavior: smooth;
-  /* Prevent layout shift when scrollbar appears/disappears (e.g. when modals open) */
+  /* Prevent layout shift when scrollbar appears/disappears */
   scrollbar-gutter: stable;
   /* iOS momentum scrolling */
   -webkit-overflow-scrolling: touch;

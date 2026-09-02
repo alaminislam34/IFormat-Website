@@ -1,9 +1,7 @@
 "use client";
 
-import React from "react";
 import Link from "next/link";
 import { Search } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { JobApplicantDTO } from "@/types/api";
 
 interface CandidateApplicationsListProps {
@@ -17,8 +15,8 @@ export function CandidateApplicationsList({
 }: CandidateApplicationsListProps) {
   if (loading) {
     return (
-      <div className="py-12 text-center text-slate-400 text-sm animate-pulse">
-        Loading dashboard data...
+      <div className="py-12 text-center text-slate-400 text-sm font-medium animate-pulse">
+        Loading applications...
       </div>
     );
   }
@@ -26,26 +24,28 @@ export function CandidateApplicationsList({
   if (applications.length === 0) {
     return (
       <div className="py-12 text-center space-y-3">
-        <Search className="w-10 h-10 text-slate-600 mx-auto" />
-        <p className="text-slate-400 text-sm">You haven&apos;t applied to any jobs yet.</p>
+        <div className="w-12 h-12 bg-blue-50 text-[#0A54B1] rounded-2xl flex items-center justify-center mx-auto border border-blue-100">
+          <Search className="w-6 h-6" />
+        </div>
+        <p className="text-slate-500 text-sm font-medium">You haven&apos;t applied to any jobs yet.</p>
         <Link href="/job-portal">
-          <Button size="sm" className="bg-indigo-600 hover:bg-indigo-500 text-white cursor-pointer">
+          <button className="h-10 px-5 rounded-xl bg-[#0A54B1] hover:bg-[#0A54B1]/90 text-white font-bold text-xs shadow-md shadow-blue-500/15 cursor-pointer">
             Browse Open Roles
-          </Button>
+          </button>
         </Link>
       </div>
     );
   }
 
   return (
-    <div className="divide-y divide-slate-800">
+    <div className="divide-y divide-slate-100">
       {applications.map((app, idx) => (
-        <div key={app.id || idx} className="py-4 flex items-center justify-between gap-4">
+        <div key={app.id || idx} className="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 first:pt-0 last:pb-0">
           <div className="space-y-1">
-            <h3 className="font-medium text-white text-sm">
+            <h3 className="font-bold text-slate-900 text-sm">
               {app.candidateName || "Application Submission"}
             </h3>
-            <div className="flex items-center gap-3 text-xs text-slate-400">
+            <div className="flex items-center gap-3 text-xs text-slate-500 font-medium">
               <span>{app.candidateEmail || "Candidate"}</span>
               <span>•</span>
               <span>
@@ -56,17 +56,17 @@ export function CandidateApplicationsList({
           </div>
           <div>
             <span
-              className={`text-xs px-2.5 py-1 rounded-full font-medium border ${
+              className={`text-xs px-3 py-1 rounded-full font-extrabold border ${
                 app.status === "SHORTLISTED"
-                  ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                  ? "bg-emerald-50 text-emerald-700 border-emerald-200"
                   : app.status === "SCREENED"
-                  ? "bg-indigo-500/10 text-indigo-400 border-indigo-500/20"
+                  ? "bg-blue-50 text-[#0A54B1] border-blue-200"
                   : app.status === "REJECTED"
-                  ? "bg-rose-500/10 text-rose-400 border-rose-500/20"
-                  : "bg-amber-500/10 text-amber-400 border-amber-500/20"
+                  ? "bg-rose-50 text-rose-700 border-rose-200"
+                  : "bg-slate-100 text-slate-700 border-slate-200"
               }`}
             >
-              {app.status || "SUBMITTED"}
+              {app.status || "UNDER REVIEW"}
             </span>
           </div>
         </div>
