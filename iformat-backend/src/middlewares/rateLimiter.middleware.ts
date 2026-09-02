@@ -1,10 +1,14 @@
 import rateLimit from "express-rate-limit";
 import { ApiResponse } from "../utils/apiResponse.js";
+import { env } from "../config/env.js";
 
-// General API rate limiter (100 req per 15 min)
+const isDev = env.NODE_ENV !== "production";
+
+// General API rate limiter (1500 req per 15 min in prod, unlimited in dev)
 export const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100,
+  max: isDev ? 100000 : 1500,
+  skip: () => isDev,
   standardHeaders: true,
   legacyHeaders: false,
   handler: (_req, res) => {
@@ -16,10 +20,11 @@ export const apiLimiter = rateLimit({
   },
 });
 
-// Auth endpoints rate limiter (10 req per 15 min)
+// Auth endpoints rate limiter (100 req per 15 min in prod, unlimited in dev)
 export const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 10,
+  max: isDev ? 100000 : 100,
+  skip: () => isDev,
   standardHeaders: true,
   legacyHeaders: false,
   handler: (_req, res) => {
@@ -31,10 +36,11 @@ export const authLimiter = rateLimit({
   },
 });
 
-// Password reset rate limiter (3 req per hour)
+// Password reset rate limiter (20 req per hour in prod, unlimited in dev)
 export const passwordResetLimiter = rateLimit({
   windowMs: 60 * 60 * 1000,
-  max: 3,
+  max: isDev ? 100000 : 20,
+  skip: () => isDev,
   standardHeaders: true,
   legacyHeaders: false,
   handler: (_req, res) => {
@@ -46,10 +52,11 @@ export const passwordResetLimiter = rateLimit({
   },
 });
 
-// AI endpoints rate limiter (20 req per 15 min)
+// AI endpoints rate limiter (100 req per 15 min in prod, unlimited in dev)
 export const aiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 20,
+  max: isDev ? 100000 : 100,
+  skip: () => isDev,
   standardHeaders: true,
   legacyHeaders: false,
   handler: (_req, res) => {

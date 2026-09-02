@@ -5,7 +5,7 @@ export function About() {
   const cards = [
     {
       title: "Business Brand Equity",
-      description: "Helping founders build visibility, authority, and credibility to support business growth, partnerships, and investor engagement. Supporting organizations through restructuring and workforce transitions.",
+      description: "Helping founders build visibility, authority, and credibility to support business growth, strategic partnerships, and investor engagement through executive brand positioning and leadership advisory.",
       icon: <Briefcase className="w-6 h-6 text-white" />
     },
     {

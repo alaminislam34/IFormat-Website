@@ -51,7 +51,7 @@ export default function JobAssistantPage() {
                 }`}
               >
                 <Mail className="w-3.5 h-3.5" />
-                AI Cold Email Generator
+                AI Outreach Email Generator
               </button>
             </div>
           </div>

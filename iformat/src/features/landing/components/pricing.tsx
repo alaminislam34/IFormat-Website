@@ -68,12 +68,12 @@ const DEFAULT_BRANDING_PLANS: PricingCardItem[] = [
     buttonText: "Contact US",
     isContactUs: true,
     features: [
-      "Outplacement Support",
-      "Startup Brand Equity",
+      "Executive Positioning & Thought Leadership",
+      "Startup & Founder Brand Equity",
       "Stakeholder Brand Equity",
       "Investor Brand Engagement",
-      "Restructuring",
-      "Workforce Transitions",
+      "C-Suite Reputation Management",
+      "Corporate Brand Advisory",
     ],
   },
 ];

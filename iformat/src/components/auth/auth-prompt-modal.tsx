@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, LogIn, UserPlus, X, CheckCircle2, ArrowRight } from "lucide-react";
+import { Sparkles, LogIn, UserPlus, X, CheckCircle2, ArrowRight, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface AuthPromptModalProps {
@@ -12,14 +12,16 @@ interface AuthPromptModalProps {
   title?: string;
   description?: string;
   redirectUrl?: string;
+  onContinueGuest?: () => void;
 }
 
 export function AuthPromptModal({
   isOpen,
   onClose,
-  title = "Sign in to Generate with AI",
-  description = "Create a free account or sign in to generate and save your customized AI resume, cover letter, or outreach email.",
+  title = "Sign in to Unlock Full AI Features",
+  description = "Create a free account or sign in to auto-save your customized resumes, cover letters, and outreach emails to your cloud dashboard.",
   redirectUrl = "/job-assistant",
+  onContinueGuest,
 }: AuthPromptModalProps) {
   return (
     <AnimatePresence>
@@ -81,6 +83,7 @@ export function AuthPromptModal({
                   <UserPlus className="w-4 h-4" /> Create Free Account
                 </Button>
               </Link>
+              
               <Link
                 href={`/login?redirect=${encodeURIComponent(redirectUrl)}`}
                 onClick={onClose}
@@ -93,6 +96,19 @@ export function AuthPromptModal({
                   <LogIn className="w-4 h-4 text-slate-600" /> Sign In
                 </Button>
               </Link>
+
+              {onContinueGuest && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    onContinueGuest();
+                  }}
+                  className="w-full py-2 text-xs text-slate-500 hover:text-[#0A54B1] font-semibold transition-colors cursor-pointer flex items-center justify-center gap-1.5"
+                >
+                  <Play className="w-3 h-3 text-[#0A54B1]" /> Try Demo Preview Without Login
+                </button>
+              )}
             </div>
           </motion.div>
         </div>

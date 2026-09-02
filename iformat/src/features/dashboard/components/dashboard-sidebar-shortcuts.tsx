@@ -34,7 +34,7 @@ export function DashboardSidebarShortcuts() {
             className="flex items-center justify-between p-3 rounded-lg bg-slate-800/60 hover:bg-slate-800 transition-colors border border-slate-700/50 group"
           >
             <span className="text-xs font-medium text-slate-200 group-hover:text-white">
-              Cold Outreach Email Generator
+              AI Outreach Email Generator
             </span>
             <ExternalLink className="w-3.5 h-3.5 text-slate-400 group-hover:text-indigo-400" />
           </Link>

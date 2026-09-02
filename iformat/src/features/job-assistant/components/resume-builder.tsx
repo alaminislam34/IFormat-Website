@@ -6,6 +6,7 @@ import { Sparkles } from "lucide-react";
 import { AnimatePresence } from "framer-motion";
 import { AuthPromptModal } from "@/components/auth/auth-prompt-modal";
 import { UpgradeModal } from "@/components/ui/upgrade-modal";
+import { BookConsultationModal } from "@/features/services/components/book-consultation-modal";
 
 import { useResumeState } from "../hooks/use-resume-state";
 import { CloudCvToolbar } from "./resume/cloud-cv-toolbar";
@@ -26,6 +27,8 @@ const steps = [
 ];
 
 export function ResumeBuilder() {
+  const [isConsultModalOpen, setIsConsultModalOpen] = React.useState(false);
+
   const {
     step,
     setStep,
@@ -63,12 +66,20 @@ export function ResumeBuilder() {
     addCert,
     removeCert,
     handleGenerate,
+    handleDemoGenerate,
     handlePrint,
     handleCopy,
   } = useResumeState();
 
   return (
     <div className="w-full">
+      {/* Consultation Modal */}
+      <BookConsultationModal
+        isOpen={isConsultModalOpen}
+        onClose={() => setIsConsultModalOpen(false)}
+        serviceTitle="1-on-1 CV & Career Brand Consultation"
+      />
+
       {/* Cloud CV Toolbar */}
       <CloudCvToolbar
         isAuthenticated={isAuthenticated}
@@ -100,13 +111,13 @@ export function ResumeBuilder() {
             ))}
           </div>
 
-          <Link
-            href="/services"
+          <button
+            onClick={() => setIsConsultModalOpen(true)}
             className="inline-flex items-center gap-2 px-5 py-2.5 bg-linear-to-r from-[#52CEDE] to-[#0A54B1] text-white rounded-xl text-xs font-bold shadow-md shadow-blue-500/15 hover:opacity-90 hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer"
           >
             <Sparkles className="w-3.5 h-3.5" />
             Consult with expert
-          </Link>
+          </button>
         </div>
       )}
 
@@ -214,6 +225,7 @@ export function ResumeBuilder() {
       <AuthPromptModal
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
+        onContinueGuest={handleDemoGenerate}
         title="Sign in to save your resume"
         description="Create an account or sign in to save multiple resume versions and access AI generation."
       />

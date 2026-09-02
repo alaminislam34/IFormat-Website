@@ -19,7 +19,7 @@ export function JobAssistantSection() {
       color: "from-blue-500/10 to-indigo-500/10 border-blue-500/20"
     },
     {
-      title: "AI Cold Email Generator",
+      title: "AI Outreach Email Generator",
       desc: "Draft personalized outreach messages to hiring managers with tone customization (Professional, Friendly, Confident, Concise) to maximize response rates.",
       icon: <Mail className="w-6 h-6 text-indigo-400" />,
       color: "from-indigo-500/10 to-purple-500/10 border-indigo-500/20"

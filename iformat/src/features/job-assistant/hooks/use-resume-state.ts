@@ -207,6 +207,76 @@ export function useResumeState() {
     }));
   };
 
+  const handleDemoGenerate = () => {
+    setIsGenerating(true);
+    setTimeout(() => {
+      setData((prev) => ({
+        ...prev,
+        fullName: prev.fullName || "Alex Morgan",
+        jobTitle: prev.jobTitle || "Senior Full Stack & AI Architect",
+        email: prev.email || "alex.morgan@example.com",
+        phone: prev.phone || "+1 (555) 234-5678",
+        location: prev.location || "Dubai, UAE",
+        website: prev.website || "linkedin.com/in/alexmorgan",
+        summary:
+          prev.summary ||
+          "High-impact Technology Leader & Full-Stack Architect with 8+ years of expertise scaling distributed cloud architectures, leading cross-functional engineering squads, and driving ATS-optimized digital transformation initiatives with proven ROI.",
+        workExperience:
+          prev.workExperience.length > 0
+            ? prev.workExperience
+            : [
+                {
+                  id: "demo-w1",
+                  role: "Lead Full Stack Engineer",
+                  company: "Apex Global Technologies",
+                  duration: "2021 - Present",
+                  location: "Dubai, UAE",
+                  description:
+                    "Architected high-throughput cloud microservices serving 2M+ active users. Boosted system latency by 42% and spearheaded AI-powered internal tooling adoption.",
+                },
+                {
+                  id: "demo-w2",
+                  role: "Senior Software Engineer",
+                  company: "Vanguard Digital Systems",
+                  duration: "2018 - 2021",
+                  location: "London, UK",
+                  description:
+                    "Led end-to-end full-stack development of enterprise SaaS platforms using Next.js, Node.js, and TypeScript with 99.99% SLA uptime.",
+                },
+              ],
+        education:
+          prev.education.length > 0
+            ? prev.education
+            : [
+                {
+                  id: "demo-e1",
+                  degree: "B.S. in Computer Science",
+                  institution: "University of Manchester",
+                  duration: "2014 - 2018",
+                  location: "Manchester, UK",
+                },
+              ],
+        skillGroups:
+          prev.skillGroups.length > 0
+            ? prev.skillGroups
+            : [
+                {
+                  id: "demo-s1",
+                  category: "Core Technologies",
+                  skills: "TypeScript, React, Next.js, Node.js, Python, GraphQL, Docker",
+                },
+                {
+                  id: "demo-s2",
+                  category: "Architecture & Cloud",
+                  skills: "AWS, Kubernetes, Microservices, CI/CD, Distributed Systems, PostgreSQL",
+                },
+              ],
+      }));
+      setIsGenerating(false);
+      toast.success("Guest demo profile loaded! You can preview and edit all fields.");
+    }, 800);
+  };
+
   const handleGenerate = async () => {
     if (!isAuthenticated) {
       setShowAuthModal(true);
@@ -344,6 +414,7 @@ ${data.certifications.map((c) => `${c.name} ${c.link ? `(${c.link})` : ""}`).joi
     addCert,
     removeCert,
     handleGenerate,
+    handleDemoGenerate,
     handlePrint,
     handleCopy,
   };

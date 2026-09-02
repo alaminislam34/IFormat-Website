@@ -60,7 +60,7 @@ export function UpgradeModal({
               </div>
               <div className="flex items-center gap-2 text-xs font-semibold text-slate-700">
                 <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-                <span>Unlimited AI Cover Letters & Cold Outreach Emails</span>
+                <span>Unlimited AI Cover Letters & Outreach Emails</span>
               </div>
               <div className="flex items-center gap-2 text-xs font-semibold text-slate-700">
                 <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
