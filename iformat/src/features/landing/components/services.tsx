@@ -1,29 +1,69 @@
-import { ShoppingCart } from "lucide-react";
+"use client";
+
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { ShoppingCart, Eye, Clock, CheckCircle2, Calendar, ShoppingBag, ArrowRight } from "lucide-react";
+import { toast } from "sonner";
 import { ScrollReveal } from "@/components/ui/scroll-reveal";
+import { useAuthStore } from "@/stores/use-auth-store";
+import {
+  ProductDetailModal,
+  ServiceProduct,
+} from "@/features/services/components/product-detail-modal";
+import { BookConsultationModal } from "@/features/services/components/book-consultation-modal";
+import { SERVICES_DATA } from "@/features/services/data/services-data";
 
 export function Services() {
-  const services = [
-    {
-      title: "Personal Brand Builder",
-      price: "$199",
-      image: "https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&q=80&w=800",
-    },
-    {
-      title: "Strategic Branding",
-      price: "$249",
-      image: "https://images.unsplash.com/photo-1542744173-8e7e53415bb0?auto=format&fit=crop&q=80&w=800",
-    },
-    {
-      title: "Career Hosting Package",
-      price: "$129",
-      image: "https://images.unsplash.com/photo-1499951360447-b19be8fe80f5?auto=format&fit=crop&q=80&w=800",
+  const router = useRouter();
+  const { isAuthenticated } = useAuthStore();
+  const [selectedProduct, setSelectedProduct] = useState<ServiceProduct | null>(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
+  const [consultationTitle, setConsultationTitle] = useState("1-on-1 Career Strategy Consultation");
+
+  // Display top 3 featured services on landing page
+  const featuredServices = SERVICES_DATA.slice(0, 3);
+
+  const handleOpenDetail = (product: ServiceProduct) => {
+    setSelectedProduct(product);
+    setIsDetailModalOpen(true);
+  };
+
+  const handleOpenBooking = (serviceTitle: string) => {
+    setConsultationTitle(serviceTitle);
+    setIsBookingModalOpen(true);
+  };
+
+  const handleOrderNow = (product: ServiceProduct) => {
+    if (!isAuthenticated) {
+      toast.info(`Please sign in or create an account to purchase ${product.title}.`);
+      router.push(`/signup?redirect=${encodeURIComponent("/dashboard/billing")}`);
+      return;
     }
-  ];
+    toast.success(`Redirecting to checkout for ${product.title}...`);
+    router.push(`/dashboard/billing?service=${encodeURIComponent(product.id)}`);
+  };
 
   return (
     <section className="py-24 bg-white overflow-hidden" id="services">
+      {/* Product Detail Modal */}
+      <ProductDetailModal
+        isOpen={isDetailModalOpen}
+        onClose={() => setIsDetailModalOpen(false)}
+        product={selectedProduct}
+        onOrderNow={handleOrderNow}
+        onBookConsultation={(prod) => handleOpenBooking(prod.title)}
+      />
+
+      {/* Book Consultation Modal */}
+      <BookConsultationModal
+        isOpen={isBookingModalOpen}
+        onClose={() => setIsBookingModalOpen(false)}
+        serviceTitle={consultationTitle}
+      />
+
       <div className="max-w-7xl mx-auto px-8">
         <ScrollReveal yOffset={40}>
           <div className="text-center max-w-2xl mx-auto mb-16">
@@ -35,23 +75,65 @@ export function Services() {
         </ScrollReveal>
 
         <div className="grid md:grid-cols-3 gap-8 mb-12">
-          {services.map((service, idx) => (
-            <ScrollReveal key={idx} yOffset={40} delay={idx * 0.15}>
-              <div className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-xl transition-all group h-full">
-                <div className="h-48 overflow-hidden relative">
-                  <Image 
-                    src={service.image} 
+          {featuredServices.map((service, idx) => (
+            <ScrollReveal key={service.id || idx} yOffset={40} delay={idx * 0.15}>
+              <div
+                onClick={() => handleOpenDetail(service)}
+                className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-xl hover:border-cyan-300 transition-all group h-full flex flex-col cursor-pointer"
+              >
+                <div className="h-52 overflow-hidden relative bg-slate-900">
+                  <Image
+                    src={service.image}
                     alt={service.title}
                     fill
-                    className="object-cover group-hover:scale-105 transition-transform duration-500"
+                    className="object-cover group-hover:scale-105 transition-transform duration-500 opacity-95"
                   />
+                  <div className="absolute inset-0 bg-linear-to-t from-slate-950/70 via-transparent to-transparent opacity-60 group-hover:opacity-80 transition-opacity" />
+
+                  {/* Badge */}
+                  <div className="absolute top-3 left-3 flex flex-wrap gap-2">
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-white/95 text-slate-900 shadow-sm">
+                      {service.category}
+                    </span>
+                    {service.badge && (
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-[#0A54B1] text-white shadow-sm">
+                        {service.badge}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Hover Quick Preview Pill */}
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-slate-950/30 backdrop-blur-xs">
+                    <span className="px-3.5 py-1.5 rounded-xl bg-white text-slate-900 font-bold text-xs shadow-md flex items-center gap-1.5">
+                      <Eye className="w-3.5 h-3.5 text-[#0A54B1]" /> View Details
+                    </span>
+                  </div>
+
+                  <div className="absolute bottom-3 left-4 right-4 flex items-center justify-between text-white text-xs">
+                    <span className="flex items-center gap-1 text-slate-200 font-semibold text-[11px]">
+                      <Clock className="w-3.5 h-3.5 text-cyan-300" /> {service.deliveryTime}
+                    </span>
+                  </div>
                 </div>
-                <div className="p-6 flex flex-col h-[calc(100%-12rem)]">
-                  <h3 className="text-xl font-bold text-slate-900 mb-6 flex-1">{service.title}</h3>
-                  <div className="flex items-center justify-between mt-auto">
+
+                <div className="p-6 flex flex-col flex-1">
+                  <h3 className="text-lg font-bold text-slate-900 group-hover:text-[#0A54B1] transition-colors mb-2">
+                    {service.title}
+                  </h3>
+                  <p className="text-xs text-slate-500 leading-relaxed line-clamp-2 mb-4 flex-1">
+                    {service.tagline}
+                  </p>
+
+                  <div className="flex items-center justify-between pt-4 border-t border-slate-100 mt-auto">
                     <span className="text-2xl font-bold text-[#22d3ee]">{service.price}</span>
-                    <button className="flex items-center gap-2 text-[#3b82f6] font-medium hover:text-[#2563eb] transition-colors">
-                      <ShoppingCart className="w-4 h-4" /> Add to Cart
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleOrderNow(service);
+                      }}
+                      className="flex items-center gap-1.5 text-xs font-bold text-[#0A54B1] hover:text-[#08428C] bg-blue-50 hover:bg-blue-100 px-3.5 py-2 rounded-xl transition-colors cursor-pointer"
+                    >
+                      <ShoppingCart className="w-3.5 h-3.5" /> Add to Cart
                     </button>
                   </div>
                 </div>
@@ -59,10 +141,15 @@ export function Services() {
             </ScrollReveal>
           ))}
         </div>
-        
+
         <ScrollReveal yOffset={20} delay={0.4}>
           <div className="text-center">
-            <Link href="/services" className="text-[#22d3ee] font-medium hover:underline underline-offset-4">See More</Link>
+            <Link
+              href="/services"
+              className="inline-flex items-center gap-1 text-[#22d3ee] font-semibold hover:text-cyan-600 hover:underline underline-offset-4 transition-colors"
+            >
+              See More <ArrowRight className="w-4 h-4" />
+            </Link>
           </div>
         </ScrollReveal>
       </div>
