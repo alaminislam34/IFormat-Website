@@ -125,7 +125,7 @@ export function Services() {
                   </p>
 
                   <div className="flex items-center justify-between pt-4 border-t border-slate-100 mt-auto">
-                    <span className="text-2xl font-bold text-[#22d3ee]">{service.price}</span>
+                    <span className="text-2xl font-bold text-brand-cyan">{service.price}</span>
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -146,7 +146,7 @@ export function Services() {
           <div className="text-center">
             <Link
               href="/services"
-              className="inline-flex items-center gap-1 text-[#22d3ee] font-semibold hover:text-cyan-600 hover:underline underline-offset-4 transition-colors"
+              className="inline-flex items-center gap-1 text-brand-cyan font-semibold hover:text-cyan-600 hover:underline underline-offset-4 transition-colors"
             >
               See More <ArrowRight className="w-4 h-4" />
             </Link>
