@@ -78,11 +78,23 @@ export function JobCard({ job, onViewDetails, isApplied = false }: JobCardProps)
           {/* Logo Circle */}
           <div
             className={cn(
-              "w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-sm shrink-0",
-              logoBg
+              "w-8 h-8 rounded-full flex items-center justify-center overflow-hidden text-white font-bold text-sm shadow-sm shrink-0 border border-slate-100",
+              !(job.companyLogoUrl || job.employer?.companyLogoUrl) ? logoBg : "bg-white"
             )}
           >
-            {logoLetter}
+            {(job.companyLogoUrl || job.employer?.companyLogoUrl) ? (
+              <img
+                src={(job.companyLogoUrl || job.employer?.companyLogoUrl)!}
+                alt={`${job.company} logo`}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  // Fallback to letter
+                  e.currentTarget.style.display = "none";
+                }}
+              />
+            ) : (
+              logoLetter
+            )}
           </div>
           <span className="text-sm font-semibold text-slate-600 truncate">{job.company}</span>
         </div>

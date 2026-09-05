@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 import { Job } from "./job-card";
 import { ApplyModal } from "./apply-modal";
 import { EditJobModal } from "./edit-job-modal";
-import { useDeleteJob } from "@/hooks";
+import { useDeleteJob, useJobApplicants } from "@/hooks";
 import { toast } from "sonner";
 
 import { JobDetailsHeader } from "./details/job-details-header";
@@ -74,8 +74,18 @@ export function JobDetailsSheet({
   };
 
   const appliedState = isApplied || hasAppliedLocally;
-  const applicants = job.applicants || [];
-  const applicantsCount = job._count?.applications ?? applicants.length;
+
+  // Real-time applicants fetching for employers/admins
+  const { data: fetchedApplicants, isLoading: isLoadingApplicants } = useJobApplicants(
+    isOpen && isEmployerOrAdmin ? job.id : null
+  );
+
+  const realApplicants = (Array.isArray(fetchedApplicants)
+    ? fetchedApplicants
+    : (fetchedApplicants as any)?.applications || job.applicants || []) as any[];
+
+  const applicantsCount =
+    realApplicants.length > 0 ? realApplicants.length : job._count?.applications ?? 0;
 
   const handleApplyClick = () => {
     if (!isAuthenticated) {
@@ -186,7 +196,11 @@ export function JobDetailsSheet({
                 {activeTab === "details" ? (
                   <JobDetailsContent job={job} />
                 ) : (
-                  <JobDetailsApplicants applicants={applicants} />
+                  <JobDetailsApplicants
+                    applicants={realApplicants}
+                    isLoading={isLoadingApplicants}
+                    jobId={job.id}
+                  />
                 )}
               </div>
 

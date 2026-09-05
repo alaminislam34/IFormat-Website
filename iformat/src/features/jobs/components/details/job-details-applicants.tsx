@@ -1,16 +1,23 @@
 "use client";
 
 import React, { useState } from "react";
-import { FileText, Loader2, Check, Download } from "lucide-react";
+import Link from "next/link";
+import { FileText, Loader2, Check, Download, ExternalLink, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { Applicant } from "../job-card";
 
 interface JobDetailsApplicantsProps {
   applicants: Applicant[];
+  isLoading?: boolean;
+  jobId?: string;
 }
 
-export function JobDetailsApplicants({ applicants }: JobDetailsApplicantsProps) {
+export function JobDetailsApplicants({
+  applicants,
+  isLoading = false,
+  jobId,
+}: JobDetailsApplicantsProps) {
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const [downloadAllState, setDownloadAllState] = useState<"idle" | "loading" | "success">("idle");
   const [downloadedApplicants, setDownloadedApplicants] = useState<Record<string, boolean>>({});
@@ -38,6 +45,15 @@ export function JobDetailsApplicants({ applicants }: JobDetailsApplicantsProps) 
     }, 1800);
   };
 
+  if (isLoading) {
+    return (
+      <div className="text-center py-16 space-y-3">
+        <Loader2 className="w-8 h-8 animate-spin text-[#0A54B1] mx-auto" />
+        <p className="text-xs text-slate-500 font-medium">Loading candidate applications...</p>
+      </div>
+    );
+  }
+
   if (applicants.length === 0) {
     return (
       <div className="text-center py-12 space-y-3">
@@ -45,6 +61,9 @@ export function JobDetailsApplicants({ applicants }: JobDetailsApplicantsProps) 
           <FileText className="w-8 h-8" />
         </div>
         <p className="text-sm text-slate-500 font-medium">No applications yet for this role.</p>
+        <p className="text-xs text-slate-400">
+          When candidates submit applications, their profiles and CVs will appear here.
+        </p>
       </div>
     );
   }
@@ -91,18 +110,32 @@ export function JobDetailsApplicants({ applicants }: JobDetailsApplicantsProps) 
 
       {/* Applicants List */}
       <div className="space-y-3">
-        <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
-          Applicant List
-        </h4>
+        <div className="flex items-center justify-between mb-2">
+          <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+            Applicant List
+          </h4>
+          {jobId && (
+            <Link
+              href={`/dashboard/jobs/${jobId}/applicants`}
+              className="text-xs font-bold text-[#0A54B1] hover:underline flex items-center gap-1"
+            >
+              <span>Manage in Dashboard</span>
+              <ExternalLink className="w-3 h-3" />
+            </Link>
+          )}
+        </div>
 
         {applicants.map((applicant, idx) => {
           const candidateDisplayName =
             applicant.name || applicant.candidateName || applicant.candidate?.name || "Candidate";
+          const candidateEmail =
+            applicant.email || applicant.candidateEmail || applicant.candidate?.email || "";
           const candidateAvatar =
             applicant.avatar || candidateDisplayName.charAt(0).toUpperCase() || "A";
           const candidateColor = applicant.color || "bg-sky-500";
           const isDownloading = downloadingId === candidateDisplayName;
           const isDownloaded = downloadedApplicants[candidateDisplayName];
+          const status = applicant.status || "SUBMITTED";
 
           return (
             <div
@@ -113,42 +146,52 @@ export function JobDetailsApplicants({ applicants }: JobDetailsApplicantsProps) 
                 {/* Avatar */}
                 <div
                   className={cn(
-                    "w-10 h-10 rounded-full flex items-center justify-center text-white font-extrabold text-sm shadow-sm",
+                    "w-10 h-10 rounded-full flex items-center justify-center text-white font-extrabold text-sm shadow-sm shrink-0",
                     candidateColor
                   )}
                 >
                   {candidateAvatar}
                 </div>
-                <div>
-                  <h5 className="font-bold text-slate-800 text-sm">
+                <div className="min-w-0">
+                  <h5 className="font-bold text-slate-800 text-sm truncate">
                     {candidateDisplayName}
                   </h5>
-                  <span className="text-xs text-slate-400 font-medium">
-                    Applied {applicant.date || "Recently"}
-                  </span>
+                  {candidateEmail && (
+                    <p className="text-xs text-slate-400 truncate">{candidateEmail}</p>
+                  )}
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-[10px] text-slate-400 font-medium">
+                      Applied {applicant.date || (applicant.createdAt ? new Date(applicant.createdAt).toLocaleDateString() : "Recently")}
+                    </span>
+                    <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-600">
+                      {status}
+                    </span>
+                  </div>
                 </div>
               </div>
 
-              {/* Download Action */}
-              <button
-                onClick={() => handleDownloadCV(candidateDisplayName)}
-                disabled={isDownloading || isDownloaded}
-                className={cn(
-                  "flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer",
-                  isDownloaded
-                    ? "bg-sky-50 text-[#0A54B1] border border-sky-100"
-                    : "bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200/60"
-                )}
-              >
-                {isDownloading ? (
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                ) : isDownloaded ? (
-                  <Check className="w-3.5 h-3.5" />
-                ) : (
-                  <Download className="w-3.5 h-3.5" />
-                )}
-                <span>{isDownloading ? "Saving..." : isDownloaded ? "Saved" : "CV"}</span>
-              </button>
+              {/* Actions */}
+              <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                <button
+                  onClick={() => handleDownloadCV(candidateDisplayName)}
+                  disabled={isDownloading || isDownloaded}
+                  className={cn(
+                    "flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer",
+                    isDownloaded
+                      ? "bg-sky-50 text-[#0A54B1] border border-sky-100"
+                      : "bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200/60"
+                  )}
+                >
+                  {isDownloading ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : isDownloaded ? (
+                    <Check className="w-3.5 h-3.5" />
+                  ) : (
+                    <Download className="w-3.5 h-3.5" />
+                  )}
+                  <span>{isDownloading ? "Saving..." : isDownloaded ? "Saved" : "CV"}</span>
+                </button>
+              </div>
             </div>
           );
         })}

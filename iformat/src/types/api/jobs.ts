@@ -99,13 +99,17 @@ export interface JobDTO {
   date?: string;
   logoBg?: string;
   logoLetter?: string;
+  companyLogoUrl?: string | null;
+  companyVideoUrl?: string | null;
   applicants?: JobApplicantDTO[];
   employer?: {
     id: string;
     name: string;
     companyName?: string | null;
     companyLogoUrl?: string | null;
+    companyVideoUrl?: string | null;
     companyWebsite?: string | null;
+    companyDescription?: string | null;
   };
   _count?: {
     applications: number;

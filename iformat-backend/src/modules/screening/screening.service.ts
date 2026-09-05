@@ -46,12 +46,13 @@ export class ScreeningService {
     };
 
     const jobDescription = [
-      `Title: ${application.job.title}`,
+      `Target Position: ${application.job.title}`,
       `Company: ${application.job.company}`,
-      `Category: ${application.job.category}`,
-      `Description: ${application.job.description}`,
-      application.job.requirements.length ? `Requirements: ${application.job.requirements.join("; ")}` : "",
-      application.job.responsibilities.length ? `Responsibilities: ${application.job.responsibilities.join("; ")}` : "",
+      `Industry Category: ${application.job.category}`,
+      `Job Details: ${application.job.description}`,
+      application.job.requirements.length ? `Required Qualifications: ${application.job.requirements.join("; ")}` : "",
+      application.job.responsibilities.length ? `Core Responsibilities: ${application.job.responsibilities.join("; ")}` : "",
+      "EVALUATION NOTE: When writing the evaluation summary, explicitly state the candidate's background/profession from their CV and clearly explain why that specific background matches or does not match the requirements for this target position.",
     ].filter(Boolean).join("\n\n");
 
     logger.info(`🤖 Triggering AI microservice screening for application: ${applicationId}`);

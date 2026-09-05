@@ -16,4 +16,5 @@ export const updateCompanyProfileSchema = z.object({
   companyWebsite: z.string().url("Must be a valid URL").optional(),
   companyDescription: z.string().optional(),
   companyLogoUrl: z.string().optional(),
+  companyVideoUrl: z.string().optional(),
 });

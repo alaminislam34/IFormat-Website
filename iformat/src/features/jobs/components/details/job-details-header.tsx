@@ -22,20 +22,31 @@ export function JobDetailsHeader({
   onDelete,
   onClose,
 }: JobDetailsHeaderProps) {
+  const [imgError, setImgError] = React.useState(false);
+  const logoUrl = job.companyLogoUrl || job.employer?.companyLogoUrl;
   const logoLetter = job.logoLetter || job.company?.charAt(0)?.toUpperCase() || "F";
   const logoBg = job.logoBg || "bg-[#9333EA]";
 
   return (
     <div className="p-6 sm:p-7 border-b border-slate-100 flex items-start justify-between bg-white relative shrink-0">
       <div className="flex items-center gap-4 pr-6">
-        {/* Rounded square avatar like in Figma screenshot */}
+        {/* Company Avatar / Logo */}
         <div
           className={cn(
-            "w-12 h-12 rounded-2xl flex items-center justify-center text-white font-black text-xl shadow-xs shrink-0",
-            logoBg
+            "w-12 h-12 rounded-2xl flex items-center justify-center overflow-hidden text-white font-black text-xl shadow-xs shrink-0 border border-slate-100",
+            !logoUrl || imgError ? logoBg : "bg-white"
           )}
         >
-          {logoLetter}
+          {logoUrl && !imgError ? (
+            <img
+              src={logoUrl}
+              alt={`${job.company} logo`}
+              className="w-full h-full object-cover"
+              onError={() => setImgError(true)}
+            />
+          ) : (
+            logoLetter
+          )}
         </div>
         <div>
           <h2 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight leading-snug">

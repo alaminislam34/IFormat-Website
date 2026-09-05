@@ -14,15 +14,17 @@ export default function CompanyDetailsPage() {
   const [contactInfo, setContactInfo] = useState("");
   const [description, setDescription] = useState("");
 
-  // Simulated File Uploads
+  // Media Uploads State
   const [logoFile, setLogoFile] = useState<string | null>(null);
   const [logoUploading, setLogoUploading] = useState(false);
   const [logoProgress, setLogoProgress] = useState(0);
+  const [uploadedLogoUrl, setUploadedLogoUrl] = useState<string | null>(null);
   const logoInputRef = useRef<HTMLInputElement>(null);
 
   const [videoFile, setVideoFile] = useState<string | null>(null);
   const [videoUploading, setVideoUploading] = useState(false);
   const [videoProgress, setVideoProgress] = useState(0);
+  const [uploadedVideoUrl, setUploadedVideoUrl] = useState<string | null>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
 
   const [errors, setErrors] = useState<{
@@ -33,54 +35,81 @@ export default function CompanyDetailsPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
-  // Handle Logo Upload Simulation
-  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Handle Real Logo Upload
+  const handleLogoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
+    if (!file) return;
+
+    try {
       setLogoUploading(true);
-      setLogoProgress(0);
-      const interval = setInterval(() => {
-        setLogoProgress((prev) => {
-          if (prev >= 100) {
-            clearInterval(interval);
-            setLogoUploading(false);
-            setLogoFile(file.name);
-            return 100;
-          }
-          return prev + 25;
-        });
-      }, 200);
+      setLogoProgress(20);
+      setLogoFile(file.name);
+
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const { apiClient } = await import("@/lib/api/api-client");
+      const res = await apiClient.post<any>("/upload/media", formData);
+      const url = res?.data?.url || res?.url;
+
+      setLogoProgress(100);
+      if (url) {
+        setUploadedLogoUrl(url);
+        toast.success("Company logo uploaded successfully!");
+      }
+    } catch (err: any) {
+      toast.error(err?.message || "Failed to upload logo image.");
+      removeLogo();
+    } finally {
+      setLogoUploading(false);
     }
   };
 
   const removeLogo = () => {
     setLogoFile(null);
+    setUploadedLogoUrl(null);
     setLogoProgress(0);
     if (logoInputRef.current) logoInputRef.current.value = "";
   };
 
-  // Handle Video Upload Simulation
-  const handleVideoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Handle Real Video Upload
+  const handleVideoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
+    if (!file) return;
+
+    if (file.size > 50 * 1024 * 1024) {
+      toast.error("Video file size cannot exceed 50MB.");
+      return;
+    }
+
+    try {
       setVideoUploading(true);
-      setVideoProgress(0);
-      const interval = setInterval(() => {
-        setVideoProgress((prev) => {
-          if (prev >= 100) {
-            clearInterval(interval);
-            setVideoUploading(false);
-            setVideoFile(file.name);
-            return 100;
-          }
-          return prev + 20;
-        });
-      }, 200);
+      setVideoProgress(20);
+      setVideoFile(file.name);
+
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const { apiClient } = await import("@/lib/api/api-client");
+      const res = await apiClient.post<any>("/upload/media", formData);
+      const url = res?.data?.url || res?.url;
+
+      setVideoProgress(100);
+      if (url) {
+        setUploadedVideoUrl(url);
+        toast.success("Company spotlight video uploaded successfully!");
+      }
+    } catch (err: any) {
+      toast.error(err?.message || "Failed to upload company video.");
+      removeVideo();
+    } finally {
+      setVideoUploading(false);
     }
   };
 
   const removeVideo = () => {
     setVideoFile(null);
+    setUploadedVideoUrl(null);
     setVideoProgress(0);
     if (videoInputRef.current) videoInputRef.current.value = "";
   };
@@ -113,6 +142,8 @@ export default function CompanyDetailsPage() {
         companyName,
         companyWebsite: companyEmail ? `https://${companyEmail.split("@")[1] || "example.com"}` : undefined,
         companyDescription: description || undefined,
+        companyLogoUrl: uploadedLogoUrl || undefined,
+        companyVideoUrl: uploadedVideoUrl || undefined,
       });
 
       const { useAuthStore } = await import("@/stores/use-auth-store");
@@ -120,6 +151,8 @@ export default function CompanyDetailsPage() {
         role: "employer",
         companyName,
         companyDescription: description,
+        companyLogoUrl: uploadedLogoUrl || undefined,
+        companyVideoUrl: uploadedVideoUrl || undefined,
         ...updatedUser,
       });
       useAuthStore.getState().setRole("employer");

@@ -81,7 +81,9 @@ export class JobService {
               name: true,
               companyName: true,
               companyLogoUrl: true,
+              companyVideoUrl: true,
               companyWebsite: true,
+              companyDescription: true,
             },
           },
           _count: {
@@ -111,6 +113,7 @@ export class JobService {
             companyWebsite: true,
             companyDescription: true,
             companyLogoUrl: true,
+            companyVideoUrl: true,
           },
         },
         _count: {

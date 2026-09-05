@@ -65,6 +65,7 @@ export class UserService {
       companyWebsite?: string;
       companyDescription?: string;
       companyLogoUrl?: string;
+      companyVideoUrl?: string;
     }
   ) {
     const user = await prisma.user.update({
@@ -82,6 +83,7 @@ export class UserService {
         companyWebsite: true,
         companyDescription: true,
         companyLogoUrl: true,
+        companyVideoUrl: true,
       },
     });
 

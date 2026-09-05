@@ -13,6 +13,7 @@ model User {
   companyWebsite     String?
   companyDescription String?
   companyLogoUrl     String?
+  companyVideoUrl    String?
   isVerifiedCompany  Boolean             @default(false)
   isBanned           Boolean             @default(false)
   banReason          String?

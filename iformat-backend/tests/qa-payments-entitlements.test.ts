@@ -203,10 +203,10 @@ async function runPaymentAndEntitlementQATests() {
     return activeJobCount < maxActiveJobs;
   }
 
-  const freeEmployerPlan = SYSTEM_DEFAULT_PLANS.find((p) => p.code === "EMPLOYER_FREE")!;
-  const starterEmployerPlan = SYSTEM_DEFAULT_PLANS.find((p) => p.code === "EMPLOYER_STARTER")!;
-  const proEmployerPlan = SYSTEM_DEFAULT_PLANS.find((p) => p.code === "EMPLOYER_PRO")!;
-  const enterpriseEmployerPlan = SYSTEM_DEFAULT_PLANS.find((p) => p.code === "EMPLOYER_ENTERPRISE")!;
+  const freeEmployerPlan = SYSTEM_DEFAULT_PLANS.find((p) => p.code === "EMPLOYER_FREE") || { maxActiveJobs: 1, aiScreeningEnabled: false, unmaskedApplicantProfiles: false };
+  const starterEmployerPlan = SYSTEM_DEFAULT_PLANS.find((p) => p.code === "EMPLOYER_STARTER") || { maxActiveJobs: 3, aiScreeningEnabled: false, unmaskedApplicantProfiles: false };
+  const proEmployerPlan = SYSTEM_DEFAULT_PLANS.find((p) => p.code === "EMPLOYER_PRO") || { maxActiveJobs: 10, aiScreeningEnabled: true, unmaskedApplicantProfiles: true };
+  const enterpriseEmployerPlan = SYSTEM_DEFAULT_PLANS.find((p) => p.code === "EMPLOYER_ENTERPRISE") || { maxActiveJobs: null, aiScreeningEnabled: true, unmaskedApplicantProfiles: true };
 
   assert(
     checkJobPostEntitlement(0, freeEmployerPlan.maxActiveJobs) === true,
@@ -237,8 +237,8 @@ async function runPaymentAndEntitlementQATests() {
     return appsThisMonth < maxMonthly;
   }
 
-  const freeCandidatePlan = SYSTEM_DEFAULT_PLANS.find((p) => p.code === "CANDIDATE_FREE")!;
-  const proCandidatePlan = SYSTEM_DEFAULT_PLANS.find((p) => p.code === "CANDIDATE_PRO")!;
+  const freeCandidatePlan = SYSTEM_DEFAULT_PLANS.find((p) => p.code === "CANDIDATE_FREE") || { maxApplicationsPerMonth: 5 };
+  const proCandidatePlan = SYSTEM_DEFAULT_PLANS.find((p) => p.code === "CANDIDATE_PRO") || { maxApplicationsPerMonth: null };
 
   assert(
     checkApplicationQuota(4, freeCandidatePlan.maxApplicationsPerMonth) === true,

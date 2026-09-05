@@ -53,6 +53,14 @@ export function ApplicantScreeningModal({
           </button>
         </div>
 
+        {/* ATS Alignment Purpose Clarification */}
+        <div className="p-3.5 rounded-2xl bg-indigo-950/40 border border-indigo-900/50 flex items-center gap-2.5 text-xs text-indigo-200">
+          <Sparkles className="w-4 h-4 text-indigo-400 shrink-0" />
+          <span>
+            This report evaluates how closely the candidate&apos;s CV matches the requirements of this specific job posting. A low score indicates role mismatch, not general candidate capability.
+          </span>
+        </div>
+
         {/* Score & Recommendation Banner */}
         <div className="p-5 rounded-2xl bg-slate-950/80 border border-slate-800 flex items-center justify-between gap-4">
           <div className="flex items-center gap-4">

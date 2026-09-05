@@ -1,4 +1,5 @@
 import express, { Express, Request, Response, NextFunction } from "express";
+import path from "path";
 import helmet from "helmet";
 import cors from "cors";
 import hpp from "hpp";
@@ -14,6 +15,9 @@ import { passport } from "./lib/passport.js";
 import { swaggerSpec } from "./docs/swagger.js";
 
 const app: Express = express();
+
+// Serve local media uploads statically
+app.use("/uploads", express.static(path.resolve(process.cwd(), "uploads")));
 
 // 0. Request Correlation & ID Tracing
 app.use(requestId);

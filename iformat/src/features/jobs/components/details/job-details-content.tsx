@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Building2, Check } from "lucide-react";
+import { Building2, Check, Video, Globe, ExternalLink } from "lucide-react";
 import { Job } from "../job-card";
 
 interface JobDetailsContentProps {
@@ -9,8 +9,84 @@ interface JobDetailsContentProps {
 }
 
 export function JobDetailsContent({ job }: JobDetailsContentProps) {
+  const companyLogo = job.companyLogoUrl || job.employer?.companyLogoUrl;
+  const companyVideo = job.companyVideoUrl || job.employer?.companyVideoUrl;
+  const companyDescription =
+    job.employer?.companyDescription ||
+    `${job.company} is a leading brand focused on innovation, excellence, and collaborative talent development.`;
+  const companyWebsite = job.employer?.companyWebsite;
+
   return (
     <div className="space-y-6 pb-2">
+      {/* About the Company Section */}
+      <div className="p-4 rounded-2xl bg-gradient-to-br from-slate-50 to-blue-50/30 border border-slate-200/80 space-y-3.5">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl overflow-hidden bg-white border border-slate-200/60 flex items-center justify-center text-primary font-bold text-base shadow-xs shrink-0">
+              {companyLogo ? (
+                <img
+                  src={companyLogo}
+                  alt={`${job.company} logo`}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                job.company.charAt(0).toUpperCase()
+              )}
+            </div>
+            <div>
+              <h4 className="text-sm font-bold text-slate-900 leading-tight">
+                {job.company}
+              </h4>
+              <span className="text-[11px] font-medium text-slate-500">
+                Company Profile & Media
+              </span>
+            </div>
+          </div>
+
+          {companyWebsite && (
+            <a
+              href={companyWebsite.startsWith("http") ? companyWebsite : `https://${companyWebsite}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1 text-xs font-bold text-[#0A54B1] hover:underline"
+            >
+              <Globe className="w-3.5 h-3.5" />
+              <span>Website</span>
+              <ExternalLink className="w-3 h-3 ml-0.5" />
+            </a>
+          )}
+        </div>
+
+        <p className="text-xs text-slate-600 leading-relaxed">
+          {companyDescription}
+        </p>
+
+        {/* Company Video Player */}
+        {companyVideo ? (
+          <div className="space-y-1.5 pt-1">
+            <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700">
+              <Video className="w-4 h-4 text-[#0099FF]" />
+              <span>Company Spotlight Video</span>
+            </div>
+            <div className="rounded-xl overflow-hidden border border-slate-200 bg-black aspect-video relative shadow-inner">
+              <video
+                src={companyVideo}
+                controls
+                className="w-full h-full object-contain"
+                poster={companyLogo || undefined}
+              >
+                Your browser does not support HTML video playback.
+              </video>
+            </div>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2 p-2.5 rounded-xl bg-white/80 border border-slate-200/60 text-[11px] text-slate-500 font-medium">
+            <Video className="w-4 h-4 text-slate-400 shrink-0" />
+            <span>No company introduction video uploaded yet for this employer.</span>
+          </div>
+        )}
+      </div>
+
       {/* About the Role */}
       <div>
         <h3 className="text-sm font-bold text-slate-900 mb-2.5 flex items-center gap-2">
