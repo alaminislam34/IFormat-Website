@@ -41,7 +41,8 @@ export default function UserDashboardPage() {
         setEmployerJobs(jobs || []);
       } else {
         const apps = await jobsService.getCandidateApplications();
-        setApplications(apps || []);
+        const list = Array.isArray(apps) ? apps : (apps as any)?.applications || [];
+        setApplications(list);
       }
     } catch (err: any) {
       const errMsg = err?.message || "Failed to load dashboard data. Please check your connection.";
@@ -176,6 +177,7 @@ export default function UserDashboardPage() {
                 <CandidateApplicationsList
                   applications={applications}
                   loading={loading}
+                  onUpdated={loadDashboardData}
                 />
               )}
             </div>

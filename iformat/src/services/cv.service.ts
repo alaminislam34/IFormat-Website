@@ -24,6 +24,18 @@ export const cvService = {
   },
 
   /**
+   * Upload a PDF resume, extract text, and store it as a CV the AI can actually score
+   */
+  async uploadPdf(file: File, title?: string): Promise<CVDTO> {
+    const formData = new FormData();
+    formData.append("file", file);
+    if (title) {
+      formData.append("title", title);
+    }
+    return apiClient.post<CVDTO>("/cv/upload-pdf", formData);
+  },
+
+  /**
    * Save a new version to an existing CV
    */
   async saveNewVersion(cvId: string, payload: SaveCVVersionRequest): Promise<CVVersionDTO> {

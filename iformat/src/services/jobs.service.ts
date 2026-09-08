@@ -92,4 +92,13 @@ export const jobsService = {
       employerFeedback: payload.employerFeedback,
     });
   },
+
+  /**
+   * Candidate: Replace the resume on an existing application and re-run screening
+   */
+  async replaceApplicationResume(applicationId: string, file: File): Promise<JobApplicantDTO> {
+    const formData = new FormData();
+    formData.append("file", file);
+    return apiClient.post<JobApplicantDTO>(`/applications/${applicationId}/resume`, formData);
+  },
 };

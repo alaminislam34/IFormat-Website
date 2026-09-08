@@ -36,7 +36,24 @@ export interface ResumeData {
   interests: string;
 }
 
-export const DEFAULT_RESUME: ResumeData = {
+export const BLANK_RESUME: ResumeData = {
+  fullName: "",
+  jobTitle: "",
+  email: "",
+  phone: "",
+  location: "",
+  linkedin: "",
+  website: "",
+  summary: "",
+  workExperience: [],
+  education: [],
+  skillGroups: [],
+  certifications: [],
+  languages: "",
+  interests: "",
+};
+
+export const DEMO_RESUME: ResumeData = {
   fullName: "MD Sifat Islam",
   jobTitle: "Senior Full Stack Developer",
   email: "sifat70640@gmail.com",

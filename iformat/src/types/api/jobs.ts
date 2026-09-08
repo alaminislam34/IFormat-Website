@@ -49,6 +49,12 @@ export interface ScreeningResultDTO {
   updatedAt?: string;
 }
 
+export function isInsufficientResumeScreening(result?: ScreeningResultDTO | null): boolean {
+  return (
+    result?.recommendation === "INSUFFICIENT_RESUME" || result?.modelUsed === "resume-gate"
+  );
+}
+
 export interface JobApplicantDTO {
   id?: string;
   jobId?: string;
@@ -72,6 +78,12 @@ export interface JobApplicantDTO {
     avatarUrl?: string | null;
     phone?: string | null;
   };
+  job?: {
+    id?: string;
+    title?: string;
+    company?: string;
+    location?: string;
+  } | null;
   screeningResult?: ScreeningResultDTO | null;
 }
 

@@ -55,4 +55,21 @@ export class ApplicationController {
       updated
     );
   }
+
+  static async replaceResume(req: Request, res: Response) {
+    const result = await ApplicationService.replaceResume(
+      req.params.id,
+      req.user!.id,
+      {
+        cvId: typeof req.body?.cvId === "string" ? req.body.cvId : undefined,
+        file: req.file,
+        req,
+      }
+    );
+    return ApiResponse.success(
+      res,
+      "Resume updated and screening re-run against your document",
+      result
+    );
+  }
 }

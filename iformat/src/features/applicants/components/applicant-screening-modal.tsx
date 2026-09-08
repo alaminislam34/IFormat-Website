@@ -3,7 +3,7 @@
 import React from "react";
 import { X, Sparkles, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ApplicationStatus, JobApplicantDTO } from "@/types/api";
+import { ApplicationStatus, JobApplicantDTO, isInsufficientResumeScreening } from "@/types/api";
 
 interface ApplicantScreeningModalProps {
   applicant: JobApplicantDTO | null;
@@ -25,6 +25,7 @@ export function ApplicantScreeningModal({
   const candidateDisplayName = applicant.candidateName || applicant.candidate?.name || "Candidate Evaluation";
   const candidateEmail = applicant.candidateEmail || applicant.candidate?.email;
   const score = applicant.screeningResult?.score || 0;
+  const insufficient = isInsufficientResumeScreening(applicant.screeningResult);
   const recommendation = applicant.screeningResult?.recommendation || "RECOMMEND";
 
   return (
@@ -54,10 +55,16 @@ export function ApplicantScreeningModal({
         </div>
 
         {/* ATS Alignment Purpose Clarification */}
-        <div className="p-3.5 rounded-2xl bg-indigo-950/40 border border-indigo-900/50 flex items-center gap-2.5 text-xs text-indigo-200">
-          <Sparkles className="w-4 h-4 text-indigo-400 shrink-0" />
+        <div className={`p-3.5 rounded-2xl border flex items-center gap-2.5 text-xs ${
+          insufficient
+            ? "bg-amber-950/40 border-amber-900/50 text-amber-100"
+            : "bg-indigo-950/40 border-indigo-900/50 text-indigo-200"
+        }`}>
+          <Sparkles className={`w-4 h-4 shrink-0 ${insufficient ? "text-amber-400" : "text-indigo-400"}`} />
           <span>
-            This report evaluates how closely the candidate&apos;s CV matches the requirements of this specific job posting. A low score indicates role mismatch, not general candidate capability.
+            {insufficient
+              ? "Screening did not run on this application because no readable resume text was found. This is not a capability score. Ask the candidate to upload their actual PDF, then re-evaluate."
+              : "This report evaluates how closely the candidate's CV matches the requirements of this specific job posting. A low score indicates role mismatch, not general candidate capability."}
           </span>
         </div>
 
@@ -66,22 +73,32 @@ export function ApplicantScreeningModal({
           <div className="flex items-center gap-4">
             <div
               className={`w-16 h-16 rounded-2xl flex items-center justify-center font-extrabold text-2xl ${
-                score >= 80
+                insufficient
+                  ? "bg-amber-500/20 text-amber-400 border border-amber-500/30"
+                  : score >= 80
                   ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
                   : score >= 60
                   ? "bg-amber-500/20 text-amber-400 border border-amber-500/30"
                   : "bg-rose-500/20 text-rose-400 border border-rose-500/30"
               }`}
             >
-              {score}%
+              {insufficient ? "—" : `${score}%`}
             </div>
             <div>
-              <h4 className="text-sm font-bold text-white">Overall ATS Alignment</h4>
+              <h4 className="text-sm font-bold text-white">
+                {insufficient ? "Screening skipped" : "Overall ATS Alignment"}
+              </h4>
               <p className="text-xs text-slate-400 mt-0.5">
-                Recommendation:{" "}
-                <strong className="text-indigo-400 uppercase font-semibold">
-                  {recommendation}
-                </strong>
+                {insufficient ? (
+                  "Waiting for a readable candidate resume"
+                ) : (
+                  <>
+                    Recommendation:{" "}
+                    <strong className="text-indigo-400 uppercase font-semibold">
+                      {recommendation}
+                    </strong>
+                  </>
+                )}
               </p>
             </div>
           </div>

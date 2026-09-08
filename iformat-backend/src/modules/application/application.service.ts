@@ -7,9 +7,11 @@ import {
   ValidationError,
 } from "../../errors/index.js";
 import { sendEmail } from "../../lib/mailer.js";
-import { env, getFrontendUrl } from "../../config/env.js";
+import { getFrontendUrl } from "../../config/env.js";
 import { ScreeningService } from "../screening/screening.service.js";
 import { PaymentService } from "../payment/payment.service.js";
+import { CVService } from "../cv/cv.service.js";
+import { isUsableResumeContent } from "../cv/cv-content.js";
 import { getPagination, createPaginationMeta } from "../../utils/pagination.js";
 import {
   ApplyJobInput,
@@ -96,6 +98,14 @@ export class ApplicationService {
         { field: "jobId", message: "You have already applied for this position" },
       ]);
     }
+
+    if (!input.cvId) {
+      throw new ValidationError(
+        "A readable resume is required to apply. Upload a PDF or attach a saved CV."
+      );
+    }
+
+    await this.assertCandidateResume(candidateId, input.cvId);
 
     // 5. Create application and employer in-app notification inside a transaction
     const application = await prisma.$transaction(async (tx) => {
@@ -192,6 +202,7 @@ export class ApplicationService {
               score: true,
               recommendation: true,
               summary: true,
+              modelUsed: true,
             },
           },
         },
@@ -371,5 +382,94 @@ export class ApplicationService {
     });
 
     return updated;
+  }
+
+  /**
+   * Candidate replaces the resume on an existing application, then screening re-runs
+   * against the new document instead of leftover metadata / demo templates.
+   */
+  static async replaceResume(
+    applicationId: string,
+    candidateId: string,
+    options: { cvId?: string; file?: Express.Multer.File; req?: import("express").Request }
+  ) {
+    const application = await prisma.application.findUnique({
+      where: { id: applicationId },
+    });
+
+    if (!application) {
+      throw new NotFoundError("Application", applicationId);
+    }
+
+    if (application.candidateId !== candidateId) {
+      throw new ForbiddenError("You can only update the resume on your own application");
+    }
+
+    if (
+      application.status === ApplicationStatus.HIRED ||
+      application.status === ApplicationStatus.REJECTED
+    ) {
+      throw new ValidationError("This application is closed and can no longer accept a new resume");
+    }
+
+    let cvId = options.cvId;
+    if (options.file) {
+      const uploaded = await CVService.createFromUploadedPdf(candidateId, options.file, {
+        title: `Updated application resume`,
+        req: options.req,
+      });
+      cvId = uploaded.id;
+    }
+
+    if (!cvId) {
+      throw new ValidationError("Upload a PDF resume or choose a saved CV");
+    }
+
+    await this.assertCandidateResume(candidateId, cvId);
+
+    const updated = await prisma.application.update({
+      where: { id: applicationId },
+      data: { cvId },
+      include: {
+        job: {
+          select: {
+            title: true,
+            company: true,
+            location: true,
+          },
+        },
+        screeningResult: true,
+      },
+    });
+
+    const screeningResult = await ScreeningService.screenApplication(applicationId);
+    return { ...updated, screeningResult };
+  }
+
+  private static async assertCandidateResume(candidateId: string, cvId: string) {
+    const cv = await prisma.cV.findUnique({
+      where: { id: cvId },
+      include: {
+        versions: {
+          orderBy: { versionNumber: "desc" },
+          take: 1,
+        },
+      },
+    });
+
+    if (!cv || cv.isDeleted) {
+      throw new NotFoundError("CV", cvId);
+    }
+
+    if (cv.userId !== candidateId) {
+      throw new ForbiddenError("You can only apply with a resume you own");
+    }
+
+    const content = cv.versions[0]?.content;
+    if (!isUsableResumeContent(content)) {
+      throw new ValidationError(
+        "This resume cannot be scored. Upload a text-based PDF of your own profile, or complete your resume in the profile editor. Demo templates are not accepted."
+      );
+    }
   }
 }

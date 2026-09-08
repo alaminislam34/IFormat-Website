@@ -74,7 +74,9 @@ export function ApplyResumeSelector({
             onChange={(e) => setSelectedCvId(e.target.value)}
             className="w-full h-11 px-3.5 rounded-xl border border-slate-200 bg-slate-50/50 text-sm text-slate-800 focus:outline-none focus:ring-4 focus:ring-[#0A54B1]/20 focus:border-[#0A54B1] transition-all"
           >
-            <option value="">-- Do not attach saved CV --</option>
+            <option value="" disabled>
+              Select a saved resume
+            </option>
             {userCVs.map((cv) => (
               <option key={cv.id} value={cv.id}>
                 {cv.title} (v{cv.versions?.[0]?.versionNumber || 1})

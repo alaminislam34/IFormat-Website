@@ -3,7 +3,7 @@
 import React from "react";
 import { Mail, Calendar, Sparkles, AlertCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ApplicationStatus, JobApplicantDTO } from "@/types/api";
+import { ApplicationStatus, JobApplicantDTO, isInsufficientResumeScreening } from "@/types/api";
 
 interface ApplicantCardRowProps {
   app: JobApplicantDTO;
@@ -26,6 +26,7 @@ export function ApplicantCardRow({
   const email = app.candidateEmail || app.candidate?.email || "No email available";
   const score = app.screeningResult?.score;
   const hasScreening = typeof score === "number";
+  const insufficient = isInsufficientResumeScreening(app.screeningResult);
   const recommendation = app.screeningResult?.recommendation || "RECOMMEND";
   const appId = app.id || "";
 
@@ -88,20 +89,24 @@ export function ApplicantCardRow({
           <div className="flex items-center gap-3 p-3 rounded-2xl bg-slate-950/60 border border-slate-800">
             <div
               className={`w-12 h-12 rounded-xl flex items-center justify-center font-extrabold text-sm shrink-0 ${
-                score! >= 80
+                insufficient
+                  ? "bg-amber-500/20 text-amber-400 border border-amber-500/30"
+                  : score! >= 80
                   ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
                   : score! >= 60
                   ? "bg-amber-500/20 text-amber-400 border border-amber-500/30"
                   : "bg-rose-500/20 text-rose-400 border border-rose-500/30"
               }`}
             >
-              {score}%
+              {insufficient ? "—" : `${score}%`}
             </div>
             <div className="space-y-0.5">
               <div className="flex items-center gap-1.5">
                 <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
                 <span className="text-xs font-bold text-white">
-                  {recommendation === "RECOMMEND" || recommendation === "STRONG_MATCH"
+                  {insufficient
+                    ? "Resume unreadable"
+                    : recommendation === "RECOMMEND" || recommendation === "STRONG_MATCH"
                     ? "Strong Fit"
                     : recommendation === "CONSIDER"
                     ? "Moderate Match"
@@ -109,7 +114,9 @@ export function ApplicantCardRow({
                 </span>
               </div>
               <p className="text-[11px] text-slate-400 truncate max-w-50">
-                {app.screeningResult?.summary || "Screening score calculated by AI engine."}
+                {insufficient
+                  ? "Ask the candidate to upload a readable PDF, then re-run."
+                  : app.screeningResult?.summary || "Screening score calculated by AI engine."}
               </p>
             </div>
           </div>

@@ -6,11 +6,11 @@ import { aiService } from "@/services/ai.service";
 import { useAuthStore } from "@/stores/use-auth-store";
 import { useUserCVs, useCreateCV, useSaveCVVersion, useDeleteCV } from "@/hooks";
 import { CVDTO } from "@/types/api";
-import { ResumeData, DEFAULT_RESUME } from "../types/resume.types";
+import { ResumeData, BLANK_RESUME } from "../types/resume.types";
 
 export function useResumeState() {
   const [step, setStep] = React.useState(1);
-  const [data, setData] = React.useState<ResumeData>(DEFAULT_RESUME);
+  const [data, setData] = React.useState<ResumeData>(BLANK_RESUME);
   const [isGenerating, setIsGenerating] = React.useState(false);
   const [copied, setCopied] = React.useState(false);
 
@@ -77,7 +77,7 @@ export function useResumeState() {
   };
 
   const handleNewResume = () => {
-    setData(DEFAULT_RESUME);
+    setData(BLANK_RESUME);
     setActiveCvId(null);
     setActiveCvTitle("My Resume");
     setActiveVersionNumber(1);

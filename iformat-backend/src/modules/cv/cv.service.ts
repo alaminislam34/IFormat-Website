@@ -1,5 +1,9 @@
+import { Request } from "express";
 import { prisma } from "../../lib/prisma.js";
-import { NotFoundError, ForbiddenError } from "../../errors/index.js";
+import { NotFoundError, ForbiddenError, BadRequestError } from "../../errors/index.js";
+import { saveUploadedBuffer } from "../../lib/file-storage.js";
+import { extractPdfText, isExtractedTextUsable } from "../../utils/pdf-text.js";
+import { logger } from "../../utils/logger.js";
 
 export class CVService {
   static async listUserCVs(userId: string) {
@@ -49,6 +53,60 @@ export class CVService {
     });
 
     return cv;
+  }
+
+  static async createFromUploadedPdf(
+    userId: string,
+    file: Express.Multer.File,
+    options: { title?: string; req?: Request } = {}
+  ) {
+    if (!file?.buffer) {
+      throw new BadRequestError("Please upload a PDF resume file");
+    }
+
+    const mime = (file.mimetype || "").toLowerCase();
+    const name = (file.originalname || "").toLowerCase();
+    if (mime !== "application/pdf" && !name.endsWith(".pdf")) {
+      throw new BadRequestError("Only PDF resumes are supported. Please upload a .pdf file.");
+    }
+
+    let rawText = "";
+    try {
+      rawText = await extractPdfText(file.buffer);
+    } catch (error) {
+      logger.error("Failed to extract text from uploaded resume PDF:", error);
+      throw new BadRequestError(
+        "We could not read this PDF. Please upload a text-based PDF (not a scanned image) or complete your resume in the profile editor."
+      );
+    }
+
+    if (!isExtractedTextUsable(rawText)) {
+      throw new BadRequestError(
+        "This PDF does not contain enough readable resume text. Please upload a text-based PDF or build your resume in the profile editor before applying."
+      );
+    }
+
+    const stored = await saveUploadedBuffer({
+      buffer: file.buffer,
+      originalName: file.originalname || "resume.pdf",
+      mimeType: file.mimetype || "application/pdf",
+      prefix: "resume",
+      req: options.req,
+    });
+
+    return this.createCV(userId, {
+      title: options.title || `Resume: ${file.originalname || "Uploaded PDF"}`,
+      content: {
+        source: "pdf_upload",
+        fileName: file.originalname,
+        fileSize: file.size,
+        fileType: file.mimetype,
+        fileUrl: stored.url,
+        uploadedAt: new Date().toISOString(),
+        parseStatus: "extracted",
+        raw_text: rawText,
+      },
+    });
   }
 
   static async saveNewVersion(cvId: string, userId: string, content: any) {

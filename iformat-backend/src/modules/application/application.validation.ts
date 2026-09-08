@@ -3,7 +3,7 @@ import { ApplicationStatus } from "@prisma/client";
 
 export const applyJobSchema = z.object({
   jobId: z.string({ required_error: "Job ID is required" }).min(1, "Job ID is required"),
-  cvId: z.string().optional().nullable(),
+  cvId: z.string().min(1, "A readable resume is required to apply").optional().nullable(),
   candidateName: z
     .string({ required_error: "Candidate name is required" })
     .min(2, "Candidate name must be at least 2 characters")

@@ -82,9 +82,39 @@ export function ApplyModal({ job, isOpen, onClose, onApplied }: ApplyModalProps)
   }, [user, setValue]);
 
   useEffect(() => {
-    if (userCVs && userCVs.length > 0 && !selectedCvId) {
-      const primaryCv = userCVs.find((c: any) => c.isPrimary) || userCVs[0];
-      setSelectedCvId(primaryCv.id);
+    if (!userCVs) return;
+
+    if (userCVs.length === 0) {
+      setResumeMode("upload");
+      return;
+    }
+
+    if (!selectedCvId) {
+      const usableCv =
+        userCVs.find((c: any) => {
+          const blob = JSON.stringify(c.versions?.[0]?.content || "").toLowerCase();
+          const isDemo =
+            blob.includes("sifat70640@gmail.com") ||
+            blob.includes("md sifat islam") ||
+            blob.includes("alex.morgan@example.com");
+          const hasText = blob.length > 120 && !isDemo;
+          return c.isPrimary && hasText;
+        }) ||
+        userCVs.find((c: any) => {
+          const blob = JSON.stringify(c.versions?.[0]?.content || "").toLowerCase();
+          return (
+            blob.length > 120 &&
+            !blob.includes("sifat70640@gmail.com") &&
+            !blob.includes("md sifat islam") &&
+            !blob.includes("alex.morgan@example.com")
+          );
+        });
+
+      if (usableCv) {
+        setSelectedCvId(usableCv.id);
+      } else {
+        setResumeMode("upload");
+      }
     }
   }, [userCVs, selectedCvId]);
 
@@ -93,8 +123,12 @@ export function ApplyModal({ job, isOpen, onClose, onApplied }: ApplyModalProps)
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error("File size cannot exceed 5MB.");
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error("File size cannot exceed 10MB.");
+        return;
+      }
+      if (!file.name.toLowerCase().endsWith(".pdf") && file.type !== "application/pdf") {
+        toast.error("Please upload a PDF resume.");
         return;
       }
       setUploadedFile(file);
@@ -123,36 +157,36 @@ export function ApplyModal({ job, isOpen, onClose, onApplied }: ApplyModalProps)
 
     if (resumeMode === "upload") {
       if (!uploadedFile) {
-        toast.error("Please upload a CV document (PDF, DOCX).");
+        toast.error("Please upload a PDF resume so we can score your actual profile.");
         return;
       }
 
       try {
         setIsUploadingFile(true);
-        const uploadRes = await cvService.createCV({
-          title: `Application CV: ${job.title}`,
-          content: {
-            fileName: uploadedFile.name,
-            fileSize: uploadedFile.size,
-            fileType: uploadedFile.type,
-            uploadedAt: new Date().toISOString(),
-          },
-        });
+        const uploadRes = await cvService.uploadPdf(
+          uploadedFile,
+          `Application CV: ${job.title}`
+        );
         finalCvId = uploadRes.id;
         refetchCVs();
       } catch (err: any) {
-        toast.error(err?.message || "Failed to upload resume file.");
+        toast.error(err?.message || "Failed to read your resume. Please upload a text-based PDF.");
         setIsUploadingFile(false);
         return;
       } finally {
         setIsUploadingFile(false);
       }
-    } else {
-      if (!finalCvId && (!userCVs || userCVs.length === 0)) {
-        toast.error("No cloud CV available. Please upload a file.");
+    } else if (!finalCvId) {
+      toast.error("Please attach a saved resume or upload a PDF.");
+      if (!userCVs || userCVs.length === 0) {
         setResumeMode("upload");
-        return;
       }
+      return;
+    }
+
+    if (!finalCvId) {
+      toast.error("A readable resume is required before we can submit your application.");
+      return;
     }
 
     applyJobMutation.mutate(
