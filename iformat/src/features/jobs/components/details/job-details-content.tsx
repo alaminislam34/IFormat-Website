@@ -30,7 +30,7 @@ export function JobDetailsContent({ job }: JobDetailsContentProps) {
                   className="w-full h-full object-cover"
                 />
               ) : (
-                job.company.charAt(0).toUpperCase()
+                (job.company || "C").charAt(0).toUpperCase()
               )}
             </div>
             <div>

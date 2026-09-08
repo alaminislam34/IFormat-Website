@@ -51,6 +51,12 @@ export function JobDetailsSheet({
     setMounted(true);
   }, []);
 
+  // Must run on every render (before any early return). Opening a job used to
+  // add this hook after `if (!job) return null` and crash the job portal.
+  const { data: fetchedApplicants, isLoading: isLoadingApplicants } = useJobApplicants(
+    isOpen && isEmployerOrAdmin ? job?.id : null
+  );
+
   if (!mounted || !job) return null;
 
   const handleDeleteJob = async () => {
@@ -74,11 +80,6 @@ export function JobDetailsSheet({
   };
 
   const appliedState = isApplied || hasAppliedLocally;
-
-  // Real-time applicants fetching for employers/admins
-  const { data: fetchedApplicants, isLoading: isLoadingApplicants } = useJobApplicants(
-    isOpen && isEmployerOrAdmin ? job.id : null
-  );
 
   const realApplicants = (Array.isArray(fetchedApplicants)
     ? fetchedApplicants
