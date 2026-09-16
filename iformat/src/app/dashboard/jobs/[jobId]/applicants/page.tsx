@@ -55,13 +55,24 @@ export default function JobApplicantsPage() {
     }
   }, [jobId]);
 
+  const isEmployerOrAdmin =
+    user?.role === "employer" ||
+    user?.role === "EMPLOYER" ||
+    user?.role === "admin" ||
+    user?.role === "ADMIN";
+
   React.useEffect(() => {
     if (!isAuthenticated) {
       router.push(`/login?redirect=${encodeURIComponent(`/dashboard/jobs/${jobId}/applicants`)}`);
       return;
     }
+    if (!isEmployerOrAdmin) {
+      toast.error("Applicant management is restricted to employers and hiring managers.");
+      router.replace("/dashboard");
+      return;
+    }
     loadData();
-  }, [isAuthenticated, jobId, loadData, router]);
+  }, [isAuthenticated, isEmployerOrAdmin, jobId, loadData, router]);
 
   const handleRerunScreening = async (applicationId: string, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
@@ -132,8 +143,8 @@ export default function JobApplicantsPage() {
   });
 
   return (
-    <section className="min-h-screen bg-slate-950 text-slate-100 pt-24 pb-16">
-      <div className="w-11/12 mx-auto space-y-8">
+    <section className="min-h-screen bg-slate-950 text-slate-100 py-8 p-6 relative selection:bg-sky-100 selection:text-sky-900">
+      <div className="space-y-8 relative z-10">
         <ApplicantsHeader
           job={job}
           userCompanyName={user?.companyName}
@@ -170,9 +181,31 @@ export default function JobApplicantsPage() {
         />
 
         {loading ? (
-          <div className="py-24 flex flex-col items-center justify-center space-y-3 bg-slate-900/40 rounded-3xl border border-slate-800">
-            <Loader2 className="w-8 h-8 text-indigo-500 animate-spin" />
-            <p className="text-xs text-slate-400 font-medium">Fetching candidate applications & AI evaluation reports...</p>
+          <div className="space-y-4 animate-pulse">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div
+                key={i}
+                className="bg-slate-900/60 border border-slate-800/80 rounded-3xl p-5 sm:p-6 flex flex-col lg:flex-row lg:items-center justify-between gap-6"
+              >
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-2xl bg-slate-800 shrink-0" />
+                  <div className="space-y-2.5">
+                    <div className="flex items-center gap-3">
+                      <div className="h-5 w-36 bg-slate-800 rounded-md" />
+                      <div className="h-5 w-20 bg-slate-800/60 rounded-full" />
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <div className="h-3.5 w-48 bg-slate-800/70 rounded-md" />
+                      <div className="h-3.5 w-28 bg-slate-800/50 rounded-md" />
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 pt-3 lg:pt-0 border-t lg:border-t-0 border-slate-800/60">
+                  <div className="h-9 w-28 bg-slate-800 rounded-xl" />
+                  <div className="h-9 w-24 bg-slate-800/60 rounded-xl" />
+                </div>
+              </div>
+            ))}
           </div>
         ) : filteredApplicants.length === 0 ? (
           <div className="py-20 text-center space-y-4 bg-slate-900/30 rounded-3xl border border-slate-800/80 p-8">

@@ -50,6 +50,8 @@ export function ApplyModal({ job, isOpen, onClose, onApplied }: ApplyModalProps)
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [isUploadingFile, setIsUploadingFile] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [fileError, setFileError] = useState<string>("");
+  const [resumeError, setResumeError] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -124,13 +126,18 @@ export function ApplyModal({ job, isOpen, onClose, onApplied }: ApplyModalProps)
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > 10 * 1024 * 1024) {
-        toast.error("File size cannot exceed 10MB.");
+        // Show inline in the dropzone, not a toast
+        setFileError("File size cannot exceed 10MB. Please choose a smaller file.");
+        e.target.value = "";
         return;
       }
       if (!file.name.toLowerCase().endsWith(".pdf") && file.type !== "application/pdf") {
-        toast.error("Please upload a PDF resume.");
+        setFileError("Only PDF resumes are accepted. Please upload a .pdf file.");
+        e.target.value = "";
         return;
       }
+      setFileError("");
+      setResumeError("");
       setUploadedFile(file);
     }
   };
@@ -157,7 +164,8 @@ export function ApplyModal({ job, isOpen, onClose, onApplied }: ApplyModalProps)
 
     if (resumeMode === "upload") {
       if (!uploadedFile) {
-        toast.error("Please upload a PDF resume so we can score your actual profile.");
+        // Show inline in the resume section, not a toast
+        setResumeError("Please upload a PDF resume so we can score your actual profile.");
         return;
       }
 
@@ -170,14 +178,15 @@ export function ApplyModal({ job, isOpen, onClose, onApplied }: ApplyModalProps)
         finalCvId = uploadRes.id;
         refetchCVs();
       } catch (err: any) {
-        toast.error(err?.message || "Failed to read your resume. Please upload a text-based PDF.");
+        // Upload failure is an async server error — inline banner
+        setResumeError(err?.message || "Failed to read your resume. Please upload a text-based PDF.");
         setIsUploadingFile(false);
         return;
       } finally {
         setIsUploadingFile(false);
       }
     } else if (!finalCvId) {
-      toast.error("Please attach a saved resume or upload a PDF.");
+      setResumeError("Please attach a saved resume or upload a PDF.");
       if (!userCVs || userCVs.length === 0) {
         setResumeMode("upload");
       }
@@ -185,7 +194,7 @@ export function ApplyModal({ job, isOpen, onClose, onApplied }: ApplyModalProps)
     }
 
     if (!finalCvId) {
-      toast.error("A readable resume is required before we can submit your application.");
+      setResumeError("A readable resume is required before we can submit your application.");
       return;
     }
 
@@ -247,15 +256,17 @@ export function ApplyModal({ job, isOpen, onClose, onApplied }: ApplyModalProps)
                 {/* Resume Selector */}
                 <ApplyResumeSelector
                   resumeMode={resumeMode}
-                  setResumeMode={setResumeMode}
+                  setResumeMode={(mode) => { setResumeMode(mode); setResumeError(""); setFileError(""); }}
                   userCVs={userCVs || []}
                   loadingCVs={loadingCVs}
                   selectedCvId={selectedCvId}
-                  setSelectedCvId={setSelectedCvId}
+                  setSelectedCvId={(id) => { setSelectedCvId(id); setResumeError(""); }}
                   uploadedFile={uploadedFile}
                   fileInputRef={fileInputRef}
                   onFileChange={handleFileChange}
-                  onRemoveFile={() => setUploadedFile(null)}
+                  onRemoveFile={() => { setUploadedFile(null); setFileError(""); }}
+                  fileError={fileError}
+                  resumeError={resumeError}
                 />
 
                 {/* Cover Note Field with AI Generator */}

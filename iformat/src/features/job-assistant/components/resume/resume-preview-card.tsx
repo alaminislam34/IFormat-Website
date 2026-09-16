@@ -55,7 +55,7 @@ export function ResumePreviewCard({
       className="space-y-8"
     >
       {/* Preview Actions bar */}
-      <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-slate-50 border border-slate-200/60 rounded-2xl">
+      <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-slate-50 border border-slate-200/60 rounded-2xl print:hidden no-print">
         <button
           onClick={onEdit}
           className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
@@ -98,10 +98,13 @@ export function ResumePreviewCard({
       </div>
 
       {/* Print area / CV Template */}
-      <div className="border border-slate-200/80 rounded-2xl overflow-hidden shadow-inner bg-slate-100/50 p-4 md:p-8 flex justify-center">
-        <div className="bg-white w-full max-w-200 shadow-lg rounded-xl border border-slate-200 p-8 md:p-12 space-y-8 text-slate-800 text-left font-sans select-text print:shadow-none print:border-none print:p-0">
+      <div className="border border-slate-200/80 rounded-2xl overflow-hidden shadow-inner bg-slate-100/50 p-4 md:p-8 flex justify-center print:border-none print:shadow-none print:p-0 print:m-0 print:bg-transparent print:block print:overflow-visible">
+        <div
+          id="printable-resume"
+          className="bg-white w-full max-w-200 shadow-lg rounded-xl border border-slate-200 p-8 md:p-12 space-y-8 text-slate-800 text-left font-sans select-text print:shadow-none print:border-none print:m-0 print:max-w-none print:w-full print:rounded-none"
+        >
           {/* Header */}
-          <div className="border-b-2 border-slate-100 pb-6 space-y-3">
+          <div className="border-b-2 border-slate-100 pb-6 space-y-3 print-break-inside-avoid">
             <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">{data.fullName || "Your Full Name"}</h1>
             <h2 className="text-lg font-bold text-[#0A54B1]">{data.jobTitle || "Job Title"}</h2>
 
@@ -149,7 +152,7 @@ export function ResumePreviewCard({
               <h3 className="text-sm font-bold text-slate-900 uppercase tracking-widest border-b border-slate-100 pb-1">Professional Experience</h3>
               <div className="space-y-6">
                 {data.workExperience.map((work) => (
-                  <div key={work.id} className="space-y-2">
+                  <div key={work.id} className="space-y-2 print-break-inside-avoid">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-sm font-bold">
                       <span className="text-slate-800 font-extrabold">{work.role || "Job Role"}</span>
                       <span className="text-slate-500 font-semibold text-xs">{work.duration}</span>
@@ -179,7 +182,7 @@ export function ResumePreviewCard({
               <h3 className="text-sm font-bold text-slate-900 uppercase tracking-widest border-b border-slate-100 pb-1">Education</h3>
               <div className="space-y-4">
                 {data.education.map((edu) => (
-                  <div key={edu.id} className="space-y-1">
+                  <div key={edu.id} className="space-y-1 print-break-inside-avoid">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-sm font-bold">
                       <span className="text-slate-800 font-extrabold">{edu.degree || "Degree"}</span>
                       <span className="text-slate-500 font-semibold text-xs">{edu.duration}</span>

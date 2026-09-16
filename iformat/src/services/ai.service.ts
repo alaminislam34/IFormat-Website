@@ -12,6 +12,8 @@ import {
   ProductRecommenderResponseDTO,
   CareerChatRequest,
   CareerChatResponseDTO,
+  AnalyzeJobFitRequest,
+  JobFitAnalysisDTO,
 } from "@/types/api";
 
 export const aiService = {
@@ -86,6 +88,14 @@ export const aiService = {
    */
   async queryCareerAdvisor(payload: CareerChatRequest): Promise<CareerChatResponseDTO> {
     const res = await apiClient.post<CareerChatResponseDTO>("/ai/chat", payload);
+    return res;
+  },
+
+  /**
+   * Candidate: Analyze fit between candidate's CV and a target job
+   */
+  async analyzeJobFit(payload: AnalyzeJobFitRequest): Promise<JobFitAnalysisDTO> {
+    const res = await apiClient.post<JobFitAnalysisDTO>("/ai/analyze-job", payload);
     return res;
   },
 };

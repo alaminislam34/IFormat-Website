@@ -26,7 +26,7 @@ export function CloudCvToolbar({
   onSaveToCloud,
 }: CloudCvToolbarProps) {
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 mb-6 p-4 bg-slate-900 text-white rounded-2xl border border-slate-800 shadow-md">
+    <div className="flex flex-wrap items-center justify-between gap-3 mb-6 p-4 bg-slate-900 text-white rounded-2xl border border-slate-800 shadow-md print:hidden no-print">
       <div className="flex items-center gap-3">
         <div className="p-2.5 bg-blue-600/20 text-blue-400 rounded-xl border border-blue-500/20">
           <Cloud className="w-5 h-5" />

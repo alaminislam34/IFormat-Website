@@ -2,8 +2,8 @@ import React from "react";
 
 export default function DashboardLoading() {
   return (
-    <div className="text-slate-900 py-8 px-4 sm:px-6 lg:px-8 animate-in fade-in-50 duration-300">
-      <div className="max-w-7xl w-11/12 mx-auto space-y-8">
+    <div className="text-slate-900 py-8 p-6 relative selection:bg-sky-100 selection:text-sky-900 animate-in fade-in-50 duration-300">
+      <div className="space-y-8 relative z-10">
         {/* Welcome Header Skeleton */}
         <div className="relative overflow-hidden rounded-3xl bg-white border border-slate-200/80 p-6 sm:p-8 shadow-xs">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">

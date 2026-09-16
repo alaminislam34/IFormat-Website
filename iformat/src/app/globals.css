@@ -92,3 +92,65 @@ body {
 .glass-effect {
   @apply bg-white/20 backdrop-blur-md border border-white/30 shadow-xl;
 }
+
+/* Dedicated Print Styles for Resumes & Documents */
+@media print {
+  @page {
+    size: auto;
+    /* margin: 0 removes browser default headers (URL, title) and footers (date, page number) */
+    margin: 0;
+  }
+
+  html,
+  body {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    overflow: visible !important;
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Universal print hide for website chrome */
+  header,
+  footer,
+  nav,
+  aside,
+  button,
+  .no-print,
+  [data-print-hide="true"],
+  [data-sonner-toaster],
+  .sonner-toaster {
+    display: none !important;
+  }
+
+  /* Reset layout containers on print */
+  main {
+    padding: 0 !important;
+    margin: 0 !important;
+    min-height: auto !important;
+    background: transparent !important;
+    display: block !important;
+  }
+
+  /* Printable resume container takes full width with clean document padding */
+  #printable-resume {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 16mm 20mm !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
+    box-shadow: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+  }
+
+  /* Avoid awkward page break inside resume items */
+  .print-break-inside-avoid {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+}

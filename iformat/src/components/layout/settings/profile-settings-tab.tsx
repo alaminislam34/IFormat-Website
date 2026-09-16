@@ -13,6 +13,8 @@ interface ProfileSettingsTabProps {
   setPhone: (phone: string) => void;
   isSaving: boolean;
   onSubmit: (e: React.FormEvent) => void;
+  nameError?: string;
+  serverError?: string;
 }
 
 export function ProfileSettingsTab({
@@ -23,6 +25,8 @@ export function ProfileSettingsTab({
   setPhone,
   isSaving,
   onSubmit,
+  nameError,
+  serverError,
 }: ProfileSettingsTabProps) {
   const roleLabel =
     user.role === "admin" || user.role === "ADMIN"
@@ -48,6 +52,14 @@ export function ProfileSettingsTab({
         )}
       </div>
 
+      {/* Server-side error banner */}
+      {serverError && (
+        <div className="flex items-start gap-2 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold" role="alert">
+          <User className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+          {serverError}
+        </div>
+      )}
+
       {/* Full Name */}
       <div>
         <label className="block text-xs font-bold text-slate-700 mb-1.5">
@@ -57,13 +69,20 @@ export function ProfileSettingsTab({
           <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
-            required
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Your full name"
-            className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 text-sm font-medium focus:outline-hidden focus:ring-2 focus:ring-[#0A54B1]/20 focus:border-[#0A54B1] transition-all"
+            aria-invalid={!!nameError}
+            className={`w-full pl-10 pr-3.5 py-2.5 rounded-xl border bg-slate-50/50 text-slate-900 text-sm font-medium focus:outline-hidden focus:ring-2 focus:ring-[#0A54B1]/20 focus:border-[#0A54B1] transition-all ${
+              nameError ? "border-rose-400 bg-rose-50/30" : "border-slate-200"
+            }`}
           />
         </div>
+        {nameError && (
+          <p className="mt-1 text-[11px] font-semibold text-rose-600 flex items-center gap-1" role="alert">
+            <span>⚠</span> {nameError}
+          </p>
+        )}
       </div>
 
       {/* Email Address (Readonly) */}

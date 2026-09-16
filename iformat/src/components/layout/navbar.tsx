@@ -1,25 +1,26 @@
 "use client";
 
-import React, { useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { UserMenu } from "@/components/layout/user-menu";
 import { BrandLogo } from "@/components/ui/brand-logo";
-import { useScrollDirection } from "@/hooks/use-scroll-direction";
 import { BookConsultationModal } from "@/features/services/components/book-consultation-modal";
+import { useAuthStore } from "@/stores/use-auth-store";
+import { useScrollDirection } from "@/hooks/use-scroll-direction";
 
 export function Navbar() {
+  const { user, isAuthenticated } = useAuthStore();
+  const isEmployer = isAuthenticated && (user?.role === "employer" || user?.role === "EMPLOYER");
   const { scrollDirection, isAtTop } = useScrollDirection(8);
   const pathname = usePathname();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isConsultModalOpen, setIsConsultModalOpen] = useState(false);
   const isHomePage = pathname === "/";
 
-  // Hide on scroll DOWN when not at top; show on scroll UP or when at top
   const isHidden = !isAtTop && scrollDirection === "down" && !isMobileOpen;
-  // Frosted white glass styling when scrolled past hero / top
   const isScrolled = !isAtTop;
 
   return (
@@ -31,7 +32,7 @@ export function Navbar() {
       />
 
       <header
-        className={`fixed top-0 left-0 right-0 z-50 will-change-transform transition-all duration-200 ease-out ${
+        className={`fixed top-0 left-0 right-0 z-50 will-change-transform transition-all duration-200 ease-out print:hidden no-print ${
           isHidden
             ? "-translate-y-full opacity-0 pointer-events-none"
             : "translate-y-0 opacity-100"
@@ -44,10 +45,8 @@ export function Navbar() {
         }`}
       >
         <div className="max-w-350 mx-auto px-8 md:px-12 lg:px-16 flex items-center justify-between w-full">
-          {/* Brand Logo */}
           <BrandLogo variant={!isScrolled && isHomePage ? "dark" : "light"} />
           
-          {/* Desktop Nav Links */}
           <div
             className={`hidden md:flex items-center gap-8 text-sm font-semibold transition-colors ${
               !isScrolled && isHomePage
@@ -61,9 +60,11 @@ export function Navbar() {
             <Link href="/services" className="hover:text-[#0A54B1] transition-colors">
               Solutions
             </Link>
-            <Link href="/job-assistant" className="hover:text-[#0A54B1] transition-colors">
-              Job Assistant
-            </Link>
+            {!isEmployer && (
+              <Link href="/job-assistant" className="hover:text-[#0A54B1] transition-colors">
+                Job Assistant
+              </Link>
+            ) }
             <Link href="/job-portal" className="hover:text-[#0A54B1] transition-colors">
               Job Portal
             </Link>
@@ -117,13 +118,23 @@ export function Navbar() {
                 >
                   Solutions
                 </Link>
-                <Link
-                  href="/job-assistant"
-                  onClick={() => setIsMobileOpen(false)}
-                  className="py-2.5 hover:text-[#0A54B1] transition-colors border-b border-slate-100"
-                >
-                  Job Assistant
-                </Link>
+                {isEmployer ? (
+                  <Link
+                    href="/dashboard"
+                    onClick={() => setIsMobileOpen(false)}
+                    className="py-2.5 hover:text-[#0A54B1] transition-colors border-b border-slate-100"
+                  >
+                    Employer Hub
+                  </Link>
+                ) : (
+                  <Link
+                    href="/job-assistant"
+                    onClick={() => setIsMobileOpen(false)}
+                    className="py-2.5 hover:text-[#0A54B1] transition-colors border-b border-slate-100"
+                  >
+                    Job Assistant
+                  </Link>
+                )}
                 <Link
                   href="/job-portal"
                   onClick={() => setIsMobileOpen(false)}

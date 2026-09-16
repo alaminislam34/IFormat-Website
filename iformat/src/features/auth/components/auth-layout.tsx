@@ -13,27 +13,23 @@ interface AuthLayoutProps {
 
 export function AuthLayout({ children, illustrationType }: AuthLayoutProps) {
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-white px-4 py-8 md:p-12 lg:p-16 overflow-x-hidden">
+    <div className="min-h-screen w-full flex items-center justify-center bg-white px-4 py-8 md:p-12 lg:p-16">
       <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
-        {/* Left Side: Form Card */}
         <motion.div
           initial={{ opacity: 0, x: -30 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
-          className="lg:col-span-6 xl:col-span-5 w-full flex justify-center lg:justify-end"
+          className="lg:col-span-6 xl:col-span-5 w-full flex justify-center "
         >
-          <div className="w-full max-w-115 bg-white rounded-3xl border border-slate-100 shadow-xl shadow-slate-200/50 p-8 sm:p-10 pb-10 sm:pb-12 relative overflow-hidden">
-            {/* Logo */}
-            <div className="mb-8">
+          <div className="w-full max-w-115 bg-white rounded-3xl border border-slate-100 shadow-xl shadow-slate-200/50 p-8 sm:p-10 pb-10 sm:pb-12 relative ">
+            <div className="">
               <BrandLogo size="lg" />
             </div>
 
-            {/* Form Content */}
             {children}
           </div>
         </motion.div>
 
-        {/* Right Side: Illustration */}
         <motion.div
           initial={{ opacity: 0, x: 30 }}
           animate={{ opacity: 1, x: 0 }}

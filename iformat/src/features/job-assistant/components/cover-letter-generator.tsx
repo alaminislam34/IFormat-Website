@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { Sparkles, Copy, FileText, Download, RotateCw, Check, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -10,22 +11,40 @@ import { useAuthStore } from "@/stores/use-auth-store";
 import { AuthPromptModal } from "@/components/auth/auth-prompt-modal";
 import { UpgradeModal } from "@/components/ui/upgrade-modal";
 import { BookConsultationModal } from "@/features/services/components/book-consultation-modal";
+import { coverLetterInputSchema } from "@/lib/validations";
 
 type CoverLetterTone = "Professional" | "Enthusiastic" | "Confident" | "Concise";
 
 export function CoverLetterGenerator() {
   const { isAuthenticated } = useAuthStore();
+  const searchParams = useSearchParams();
+  const paramRole = searchParams.get("role");
+  const paramCompany = searchParams.get("company");
+
   const [isConsultModalOpen, setIsConsultModalOpen] = React.useState(false);
-  const [jobTitle, setJobTitle] = React.useState("Senior Full Stack Developer");
-  const [companyName, setCompanyName] = React.useState("Vercel Inc");
+  const [jobTitle, setJobTitle] = React.useState(paramRole || "Senior Full Stack Developer");
+  const [companyName, setCompanyName] = React.useState(paramCompany || "Vercel Inc");
   const [recipient, setRecipient] = React.useState("Hiring Team");
   const [tone, setTone] = React.useState<CoverLetterTone>("Professional");
   const [jobDesc, setJobDesc] = React.useState(
-    "We are looking for a Senior Full Stack Developer to build the future of developer tools. Experience with Next.js, React, Node.js, and edge environments is preferred. You should be passionate about developer experience, speed, and clean code."
+    paramRole && paramCompany
+      ? `Tailor my application for the ${paramRole} role at ${paramCompany}. Focus on leadership, technical impact, problem-solving, and culture match.`
+      : "We are looking for a Senior Full Stack Developer to build the future of developer tools. Experience with Next.js, React, Node.js, and edge environments is preferred. You should be passionate about developer experience, speed, and clean code."
   );
+
+  React.useEffect(() => {
+    if (paramRole) setJobTitle(paramRole);
+    if (paramCompany) setCompanyName(paramCompany);
+    if (paramRole && paramCompany) {
+      setJobDesc(
+        `Tailor my application for the ${paramRole} role at ${paramCompany}. Focus on leadership, technical impact, problem-solving, and culture match.`
+      );
+    }
+  }, [paramRole, paramCompany]);
   
   const [generatedLetter, setGeneratedLetter] = React.useState("");
   const [copied, setCopied] = React.useState(false);
+  const [errors, setErrors] = React.useState<Record<string, string>>({});
   const [showAuthModal, setShowAuthModal] = React.useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = React.useState(false);
 
@@ -52,6 +71,31 @@ alex.morgan@example.com | linkedin.com/in/alexmorgan`;
   };
 
   const handleGenerate = () => {
+    // 1. Validate inputs with Zod
+    const validation = coverLetterInputSchema.safeParse({
+      role: jobTitle,
+      company: companyName,
+      recipient: recipient || "Hiring Manager",
+      jobDescription: jobDesc,
+      tone: tone.toLowerCase(),
+    });
+
+    if (!validation.success) {
+      const fieldErrors: Record<string, string> = {};
+      validation.error.issues.forEach((err) => {
+        const key = err.path[0] as string;
+        if (key && !fieldErrors[key]) {
+          fieldErrors[key] = err.message;
+        }
+      });
+      setErrors(fieldErrors);
+      toast.error("Please fill in all required job details");
+      return;
+    }
+
+    setErrors({});
+
+    // 2. Protect AI generation from unauthenticated access
     if (!isAuthenticated) {
       setShowAuthModal(true);
       return;
@@ -59,10 +103,10 @@ alex.morgan@example.com | linkedin.com/in/alexmorgan`;
 
     generateMutation.mutate(
       {
-        role: jobTitle,
-        company: companyName,
-        recipient: recipient || "Hiring Manager",
-        jobDescription: jobDesc,
+        role: jobTitle.trim(),
+        company: companyName.trim(),
+        recipient: recipient.trim() || "Hiring Manager",
+        jobDescription: jobDesc.trim(),
         tone: tone.toLowerCase(),
       },
       {
@@ -134,29 +178,53 @@ alex.morgan@example.com | linkedin.com/in/alexmorgan`;
           </div>
 
           <div className="space-y-4">
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Job Title</label>
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                Job Title <span className="text-rose-500">*</span>
+              </label>
               <input
                 type="text"
                 value={jobTitle}
-                onChange={(e) => setJobTitle(e.target.value)}
+                onChange={(e) => {
+                  setJobTitle(e.target.value);
+                  if (errors.role) setErrors((prev) => { const n = { ...prev }; delete n.role; return n; });
+                }}
                 placeholder="e.g. Senior Product Designer"
-                className="w-full h-12 px-4 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0A54B1]/20 focus:border-[#0A54B1] focus:bg-white transition-all text-sm font-medium"
+                className={`w-full h-12 px-4 rounded-xl border transition-all text-sm font-medium focus:outline-none focus:ring-2 ${
+                  errors?.role
+                    ? "border-rose-400 bg-rose-50/20 text-rose-900 focus:ring-rose-500/20 focus:border-rose-500"
+                    : "border-slate-200 bg-slate-50/50 text-slate-800 focus:ring-[#0A54B1]/20 focus:border-[#0A54B1] focus:bg-white"
+                }`}
               />
+              {errors?.role && (
+                <p className="text-[11px] font-medium text-rose-500">{errors.role}</p>
+              )}
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Company Name</label>
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                  Company Name <span className="text-rose-500">*</span>
+                </label>
                 <input
                   type="text"
                   value={companyName}
-                  onChange={(e) => setCompanyName(e.target.value)}
+                  onChange={(e) => {
+                    setCompanyName(e.target.value);
+                    if (errors.company) setErrors((prev) => { const n = { ...prev }; delete n.company; return n; });
+                  }}
                   placeholder="e.g. Vercel Inc"
-                  className="w-full h-12 px-4 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0A54B1]/20 focus:border-[#0A54B1] focus:bg-white transition-all text-sm font-medium"
+                  className={`w-full h-12 px-4 rounded-xl border transition-all text-sm font-medium focus:outline-none focus:ring-2 ${
+                    errors?.company
+                      ? "border-rose-400 bg-rose-50/20 text-rose-900 focus:ring-rose-500/20 focus:border-rose-500"
+                      : "border-slate-200 bg-slate-50/50 text-slate-800 focus:ring-[#0A54B1]/20 focus:border-[#0A54B1] focus:bg-white"
+                  }`}
                 />
+                {errors?.company && (
+                  <p className="text-[11px] font-medium text-rose-500">{errors.company}</p>
+                )}
               </div>
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Recipient (Optional)</label>
                 <input
                   type="text"

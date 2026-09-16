@@ -47,9 +47,46 @@ export function JobDetailsApplicants({
 
   if (isLoading) {
     return (
-      <div className="text-center py-16 space-y-3">
-        <Loader2 className="w-8 h-8 animate-spin text-[#0A54B1] mx-auto" />
-        <p className="text-xs text-slate-500 font-medium">Loading candidate applications...</p>
+      <div className="space-y-6 animate-pulse">
+        <div className="grid grid-cols-2 gap-4">
+          <div className="bg-slate-50/80 border border-slate-100 rounded-2xl p-4 flex flex-col items-center justify-center space-y-2 h-20">
+            <div className="h-6 w-12 bg-slate-200/80 rounded-md" />
+            <div className="h-3 w-20 bg-slate-200/60 rounded-md" />
+          </div>
+          <div className="bg-sky-50/40 border border-sky-100/60 rounded-2xl p-4 flex flex-col items-center justify-center space-y-2 h-20">
+            <div className="h-5 w-5 bg-sky-200/60 rounded-full" />
+            <div className="h-3 w-24 bg-sky-200/60 rounded-md" />
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          <div className="flex items-center justify-between mb-2">
+            <div className="h-3.5 w-24 bg-slate-200/70 rounded-md" />
+            <div className="h-3.5 w-32 bg-slate-200/50 rounded-md" />
+          </div>
+
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div
+              key={i}
+              className="flex items-center justify-between p-4 bg-white border border-slate-100 rounded-2xl shadow-xs"
+            >
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-10 h-10 rounded-full bg-slate-200/70 shrink-0" />
+                <div className="space-y-2 min-w-0">
+                  <div className="h-4 w-32 bg-slate-200/80 rounded-md" />
+                  <div className="h-3 w-44 bg-slate-200/50 rounded-md" />
+                  <div className="flex items-center gap-2 pt-0.5">
+                    <div className="h-3 w-16 bg-slate-100 rounded-full" />
+                    <div className="h-3.5 w-14 bg-slate-100 rounded-md" />
+                    <div className="h-3.5 w-20 bg-sky-100/60 rounded-md" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="h-8 w-24 bg-slate-100 rounded-xl shrink-0 ml-2" />
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
@@ -70,7 +107,6 @@ export function JobDetailsApplicants({
 
   return (
     <div className="space-y-6">
-      {/* Summary Box */}
       <div className="grid grid-cols-2 gap-4">
         <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 text-center">
           <span className="block text-2xl font-extrabold text-slate-800">
@@ -159,13 +195,19 @@ export function JobDetailsApplicants({
                   {candidateEmail && (
                     <p className="text-xs text-slate-400 truncate">{candidateEmail}</p>
                   )}
-                  <div className="flex items-center gap-2 mt-1">
+                  <div className="flex items-center gap-2 mt-1 flex-wrap">
                     <span className="text-[10px] text-slate-400 font-medium">
                       Applied {applicant.date || (applicant.createdAt ? new Date(applicant.createdAt).toLocaleDateString() : "Recently")}
                     </span>
                     <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-600">
                       {status}
                     </span>
+                    {applicant.screeningResult?.score != null && (
+                      <span className="px-1.5 py-0.5 rounded text-[10px] font-extrabold bg-indigo-50 text-indigo-600 border border-indigo-100 flex items-center gap-1">
+                        <Sparkles className="w-2.5 h-2.5 text-indigo-500" />
+                        {applicant.screeningResult.score}% Match
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>

@@ -8,11 +8,12 @@ import { ResumeData } from "../../types/resume.types";
 
 interface StepPersonalInfoProps {
   data: ResumeData;
+  errors?: Record<string, string>;
   onChange: <K extends keyof ResumeData>(field: K, value: ResumeData[K]) => void;
   onNext: () => void;
 }
 
-export function StepPersonalInfo({ data, onChange, onNext }: StepPersonalInfoProps) {
+export function StepPersonalInfo({ data, errors = {}, onChange, onNext }: StepPersonalInfoProps) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -29,47 +30,83 @@ export function StepPersonalInfo({ data, onChange, onNext }: StepPersonalInfoPro
       </div>
 
       <div className="grid md:grid-cols-2 gap-6">
-        <div className="space-y-2">
-          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Full Name</label>
+        <div className="space-y-1.5">
+          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+            Full Name <span className="text-rose-500">*</span>
+          </label>
           <input
             type="text"
             value={data?.fullName ?? ""}
             onChange={(e) => onChange("fullName", e.target.value)}
             placeholder="e.g. MD Sifat Islam"
-            className="w-full h-12 px-4 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0A54B1]/20 focus:border-[#0A54B1] focus:bg-white transition-all text-sm font-medium"
+            className={`w-full h-12 px-4 rounded-xl border transition-all text-sm font-medium focus:outline-none focus:ring-2 ${
+              errors?.fullName
+                ? "border-rose-400 bg-rose-50/20 text-rose-900 focus:ring-rose-500/20 focus:border-rose-500"
+                : "border-slate-200 bg-slate-50/50 text-slate-800 focus:ring-[#0A54B1]/20 focus:border-[#0A54B1] focus:bg-white"
+            }`}
           />
+          {errors?.fullName && (
+            <p className="text-[11px] font-medium text-rose-500">{errors.fullName}</p>
+          )}
         </div>
-        <div className="space-y-2">
-          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Job Title</label>
+        <div className="space-y-1.5">
+          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+            Job Title <span className="text-rose-500">*</span>
+          </label>
           <input
             type="text"
             value={data?.jobTitle ?? ""}
             onChange={(e) => onChange("jobTitle", e.target.value)}
             placeholder="e.g. Senior Full Stack Developer"
-            className="w-full h-12 px-4 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0A54B1]/20 focus:border-[#0A54B1] focus:bg-white transition-all text-sm font-medium"
+            className={`w-full h-12 px-4 rounded-xl border transition-all text-sm font-medium focus:outline-none focus:ring-2 ${
+              errors?.jobTitle
+                ? "border-rose-400 bg-rose-50/20 text-rose-900 focus:ring-rose-500/20 focus:border-rose-500"
+                : "border-slate-200 bg-slate-50/50 text-slate-800 focus:ring-[#0A54B1]/20 focus:border-[#0A54B1] focus:bg-white"
+            }`}
           />
+          {errors?.jobTitle && (
+            <p className="text-[11px] font-medium text-rose-500">{errors.jobTitle}</p>
+          )}
         </div>
-        <div className="space-y-2">
-          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Email Address</label>
+        <div className="space-y-1.5">
+          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+            Email Address <span className="text-rose-500">*</span>
+          </label>
           <input
             type="email"
             value={data?.email ?? ""}
             onChange={(e) => onChange("email", e.target.value)}
             placeholder="e.g. sifat70640@gmail.com"
-            className="w-full h-12 px-4 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0A54B1]/20 focus:border-[#0A54B1] focus:bg-white transition-all text-sm font-medium"
+            className={`w-full h-12 px-4 rounded-xl border transition-all text-sm font-medium focus:outline-none focus:ring-2 ${
+              errors?.email
+                ? "border-rose-400 bg-rose-50/20 text-rose-900 focus:ring-rose-500/20 focus:border-rose-500"
+                : "border-slate-200 bg-slate-50/50 text-slate-800 focus:ring-[#0A54B1]/20 focus:border-[#0A54B1] focus:bg-white"
+            }`}
           />
+          {errors?.email && (
+            <p className="text-[11px] font-medium text-rose-500">{errors.email}</p>
+          )}
         </div>
-        <div className="space-y-2">
-          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Phone Number</label>
+        <div className="space-y-1.5">
+          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+            Phone Number <span className="text-rose-500">*</span>
+          </label>
           <input
             type="text"
             value={data?.phone ?? ""}
             onChange={(e) => onChange("phone", e.target.value)}
             placeholder="e.g. +33 6 12 34 56 78"
-            className="w-full h-12 px-4 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0A54B1]/20 focus:border-[#0A54B1] focus:bg-white transition-all text-sm font-medium"
+            className={`w-full h-12 px-4 rounded-xl border transition-all text-sm font-medium focus:outline-none focus:ring-2 ${
+              errors?.phone
+                ? "border-rose-400 bg-rose-50/20 text-rose-900 focus:ring-rose-500/20 focus:border-rose-500"
+                : "border-slate-200 bg-slate-50/50 text-slate-800 focus:ring-[#0A54B1]/20 focus:border-[#0A54B1] focus:bg-white"
+            }`}
           />
+          {errors?.phone && (
+            <p className="text-[11px] font-medium text-rose-500">{errors.phone}</p>
+          )}
         </div>
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Location</label>
           <input
             type="text"
@@ -79,7 +116,7 @@ export function StepPersonalInfo({ data, onChange, onNext }: StepPersonalInfoPro
             className="w-full h-12 px-4 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0A54B1]/20 focus:border-[#0A54B1] focus:bg-white transition-all text-sm font-medium"
           />
         </div>
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">LinkedIn URL</label>
           <input
             type="text"
@@ -89,7 +126,7 @@ export function StepPersonalInfo({ data, onChange, onNext }: StepPersonalInfoPro
             className="w-full h-12 px-4 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0A54B1]/20 focus:border-[#0A54B1] focus:bg-white transition-all text-sm font-medium"
           />
         </div>
-        <div className="space-y-2 md:col-span-2">
+        <div className="space-y-1.5 md:col-span-2">
           <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Personal Website</label>
           <input
             type="text"

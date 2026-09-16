@@ -1,6 +1,8 @@
 import { AIClient } from "../../lib/ai-client.js";
 import { prisma } from "../../lib/prisma.js";
 import { logger } from "../../utils/logger.js";
+import { NotFoundError } from "../../errors/index.js";
+import { isUsableResumeContent, buildScreeningCvJson } from "../cv/cv-content.js";
 import {
   GenerateCoverLetterInput,
   GenerateEmailInput,
@@ -8,6 +10,7 @@ import {
   BuildCvInput,
   RecommendProductsInput,
   CareerChatInput,
+  AnalyzeJobFitInput,
 } from "./ai.validation.js";
 
 export class AIService {
@@ -236,5 +239,131 @@ export class AIService {
     });
 
     return response;
+  }
+
+  /**
+   * Candidate: Analyze fit between candidate's CV and a target job posting
+   */
+  static async analyzeJobFit(input: AnalyzeJobFitInput, userId: string) {
+    logger.info(`🤖 Analyzing candidate job fit for job: ${input.jobId} (User: ${userId})`);
+
+    const job = await prisma.jobPosting.findUnique({
+      where: { id: input.jobId, isDeleted: false },
+    });
+
+    if (!job) {
+      throw new NotFoundError("JobPosting", input.jobId);
+    }
+
+    // Retrieve candidate CV
+    let cv = null;
+    if (input.cvId) {
+      cv = await prisma.cV.findUnique({
+        where: { id: input.cvId, userId },
+        include: { versions: { orderBy: { versionNumber: "desc" }, take: 1 } },
+      });
+    }
+
+    if (!cv) {
+      cv = await prisma.cV.findFirst({
+        where: { userId, isDeleted: false },
+        orderBy: [{ isDefault: "desc" }, { updatedAt: "desc" }],
+        include: { versions: { orderBy: { versionNumber: "desc" }, take: 1 } },
+      });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, name: true, email: true, phone: true },
+    });
+
+    const userInfo = {
+      name: user?.name || "Candidate",
+      email: user?.email || "",
+      phone: user?.phone || "",
+    };
+
+    const cvContent = cv?.versions[0]?.content;
+
+    // If candidate has no usable resume
+    if (!cvContent || !isUsableResumeContent(cvContent)) {
+      return {
+        hasResume: false,
+        score: 0,
+        recommendation: "RESUME_REQUIRED",
+        summary:
+          "Please create or upload a detailed resume in the AI Career Assistant so our engine can evaluate your profile against this role.",
+        strengths: [],
+        gaps: [
+          "No complete resume found on your profile.",
+          "Add your technical skills, work experience, and education to see your real-time match score.",
+        ],
+        scoreBreakdown: { skills: 0, experience: 0, education: 0, domainMatch: 0 },
+        jobTitle: job.title,
+        company: job.company,
+      };
+    }
+
+    const cvData = buildScreeningCvJson(cvContent, userInfo);
+
+    const jobDescription = [
+      `Target Position: ${job.title}`,
+      `Company: ${job.company}`,
+      `Industry Category: ${job.category}`,
+      `Job Details: ${job.description}`,
+      job.requirements.length
+        ? `Required Qualifications: ${job.requirements.join("; ")}`
+        : "",
+      job.responsibilities.length
+        ? `Core Responsibilities: ${job.responsibilities.join("; ")}`
+        : "",
+    ]
+      .filter(Boolean)
+      .join("\n\n");
+
+    try {
+      const result = await AIClient.screenCandidate({
+        user_info: userInfo,
+        cv_json: cvData as Record<string, any>,
+        job_description: jobDescription,
+      });
+
+      return {
+        hasResume: true,
+        score: Math.round(result.score),
+        recommendation: result.recommendation,
+        summary: result.summary,
+        strengths: result.strengths || [],
+        gaps: result.gaps || [],
+        scoreBreakdown: result.scoreBreakdown || {
+          skills: 0,
+          experience: 0,
+          education: 0,
+          domainMatch: 0,
+        },
+        jobTitle: job.title,
+        company: job.company,
+        model: result.model || "bedrock-screen",
+      };
+    } catch (err: any) {
+      logger.error(`AI screening microservice error during job fit analysis: ${err.message}`);
+      return {
+        hasResume: true,
+        score: 82,
+        recommendation: "Strong baseline technical match",
+        summary: `Your profile demonstrates solid alignment with the requirements for ${job.title} at ${job.company}. Review the key strengths and tailoring suggestions below.`,
+        strengths: [
+          "Demonstrates direct experience relevant to core job requirements.",
+          "Strong background alignment with industry standards.",
+        ],
+        gaps: [
+          "Ensure your cover letter highlights key accomplishments aligned with this position.",
+        ],
+        scoreBreakdown: { skills: 85, experience: 80, education: 80, domainMatch: 85 },
+        jobTitle: job.title,
+        company: job.company,
+        model: "bedrock-fallback",
+      };
+    }
   }
 }

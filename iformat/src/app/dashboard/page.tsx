@@ -60,7 +60,7 @@ export default function UserDashboardPage() {
       setIsAddJobModalOpen(false);
       loadDashboardData();
     } catch (err: any) {
-      toast.error(err?.message || "Failed to create job posting.");
+      throw err;
     }
   };
 
@@ -97,8 +97,8 @@ export default function UserDashboardPage() {
   }, [isAuthenticated, loadDashboardData, router]);
 
   return (
-    <div className="text-slate-900 py-8 ">
-      <div className="w-11/12 mx-auto space-y-8">
+    <div className="text-slate-900 py-8 p-6 relative selection:bg-sky-100 selection:text-sky-900">
+      <div className="space-y-8 relative z-10">
         <DashboardWelcomeHeader
           userName={user?.name}
           isEmployer={isEmployer}
@@ -184,7 +184,10 @@ export default function UserDashboardPage() {
           </div>
 
           <div className="space-y-6">
-            <DashboardSidebarShortcuts />
+            <DashboardSidebarShortcuts
+              isEmployer={isEmployer}
+              onPostJobClick={() => setIsAddJobModalOpen(true)}
+            />
           </div>
         </div>
       </div>

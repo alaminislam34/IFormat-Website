@@ -41,8 +41,8 @@ export default function CandidateBookingsPage() {
   };
 
   return (
-    <div className="text-slate-900 py-8">
-      <div className="w-11/12 mx-auto space-y-8">
+    <div className="text-slate-900 py-8 p-6 relative selection:bg-sky-100 selection:text-sky-900">
+      <div className="space-y-8 relative z-10">
         <CandidateBookingsHeader
           onBookClick={() => setIsBookModalOpen(true)}
           onRefresh={handleRefresh}

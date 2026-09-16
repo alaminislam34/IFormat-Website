@@ -6,6 +6,7 @@ import { Briefcase, Search, Plus } from "lucide-react";
 interface JobPortalHeaderProps {
   searchQuery: string;
   isEmployerOrAdmin: boolean;
+  companyName?: string | null;
   onSearchChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onClearSearch: () => void;
   onPostJobClick: () => void;
@@ -14,6 +15,7 @@ interface JobPortalHeaderProps {
 export function JobPortalHeader({
   searchQuery,
   isEmployerOrAdmin,
+  companyName,
   onSearchChange,
   onClearSearch,
   onPostJobClick,
@@ -26,10 +28,14 @@ export function JobPortalHeader({
           <Briefcase className="w-6 h-6" />
         </div>
         <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 tracking-tight">
-          Find Your Dream Job
+          {isEmployerOrAdmin ? "My Jobs" : "Find Your Dream Job"}
         </h1>
         <p className="text-slate-500 font-semibold text-sm max-w-md mx-auto">
-          Explore opportunities across industries, tailored to your skills
+          {isEmployerOrAdmin
+            ? companyName
+              ? `Manage job postings and review candidate applications for ${companyName}`
+              : "Publish job openings, review candidate applications, and build your team"
+            : "Explore opportunities across industries, tailored to your skills"}
         </p>
       </div>
 

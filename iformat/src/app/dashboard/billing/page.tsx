@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Loader2 } from "lucide-react";
 import { useAuthStore } from "@/stores/use-auth-store";
 import { membershipService } from "@/services/membership.service";
 import { PlanDTO, UserSubscriptionDetailsDTO } from "@/types/api";
@@ -12,7 +11,9 @@ import { BillingHeader } from "@/features/billing/components/billing-header";
 import { ActivePlanCard } from "@/features/billing/components/active-plan-card";
 import { QuotaMeters } from "@/features/billing/components/quota-meters";
 import { PlanSwitcherGrid } from "@/features/billing/components/plan-switcher-grid";
+import { PricingComparisonTable } from "@/features/billing/components/pricing-comparison-table";
 import { CancelDialog } from "@/features/billing/components/cancel-dialog";
+import { BillingSkeleton } from "@/features/billing/components/billing-skeleton";
 
 export default function BillingDashboardPage() {
   const router = useRouter();
@@ -104,12 +105,17 @@ export default function BillingDashboardPage() {
     }
   };
 
-  const handleUpgradePlan = async (planId: string) => {
+  const handleUpgradePlan = async (planIdOrCode: string) => {
     try {
-      setActionLoading(planId);
+      setActionLoading(planIdOrCode);
+      const matched = plans.find(
+        (p) => p.id === planIdOrCode || p.code === planIdOrCode
+      );
+      const effectivePlanId = matched ? matched.id : planIdOrCode;
+
       const origin = window.location.origin;
       const session = await membershipService.createCheckoutSession({
-        planId,
+        planId: effectivePlanId,
         successUrl: `${origin}/dashboard/billing?session_id={CHECKOUT_SESSION_ID}&payment=success`,
         cancelUrl: `${origin}/dashboard/billing?payment=cancelled`,
       });
@@ -123,21 +129,12 @@ export default function BillingDashboardPage() {
   };
 
   if (loading) {
-    return (
-      <div className="py-24 flex items-center justify-center">
-        <div className="text-center space-y-3">
-          <Loader2 className="w-9 h-9 text-[#0A54B1] animate-spin mx-auto" />
-          <p className="text-xs font-extrabold text-slate-500 uppercase tracking-widest">
-            Loading Billing & Entitlements...
-          </p>
-        </div>
-      </div>
-    );
+    return <BillingSkeleton />;
   }
 
   return (
-    <div className="py-8 relative selection:bg-sky-100 selection:text-sky-900">
-      <div className=" w-11/12 space-y-10 relative z-10">
+    <div className="py-8 p-6 relative selection:bg-sky-100 selection:text-sky-900">
+      <div className="space-y-10 relative z-10">
         <ToastBanner message={toastMessage} onClose={() => setToastMessage(null)} />
 
         <BillingHeader onRefresh={handleRefresh} refreshing={refreshing} />
@@ -158,6 +155,12 @@ export default function BillingDashboardPage() {
           userRole={user?.role}
           actionLoading={actionLoading}
           onUpgradePlan={handleUpgradePlan}
+        />
+
+        <PricingComparisonTable
+          currentPlanCode={subscription?.plan?.code}
+          onUpgradePlan={handleUpgradePlan}
+          actionLoading={actionLoading}
         />
 
         <CancelDialog

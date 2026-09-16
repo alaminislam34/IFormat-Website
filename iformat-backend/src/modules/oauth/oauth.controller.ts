@@ -45,6 +45,9 @@ export class OAuthController {
       }
 
       if (user.role === Role.EMPLOYER) {
+        if (user.companyName && user.companyName.trim()) {
+          return res.redirect(`${getFrontendUrl()}/dashboard`);
+        }
         return res.redirect(`${getFrontendUrl()}/company-details`);
       }
 

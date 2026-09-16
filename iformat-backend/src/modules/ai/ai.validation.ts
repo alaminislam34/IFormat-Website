@@ -69,9 +69,15 @@ export const careerChatSchema = z.object({
   chat_history: z.array(careerChatMessageSchema).max(100).optional().nullable(),
 });
 
+export const analyzeJobFitSchema = z.object({
+  jobId: z.string().uuid("Invalid Job ID"),
+  cvId: z.string().uuid("Invalid CV ID").optional(),
+});
+
 export type GenerateCoverLetterInput = z.infer<typeof generateCoverLetterSchema>;
 export type GenerateEmailInput = z.infer<typeof generateEmailSchema>;
 export type OptimizeResumeInput = z.infer<typeof optimizeResumeSchema>;
 export type BuildCvInput = z.infer<typeof buildCvSchema>;
 export type RecommendProductsInput = z.infer<typeof recommendProductsSchema>;
 export type CareerChatInput = z.infer<typeof careerChatSchema>;
+export type AnalyzeJobFitInput = z.infer<typeof analyzeJobFitSchema>;

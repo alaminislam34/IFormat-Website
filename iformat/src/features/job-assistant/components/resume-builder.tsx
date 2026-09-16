@@ -32,6 +32,7 @@ export function ResumeBuilder() {
   const {
     step,
     setStep,
+    errors,
     data,
     isGenerating,
     copied,
@@ -48,6 +49,9 @@ export function ResumeBuilder() {
     showUpgradeModal,
     setShowUpgradeModal,
     isSaving,
+    goToNextStep,
+    goToPrevStep,
+    goToStep,
     handleSaveToCloud,
     handleLoadCV,
     handleNewResume,
@@ -94,12 +98,12 @@ export function ResumeBuilder() {
 
       {/* Steps Selector & Consult with expert button */}
       {step <= 5 && (
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4 print:hidden no-print">
           <div className="flex items-center gap-2 overflow-x-auto pb-1">
             {steps.map((s) => (
               <button
                 key={s.num}
-                onClick={() => setStep(s.num)}
+                onClick={() => goToStep(s.num)}
                 className={`px-4 py-2 rounded-full text-xs font-bold tracking-wider transition-all cursor-pointer whitespace-nowrap ${
                   step === s.num
                     ? "bg-[#0A54B1] text-white shadow-md shadow-blue-500/20"
@@ -122,7 +126,7 @@ export function ResumeBuilder() {
       )}
 
       {/* Main card */}
-      <div className="bg-white rounded-3xl border border-slate-200/80 shadow-xl shadow-slate-100/50 p-6 md:p-10 relative overflow-hidden">
+      <div className="bg-white rounded-3xl border border-slate-200/80 shadow-xl shadow-slate-100/50 p-6 md:p-10 relative overflow-hidden print:p-0 print:m-0 print:border-none print:shadow-none print:bg-transparent print:overflow-visible">
         {isGenerating ? (
           <div className="flex flex-col items-center justify-center py-20 space-y-6">
             <div className="relative w-20 h-20">
@@ -142,45 +146,50 @@ export function ResumeBuilder() {
             {step === 1 && (
               <StepPersonalInfo
                 data={data}
+                errors={errors}
                 onChange={handleInputChange}
-                onNext={() => setStep(2)}
+                onNext={goToNextStep}
               />
             )}
 
             {step === 2 && (
               <StepSummary
                 summary={data.summary}
+                errors={errors}
                 onChange={(val) => handleInputChange("summary", val)}
-                onPrev={() => setStep(1)}
-                onNext={() => setStep(3)}
+                onPrev={goToPrevStep}
+                onNext={goToNextStep}
               />
             )}
 
             {step === 3 && (
               <StepWorkExperience
                 workExperience={data.workExperience}
+                errors={errors}
                 onChange={handleWorkChange}
                 onAdd={addWork}
                 onRemove={removeWork}
-                onPrev={() => setStep(2)}
-                onNext={() => setStep(4)}
+                onPrev={goToPrevStep}
+                onNext={goToNextStep}
               />
             )}
 
             {step === 4 && (
               <StepEducation
                 education={data.education}
+                errors={errors}
                 onChange={handleEduChange}
                 onAdd={addEdu}
                 onRemove={removeEdu}
-                onPrev={() => setStep(3)}
-                onNext={() => setStep(5)}
+                onPrev={goToPrevStep}
+                onNext={goToNextStep}
               />
             )}
 
             {step === 5 && (
               <StepSkillsMore
                 data={data}
+                errors={errors}
                 onChange={handleInputChange}
                 onSkillGroupChange={handleSkillGroupChange}
                 onAddSkillGroup={addSkillGroup}
@@ -188,7 +197,7 @@ export function ResumeBuilder() {
                 onCertChange={handleCertChange}
                 onAddCert={addCert}
                 onRemoveCert={removeCert}
-                onPrev={() => setStep(4)}
+                onPrev={goToPrevStep}
                 onGenerate={handleGenerate}
               />
             )}

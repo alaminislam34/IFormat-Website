@@ -60,6 +60,7 @@ export interface UserSubscriptionDetailsDTO {
     jobsPostedCount: number;
     applicationsCount: number;
     aiScreeningsCount: number;
+    aiGenerationsCount?: number;
   };
   effectiveLimits: {
     maxActiveJobs: number | null;

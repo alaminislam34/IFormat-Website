@@ -30,13 +30,15 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      data-scroll-behavior="smooth"
+      suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col">
+      <body className="min-h-full flex flex-col" suppressHydrationWarning>
         <QueryProvider>
           <GlobalNavbar />
           {children}
           <ScrollToTop />
-          <Toaster position="top-right" richColors />
+          <Toaster position="top-center" richColors duration={1500} />
         </QueryProvider>
       </body>
     </html>

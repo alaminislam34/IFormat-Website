@@ -74,8 +74,9 @@ export function EmployerJobsList({
 
           <div className="flex items-center gap-2">
             <Link href={`/dashboard/jobs/${job.id}/applicants`}>
-              <button className="px-3.5 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-[#0A54B1] font-bold text-xs transition-colors cursor-pointer">
-                View Applicants
+              <button className="px-3.5 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-[#0A54B1] font-bold text-xs transition-colors cursor-pointer flex items-center gap-1.5 shadow-2xs">
+                <Users className="w-3.5 h-3.5 text-[#0A54B1]" />
+                <span>Applicants & AI Screening</span>
               </button>
             </Link>
             <button

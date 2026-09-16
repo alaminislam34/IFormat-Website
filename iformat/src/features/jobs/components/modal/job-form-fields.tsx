@@ -1,15 +1,18 @@
 "use client";
 
 import React from "react";
-import { UseFormRegister, FieldErrors, UseFormSetValue } from "react-hook-form";
-import { AlertCircle, Calendar } from "lucide-react";
+import { UseFormRegister, FieldErrors, UseFormSetValue, UseFormWatch } from "react-hook-form";
+import { AlertCircle } from "lucide-react";
 import { CreateJobFormData } from "@/lib/validations/job.schema";
+import { SalaryRangeField } from "./salary-range-field";
+import { PremiumDatePicker } from "./premium-date-picker";
 import { cn } from "@/lib/utils";
 
 interface JobFormFieldsProps {
   register: UseFormRegister<CreateJobFormData>;
   errors: FieldErrors<CreateJobFormData>;
   setValue: UseFormSetValue<CreateJobFormData>;
+  watch?: UseFormWatch<CreateJobFormData>;
   selectedJobType?: string;
   selectedLocation?: string;
 }
@@ -18,6 +21,7 @@ export function JobFormFields({
   register,
   errors,
   setValue,
+  watch,
   selectedJobType,
   selectedLocation,
 }: JobFormFieldsProps) {
@@ -69,37 +73,46 @@ export function JobFormFields({
         )}
       </div>
 
-      {/* Industry/Category & Salary */}
-      <div className="grid sm:grid-cols-2 gap-4">
-        <div className="space-y-1.5">
-          <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-            Industry / Category
-          </label>
-          <select
-            {...register("category")}
-            className="w-full h-11 px-3 rounded-xl border border-slate-200 bg-white text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-100 focus:border-sky-500 transition-all cursor-pointer"
-          >
-            <option>Technology & Engineering</option>
-            <option>Design & Creative</option>
-            <option>Business & Marketing</option>
-            <option>Data & AI</option>
-            <option>Finance & Operations</option>
-            <option>Product & Management</option>
-          </select>
-        </div>
+      {/* Industry / Category */}
+      <div className="space-y-1.5">
+        <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+          Industry / Category
+        </label>
+        <select
+          {...register("category")}
+          className="w-full h-11 px-3 rounded-xl border border-slate-200 bg-white text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-100 focus:border-sky-500 transition-all cursor-pointer"
+        >
+          {(() => {
+            const currentCat = watch ? watch("category") : undefined;
+            const standardCategories = [
+              "Technology & Engineering",
+              "Design & Creative",
+              "Business & Marketing",
+              "Data & AI",
+              "Finance & Operations",
+              "Product & Management",
+            ];
+            const categories = currentCat && !standardCategories.includes(currentCat)
+              ? [currentCat, ...standardCategories]
+              : standardCategories;
 
-        <div className="space-y-1.5">
-          <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-            Salary Range
-          </label>
-          <input
-            type="text"
-            placeholder="e.g. $80,000 - $100,000"
-            {...register("salary")}
-            className="w-full h-11 px-4 rounded-xl border border-slate-200 bg-white text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-100 focus:border-sky-500 transition-all"
-          />
-        </div>
+            return categories.map((cat) => (
+              <option key={cat} value={cat}>
+                {cat}
+              </option>
+            ));
+          })()}
+        </select>
       </div>
+
+      {/* Structured & Validated Salary Range Field */}
+      <SalaryRangeField
+        setValue={setValue}
+        watch={watch}
+        errors={errors}
+      />
+      {/* Ensure React Hook Form registers salary field */}
+      <input type="hidden" {...register("salary")} />
 
       {/* Job Type & Work Location */}
       <div className="grid sm:grid-cols-2 gap-4">
@@ -150,30 +163,13 @@ export function JobFormFields({
         </div>
       </div>
 
-      {/* Job Validity */}
-      <div className="space-y-1.5">
-        <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-          Job Validity <span className="text-rose-500">*</span>
-        </label>
-        <div className="relative">
-          <input
-            type="date"
-            {...register("validity")}
-            className={cn(
-              "w-full h-11 px-4 pr-10 rounded-xl border bg-white text-sm text-slate-800 focus:outline-none focus:ring-2 transition-all cursor-pointer",
-              errors.validity
-                ? "border-rose-300 focus:ring-rose-200"
-                : "border-slate-200 focus:ring-sky-100 focus:border-sky-500"
-            )}
-          />
-          <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-        </div>
-        {errors.validity && (
-          <p className="text-xs text-rose-500 font-semibold flex items-center gap-1 mt-1">
-            <AlertCircle className="w-3.5 h-3.5" /> {errors.validity.message}
-          </p>
-        )}
-      </div>
+      {/* Premium Job Validity Date Picker */}
+      <PremiumDatePicker
+        setValue={setValue}
+        watch={watch}
+        errors={errors}
+      />
+      <input type="hidden" {...register("validity")} />
 
       {/* Job Description */}
       <div className="space-y-1.5">

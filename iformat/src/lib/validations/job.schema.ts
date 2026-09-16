@@ -12,7 +12,34 @@ export const createJobSchema = z.object({
   category: z.string().min(1, "Category is required"),
   jobType: z.enum(["Full Time", "Part Time", "Contract"]),
   location: z.enum(["Remote", "Onsite", "Hybrid"]),
-  salary: z.string().min(1, "Salary range is required"),
+  salary: z
+    .string()
+    .min(1, "Salary range is required")
+    .refine(
+      (val) => {
+        const trimmed = val.trim();
+        if (!trimmed) return false;
+        // Accept valid negotiable / competitive keywords
+        if (
+          /^(competitive|negotiable|undisclosed|market rate)(\s*\/\s*(competitive|negotiable))?$/i.test(
+            trimmed
+          )
+        ) {
+          return true;
+        }
+        // Must contain numbers (rejects pure random text like 'sadfdsadasdsdsd')
+        if (!/\d/.test(trimmed)) {
+          return false;
+        }
+        // Must follow standard salary patterns (currency, numbers, range, period)
+        const pattern =
+          /^(?:[\$€£¥৳]|USD|EUR|GBP|BDT|CAD|AUD)?\s*\d[\d,]*(?:\.\d+)?\s*[kK]?\s*(?:(?:-|–|—|to)\s*(?:[\$€£¥৳]|USD|EUR|GBP|BDT|CAD|AUD)?\s*\d[\d,]*(?:\.\d+)?\s*[kK]?)?(?:\s*\/\s*(?:yr|year|mo|month|hr|hour|wk|week))?$/i;
+        return pattern.test(trimmed);
+      },
+      {
+        message: "Please enter a valid salary (e.g. $80,000 - $120,000 / yr, or Negotiable)",
+      }
+    ),
   validity: z.string().min(1, "Job validity date is required"),
   description: z
     .string()

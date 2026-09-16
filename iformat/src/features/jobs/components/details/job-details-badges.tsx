@@ -1,43 +1,72 @@
 "use client";
 
-import React from "react";
-import { Clock, MapPin, DollarSign, Calendar } from "lucide-react";
+import { Calendar, Users, DollarSign, Clock, MapPin } from "lucide-react";
 import { Job } from "../job-card";
 
 interface JobDetailsBadgesProps {
   job: Job;
+  applicantsCount?: number;
+  showApplicantsBadge?: boolean;
 }
 
-export function JobDetailsBadges({ job }: JobDetailsBadgesProps) {
-  const displayDate = job.date || (job.createdAt ? new Date(job.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "Jun 10");
+export function JobDetailsBadges({
+  job,
+  applicantsCount,
+  showApplicantsBadge,
+}: JobDetailsBadgesProps) {
+  const displayDate =
+    job.date ||
+    (job.createdAt
+      ? new Date(job.createdAt).toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        })
+      : "Recently");
+
+  const hasCurrencyPrefix =
+    job.salary &&
+    /^(?:[\$€£¥৳]|USD|EUR|GBP|Competitive|Negotiable)/i.test(job.salary.trim());
 
   return (
-    <div className="px-6 sm:px-7 py-4 flex flex-wrap gap-2.5 items-center bg-white border-b border-slate-100 shrink-0">
-      {/* Full Time pill */}
-      <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/80">
-        <Clock className="w-3.5 h-3.5 text-emerald-600" />
-        <span>{job.jobType || "Full Time"}</span>
+    <div className="px-6 sm:px-8 py-3 flex flex-wrap gap-2 items-center bg-slate-50/60 border-b border-slate-100 shrink-0">
+
+      {/* Job Type */}
+      <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold px-3 py-1.5 rounded-lg bg-white text-emerald-700 border border-emerald-200/70 shadow-xs">
+        <Clock className="w-3 h-3 text-emerald-500" />
+        {job.jobType || "Full Time"}
       </span>
 
-      {/* Remote/Location pill */}
-      <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200/80">
-        <MapPin className="w-3.5 h-3.5 text-blue-600" />
-        <span>{job.location || "Remote"}</span>
+      {/* Location */}
+      <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold px-3 py-1.5 rounded-lg bg-white text-blue-700 border border-blue-200/70 shadow-xs">
+        <MapPin className="w-3 h-3 text-blue-500" />
+        {job.location || "Remote"}
       </span>
 
-      {/* Salary pill */}
+      {/* Salary */}
       {job.salary && (
-        <span className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1 rounded-full bg-teal-50 text-teal-700 border border-teal-200/80">
-          <span className="font-bold text-teal-600">$</span>
-          <span>{job.salary.replace(/^\$/, "")}</span>
+        <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold px-3 py-1.5 rounded-lg bg-white text-teal-700 border border-teal-200/70 shadow-xs">
+          <DollarSign className="w-3 h-3 text-teal-500" />
+          {!hasCurrencyPrefix && <span>$</span>}
+          {job.salary}
         </span>
       )}
 
-      {/* Posted Date pill */}
-      <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full bg-rose-50 text-rose-600 border border-rose-200/80">
-        <Calendar className="w-3.5 h-3.5 text-rose-500" />
-        <span>Posted {displayDate}</span>
+      {/* Posted date */}
+      <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold px-3 py-1.5 rounded-lg bg-white text-slate-600 border border-slate-200/70 shadow-xs">
+        <Calendar className="w-3 h-3 text-slate-400" />
+        Posted {displayDate}
       </span>
+
+      {/* Applicants count */}
+      {showApplicantsBadge &&
+        typeof applicantsCount === "number" &&
+        applicantsCount > 0 && (
+          <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold px-3 py-1.5 rounded-lg bg-white text-violet-700 border border-violet-200/70 shadow-xs ml-auto">
+            <Users className="w-3 h-3 text-violet-500" />
+            {applicantsCount} {applicantsCount === 1 ? "Applicant" : "Applicants"}
+          </span>
+        )}
     </div>
   );
 }

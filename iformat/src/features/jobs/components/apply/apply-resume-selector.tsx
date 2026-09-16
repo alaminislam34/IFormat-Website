@@ -15,6 +15,8 @@ interface ApplyResumeSelectorProps {
   fileInputRef: RefObject<HTMLInputElement | null>;
   onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onRemoveFile: () => void;
+  fileError?: string;
+  resumeError?: string;
 }
 
 export function ApplyResumeSelector({
@@ -28,6 +30,8 @@ export function ApplyResumeSelector({
   fileInputRef,
   onFileChange,
   onRemoveFile,
+  fileError,
+  resumeError,
 }: ApplyResumeSelectorProps) {
   return (
     <div>
@@ -128,16 +132,36 @@ export function ApplyResumeSelector({
               </button>
             </div>
           ) : (
-            <label
-              htmlFor="resume-file-input"
-              className="flex flex-col items-center justify-center p-4 border-2 border-dashed border-slate-200 hover:border-blue-400 bg-slate-50/50 hover:bg-blue-50/30 rounded-xl transition-all cursor-pointer group"
-            >
-              <UploadCloud className="w-6 h-6 text-slate-400 group-hover:text-blue-600 mb-1 transition-colors" />
-              <p className="text-xs font-semibold text-slate-700">Click to upload or drag & drop PDF</p>
-              <p className="text-[10px] text-slate-400 mt-0.5">Maximum size: 10MB (.pdf)</p>
-            </label>
+            <>
+              <label
+                htmlFor="resume-file-input"
+                className={`flex flex-col items-center justify-center p-4 border-2 border-dashed rounded-xl transition-all cursor-pointer group ${
+                  fileError
+                    ? "border-rose-400 bg-rose-50/30"
+                    : "border-slate-200 hover:border-blue-400 bg-slate-50/50 hover:bg-blue-50/30"
+                }`}
+              >
+                <UploadCloud className={`w-6 h-6 mb-1 transition-colors ${
+                  fileError ? "text-rose-400" : "text-slate-400 group-hover:text-blue-600"
+                }`} />
+                <p className="text-xs font-semibold text-slate-700">Click to upload or drag & drop PDF</p>
+                <p className="text-[10px] text-slate-400 mt-0.5">Maximum size: 10MB (.pdf)</p>
+              </label>
+              {fileError && (
+                <p className="mt-1.5 text-[11px] font-semibold text-rose-600 flex items-center gap-1" role="alert">
+                  <span>⚠</span> {fileError}
+                </p>
+              )}
+            </>
           )}
         </div>
+      )}
+
+      {/* Inline resume-level error (missing / no selection) */}
+      {resumeError && (
+        <p className="mt-1.5 text-[11px] font-semibold text-rose-600 flex items-center gap-1.5 px-0.5" role="alert">
+          <span>⚠</span> {resumeError}
+        </p>
       )}
     </div>
   );

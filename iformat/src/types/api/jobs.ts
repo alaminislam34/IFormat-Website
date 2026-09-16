@@ -89,6 +89,7 @@ export interface JobApplicantDTO {
 
 export interface JobDTO {
   id: string;
+  employerId?: string;
   title: string;
   company: string;
   category: string;

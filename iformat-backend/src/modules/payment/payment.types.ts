@@ -25,6 +25,7 @@ export interface UserSubscriptionDetails {
     jobsPostedCount: number;
     applicationsCount: number;
     aiScreeningsCount: number;
+    aiGenerationsCount: number;
   };
   effectiveLimits: {
     maxActiveJobs: number | null;

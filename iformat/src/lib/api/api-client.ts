@@ -8,6 +8,8 @@ export interface RequestOptions extends Omit<RequestInit, "body"> {
   _retry?: boolean;
 }
 
+import { syncAuthCookies, useAuthStore } from "@/stores/use-auth-store";
+
 class ApiClient {
   private baseUrl: string;
   private isRefreshing: boolean = false;
@@ -49,6 +51,8 @@ class ApiClient {
   private setTokens(token: string, refreshToken?: string) {
     if (typeof window === "undefined") return;
     try {
+      syncAuthCookies(token, refreshToken);
+
       const storedAuth = localStorage.getItem("iformat-auth-storage");
       if (storedAuth) {
         const parsed = JSON.parse(storedAuth);
@@ -57,6 +61,15 @@ class ApiClient {
           if (refreshToken) parsed.state.refreshToken = refreshToken;
           localStorage.setItem("iformat-auth-storage", JSON.stringify(parsed));
         }
+      }
+
+      const authState = useAuthStore.getState();
+      if (authState.user) {
+        authState.setAuth(
+          authState.user,
+          token,
+          refreshToken || authState.refreshToken || undefined
+        );
       }
     } catch {
       // Ignore
@@ -67,8 +80,8 @@ class ApiClient {
     if (typeof window === "undefined") return;
     try {
       localStorage.removeItem("iformat-auth-storage");
-      document.cookie = "accessToken=; path=/; max-age=0; SameSite=Lax";
-      document.cookie = "iformat_access_token=; path=/; max-age=0; SameSite=Lax";
+      syncAuthCookies(null);
+      useAuthStore.getState().logout();
     } catch {
       // Ignore
     }
@@ -262,7 +275,8 @@ class ApiClient {
           response.status,
           errorData?.error?.errors || errorData?.errors,
           false,
-          errorCode
+          errorCode,
+          errorData?.error || errorData
         );
       }
 

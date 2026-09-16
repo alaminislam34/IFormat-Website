@@ -8,6 +8,7 @@ import {
   buildCvSchema,
   recommendProductsSchema,
   careerChatSchema,
+  analyzeJobFitSchema,
 } from "./ai.validation.js";
 import { validate } from "../../middlewares/validate.middleware.js";
 import { requireAuth } from "../../middlewares/auth.middleware.js";
@@ -75,6 +76,14 @@ router.post(
   requireAiEntitlement("CAREER_CHAT"),
   validate({ body: careerChatSchema }),
   catchAsync(AIController.careerChat)
+);
+
+// 7. Candidate Job Fit Analyzer
+router.post(
+  "/analyze-job",
+  requireAiEntitlement("JOB_ANALYSIS"),
+  validate({ body: analyzeJobFitSchema }),
+  catchAsync(AIController.analyzeJobFit)
 );
 
 export const aiRouter = router;

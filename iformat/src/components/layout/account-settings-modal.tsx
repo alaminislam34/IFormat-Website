@@ -25,12 +25,19 @@ export function AccountSettingsModal({ isOpen, onClose }: AccountSettingsModalPr
   const [name, setName] = useState(user?.name || "");
   const [phone, setPhone] = useState(user?.phone || "");
   const [isSavingProfile, setIsSavingProfile] = useState(false);
+  const [profileErrors, setProfileErrors] = useState<{ name?: string; server?: string }>({});
 
   // Security / Password Form State
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [passwordErrors, setPasswordErrors] = useState<{
+    currentPassword?: string;
+    newPassword?: string;
+    confirmPassword?: string;
+    server?: string;
+  }>({});
 
   useEffect(() => {
     setMounted(true);
@@ -49,10 +56,12 @@ export function AccountSettingsModal({ isOpen, onClose }: AccountSettingsModalPr
 
   const handleProfileSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    // Inline validation — no toast needed
     if (!name.trim()) {
-      toast.error("Name cannot be empty.");
+      setProfileErrors({ name: "Full name is required." });
       return;
     }
+    setProfileErrors({});
 
     try {
       setIsSavingProfile(true);
@@ -69,7 +78,8 @@ export function AccountSettingsModal({ isOpen, onClose }: AccountSettingsModalPr
       toast.success("Profile updated successfully!");
       onClose();
     } catch (err: any) {
-      toast.error(err?.message || "Failed to update profile details.");
+      // Server error → show inline banner, not toast
+      setProfileErrors({ server: err?.message || "Failed to update profile details." });
     } finally {
       setIsSavingProfile(false);
     }
@@ -77,18 +87,17 @@ export function AccountSettingsModal({ isOpen, onClose }: AccountSettingsModalPr
 
   const handleChangePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!currentPassword) {
-      toast.error("Current password is required.");
+    // Inline validation — no toast needed
+    const errs: typeof passwordErrors = {};
+    if (!currentPassword) errs.currentPassword = "Current password is required.";
+    if (newPassword.length < 8) errs.newPassword = "New password must be at least 8 characters.";
+    if (newPassword !== confirmPassword) errs.confirmPassword = "Passwords do not match.";
+
+    if (Object.keys(errs).length > 0) {
+      setPasswordErrors(errs);
       return;
     }
-    if (newPassword.length < 8) {
-      toast.error("New password must be at least 8 characters.");
-      return;
-    }
-    if (newPassword !== confirmPassword) {
-      toast.error("New password and confirm password do not match.");
-      return;
-    }
+    setPasswordErrors({});
 
     try {
       setIsChangingPassword(true);
@@ -103,7 +112,8 @@ export function AccountSettingsModal({ isOpen, onClose }: AccountSettingsModalPr
       setConfirmPassword("");
       onClose();
     } catch (err: any) {
-      toast.error(err?.message || "Failed to change password. Check your current password.");
+      // Wrong current password → show inline, not toast
+      setPasswordErrors({ server: err?.message || "Failed to change password. Check your current password." });
     } finally {
       setIsChangingPassword(false);
     }
@@ -180,22 +190,26 @@ export function AccountSettingsModal({ isOpen, onClose }: AccountSettingsModalPr
                 <ProfileSettingsTab
                   user={user}
                   name={name}
-                  setName={setName}
+                  setName={(v) => { setName(v); setProfileErrors({}); }}
                   phone={phone}
                   setPhone={setPhone}
                   isSaving={isSavingProfile}
                   onSubmit={handleProfileSubmit}
+                  nameError={profileErrors.name}
+                  serverError={profileErrors.server}
                 />
               ) : (
                 <SecuritySettingsTab
                   currentPassword={currentPassword}
-                  setCurrentPassword={setCurrentPassword}
+                  setCurrentPassword={(v) => { setCurrentPassword(v); setPasswordErrors({}); }}
                   newPassword={newPassword}
-                  setNewPassword={setNewPassword}
+                  setNewPassword={(v) => { setNewPassword(v); setPasswordErrors({}); }}
                   confirmPassword={confirmPassword}
-                  setConfirmPassword={setConfirmPassword}
+                  setConfirmPassword={(v) => { setConfirmPassword(v); setPasswordErrors({}); }}
                   isChanging={isChangingPassword}
                   onSubmit={handleChangePasswordSubmit}
+                  errors={passwordErrors}
+                  serverError={passwordErrors.server}
                 />
               )}
             </div>

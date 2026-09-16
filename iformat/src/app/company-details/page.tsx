@@ -1,18 +1,50 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
+import Link from "next/link";
 import { AnimatePresence } from "framer-motion";
 import { AuthLayout } from "@/features/auth/components/auth-layout";
 import { LoadingScreen } from "@/features/auth/components/loading-screen";
 import { toast } from "sonner";
 import { CompanyDetailsForm } from "@/features/company/components/company-details-form";
 import { CompanyOnboardingSuccess } from "@/features/company/components/company-onboarding-success";
+import { useAuthStore } from "@/stores/use-auth-store";
+import { useRouter } from "next/navigation";
 
 export default function CompanyDetailsPage() {
+  const router = useRouter();
+  const { user, isAuthenticated } = useAuthStore();
+  const isCandidate = isAuthenticated && (user?.role === "candidate" || user?.role === "CANDIDATE");
   const [companyName, setCompanyName] = useState("");
   const [companyEmail, setCompanyEmail] = useState("");
   const [contactInfo, setContactInfo] = useState("");
   const [description, setDescription] = useState("");
+
+  // Role guard: Redirect candidates to candidate dashboard
+  useEffect(() => {
+    if (isCandidate) {
+      toast.info("Company profile settings are reserved for employers. Redirected to your candidate hub.");
+      router.replace("/dashboard");
+    }
+  }, [isCandidate, router]);
+
+  // Pre-fill existing company details if employer already configured profile
+  useEffect(() => {
+    if (user) {
+      if (user.companyName) setCompanyName(user.companyName);
+      if (user.companyWebsite) {
+        setCompanyEmail(user.companyWebsite.replace(/^https?:\/\//, ""));
+      } else if (user.email) {
+        setCompanyEmail(user.email);
+      }
+      if (user.phone) setContactInfo(user.phone);
+      if (user.companyDescription) setDescription(user.companyDescription);
+      if (user.companyLogoUrl) {
+        setUploadedLogoUrl(user.companyLogoUrl);
+        setLogoFile("Existing Company Logo");
+      }
+    }
+  }, [user]);
 
   // Media Uploads State
   const [logoFile, setLogoFile] = useState<string | null>(null);
@@ -172,7 +204,20 @@ export default function CompanyDetailsPage() {
         {isLoading && <LoadingScreen message="Saving company details..." />}
       </AnimatePresence>
 
-      <div className="flex flex-col h-full justify-center">
+      <div className="flex flex-col py-2 justify-center">
+        {user?.companyName && !isSuccess && (
+          <div className="mb-4 flex items-center justify-between p-3 rounded-2xl bg-sky-50 border border-sky-100 text-xs">
+            <span className="text-[#0A54B1] font-medium">
+              Editing profile: <strong className="font-bold">{user.companyName}</strong>
+            </span>
+            <Link
+              href="/dashboard"
+              className="text-sky-700 font-bold hover:underline inline-flex items-center gap-1"
+            >
+              Back to Dashboard &rarr;
+            </Link>
+          </div>
+        )}
         {!isSuccess ? (
           <CompanyDetailsForm
             companyName={companyName}

@@ -528,7 +528,7 @@ export class PaymentService {
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
 
-    let usage = { jobsPostedCount: 0, applicationsCount: 0, aiScreeningsCount: 0 };
+    let usage = { jobsPostedCount: 0, applicationsCount: 0, aiScreeningsCount: 0, aiGenerationsCount: 0 };
     try {
       const usageRecord = await prisma.subscriptionUsage.findFirst({
         where: {
@@ -543,6 +543,7 @@ export class PaymentService {
           jobsPostedCount: usageRecord.jobsPostedCount,
           applicationsCount: usageRecord.applicationsCount,
           aiScreeningsCount: usageRecord.aiScreeningsCount,
+          aiGenerationsCount: usageRecord.aiGenerationsCount ?? 0,
         };
       }
     } catch {

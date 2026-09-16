@@ -3,7 +3,7 @@ import { BrandLogo } from "@/components/ui/brand-logo";
 
 export function Footer() {
   return (
-    <footer className="bg-[#050b14] text-white pt-20 pb-10 border-t border-white/10">
+    <footer className="bg-[#050b14] text-white pt-20 pb-10 border-t border-white/10 print:hidden no-print">
       <div className="max-w-7xl mx-auto px-8">
         <div className="grid md:grid-cols-12 gap-12 mb-16">
           <div className="md:col-span-6">

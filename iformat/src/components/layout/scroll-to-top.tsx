@@ -27,7 +27,7 @@ export function ScrollToTop() {
           transition={{ duration: 0.25, ease: "easeOut" }}
           onClick={scrollToTop}
           // Safe positioning: avoids mini-player overlap on mobile (bottom-24 sm:bottom-8), right side clear of safe-area insets
-          className="fixed bottom-24 right-5 sm:bottom-8 sm:right-8 z-40 p-3.5 bg-[#0A54B1] hover:bg-[#08428C] text-white rounded-2xl shadow-lg shadow-blue-600/25 hover:shadow-xl hover:shadow-blue-600/30 hover:scale-110 active:scale-95 transition-all duration-200 cursor-pointer"
+          className="fixed bottom-24 right-5 sm:bottom-8 sm:right-8 z-40 p-3.5 bg-[#0A54B1] hover:bg-[#08428C] text-white rounded-2xl shadow-lg shadow-blue-600/25 hover:shadow-xl hover:shadow-blue-600/30 hover:scale-110 active:scale-95 transition-all duration-200 cursor-pointer print:hidden no-print"
           aria-label="Scroll to top"
         >
           <ArrowUp className="w-5 h-5" />

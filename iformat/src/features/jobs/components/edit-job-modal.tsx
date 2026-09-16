@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { createPortal } from "react-dom";
 import { X, Loader2, Check } from "lucide-react";
 import { motion as m, AnimatePresence } from "framer-motion";
 import { useForm, useWatch } from "react-hook-form";
@@ -20,7 +21,12 @@ interface EditJobModalProps {
 
 export function EditJobModal({ job, isOpen, onClose, onUpdated }: EditJobModalProps) {
   const updateJobMutation = useUpdateJob();
+  const [mounted, setMounted] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
   const [jobStatus, setJobStatus] = React.useState<"PUBLISHED" | "DRAFT" | "CLOSED">(
     (job?.status as any) || "PUBLISHED"
   );
@@ -31,17 +37,18 @@ export function EditJobModal({ job, isOpen, onClose, onUpdated }: EditJobModalPr
     setValue,
     control,
     reset,
+    watch,
     formState: { errors },
   } = useForm<CreateJobFormData>({
     resolver: zodResolver(createJobSchema),
     defaultValues: {
       title: "",
       company: "",
-      category: "Technology & Engineering",
+      category: "",
       jobType: "Full Time",
       location: "Remote",
-      salary: "$100,000 - $130,000",
-      validity: new Date().toISOString().split("T")[0],
+      salary: "",
+      validity: "",
       description: "",
       requirements: "",
       niceToHave: "",
@@ -74,16 +81,16 @@ export function EditJobModal({ job, isOpen, onClose, onUpdated }: EditJobModalPr
 
       reset({
         title: job.title || "",
-        company: job.company || (job as any).companyName || "",
-        category: job.category || "Technology & Engineering",
+        company: job.company || (job as any).companyName || (job as any).employer?.companyName || "",
+        category: job.category || "",
         jobType: (job.jobType as any) || "Full Time",
         location: (job.location as any) || "Remote",
-        salary: job.salary || "Competitive",
+        salary: job.salary || "",
         validity: job.validity
           ? new Date(job.validity).toISOString().split("T")[0]
-          : new Date().toISOString().split("T")[0],
+          : "",
         description: job.description || "",
-        requirements: requirementsStr || "3+ years of experience\nStrong problem-solving skills",
+        requirements: requirementsStr,
         niceToHave: niceToHaveStr,
         perks: perksStr,
       });
@@ -108,6 +115,7 @@ export function EditJobModal({ job, isOpen, onClose, onUpdated }: EditJobModalPr
         validity: data.validity ? new Date(data.validity).toISOString() : undefined,
         status: jobStatus,
         description: data.description.trim(),
+        responsibilities: job.responsibilities || [],
         requirements: data.requirements
           .split("\n")
           .map((r) => r.trim())
@@ -141,25 +149,42 @@ export function EditJobModal({ job, isOpen, onClose, onUpdated }: EditJobModalPr
     }
   };
 
-  return (
+  if (!mounted) return null;
+
+  const modalContent = (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto bg-slate-950/80 backdrop-blur-md">
+        <m.div
+          key="edit-job-modal-backdrop"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+          className="fixed inset-0 z-100000 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm"
+        >
+          {/* Backdrop Click-away */}
+          <div className="absolute inset-0" onClick={onClose} />
+
           <m.div
+            key="edit-job-card"
             initial={{ opacity: 0, scale: 0.95, y: 15 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 15 }}
-            className="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-100 flex flex-col my-8 max-h-[90vh]"
+            transition={{ type: "spring", duration: 0.35, bounce: 0 }}
+            className="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-100 flex flex-col my-8 max-h-[90vh] z-10"
           >
-            {/* Header */}
-            <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50 shrink-0">
+            {/* Header: Fixed at top */}
+            <div className="p-5 sm:p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/80 backdrop-blur-xs shrink-0">
               <div>
-                <h3 className="text-xl font-black text-slate-900">Edit Job Posting</h3>
-                <p className="text-xs text-slate-500 mt-0.5">
+                <h2 className="text-xl font-bold text-slate-800 tracking-tight">
+                  Edit Job Opening
+                </h2>
+                <p className="text-xs font-semibold text-slate-500 mt-0.5">
                   Update role specifications, requirements, and publishing status.
                 </p>
               </div>
               <button
+                type="button"
                 onClick={onClose}
                 className="w-9 h-9 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
               >
@@ -167,41 +192,45 @@ export function EditJobModal({ job, isOpen, onClose, onUpdated }: EditJobModalPr
               </button>
             </div>
 
-            {/* Form */}
-            <form onSubmit={handleSubmit(onFormSubmit)} className="p-6 overflow-y-auto space-y-6 flex-1">
-              {/* Status Switcher */}
-              <div className="space-y-1.5">
-                <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                  Publishing Status
-                </label>
-                <div className="flex gap-2 p-1 bg-slate-50 border border-slate-100 rounded-xl">
-                  {(["PUBLISHED", "DRAFT", "CLOSED"] as const).map((st) => (
-                    <button
-                      key={st}
-                      type="button"
-                      onClick={() => setJobStatus(st)}
-                      className={`flex-1 py-2 text-xs font-bold rounded-lg border transition-all cursor-pointer ${
-                        jobStatus === st
-                          ? "bg-white border-sky-100 text-sky-600 shadow-xs"
-                          : "bg-transparent border-transparent text-slate-500 hover:text-slate-700"
-                      }`}
-                    >
-                      {st}
-                    </button>
-                  ))}
+            {/* Form Container with fixed footer */}
+            <form onSubmit={handleSubmit(onFormSubmit)} className="flex-1 flex flex-col min-h-0 overflow-hidden">
+              {/* Form Content: Scrollable middle area */}
+              <div className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-thin">
+                {/* Status Switcher */}
+                <div className="space-y-1.5">
+                  <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                    Publishing Status
+                  </label>
+                  <div className="flex gap-2 p-1 bg-slate-50 border border-slate-100 rounded-xl">
+                    {(["PUBLISHED", "DRAFT", "CLOSED"] as const).map((st) => (
+                      <button
+                        key={st}
+                        type="button"
+                        onClick={() => setJobStatus(st)}
+                        className={`flex-1 py-2 text-xs font-bold rounded-lg border transition-all cursor-pointer ${
+                          jobStatus === st
+                            ? "bg-white border-sky-100 text-sky-600 shadow-xs"
+                            : "bg-transparent border-transparent text-slate-500 hover:text-slate-700"
+                        }`}
+                      >
+                        {st}
+                      </button>
+                    ))}
+                  </div>
                 </div>
+
+                <JobFormFields
+                  register={register}
+                  errors={errors}
+                  setValue={setValue}
+                  watch={watch}
+                  selectedJobType={selectedJobType}
+                  selectedLocation={selectedLocation}
+                />
               </div>
 
-              <JobFormFields
-                register={register}
-                errors={errors}
-                setValue={setValue}
-                selectedJobType={selectedJobType}
-                selectedLocation={selectedLocation}
-              />
-
-              {/* Submit & Cancel Buttons */}
-              <div className="pt-4 border-t border-slate-100 flex items-center justify-end gap-3">
+              {/* Sticky Footer: Always visible, never scrolls away */}
+              <div className="p-4 sm:p-5 border-t border-slate-100 bg-white/95 backdrop-blur-xs shrink-0 shadow-[0_-4px_16px_rgba(0,0,0,0.03)] flex items-center justify-end gap-3">
                 <button
                   type="button"
                   onClick={onClose}
@@ -212,7 +241,7 @@ export function EditJobModal({ job, isOpen, onClose, onUpdated }: EditJobModalPr
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-6 h-11 bg-brand-gradient hover:opacity-95 text-white font-bold rounded-xl shadow-lg shadow-blue-500/10 flex items-center justify-center gap-2 transition-all cursor-pointer text-xs"
+                  className="px-6 h-11 bg-brand-gradient hover:opacity-95 text-white font-bold rounded-xl shadow-lg shadow-blue-500/15 flex items-center justify-center gap-2 transition-all cursor-pointer text-xs disabled:opacity-50"
                 >
                   {isSubmitting ? (
                     <>
@@ -227,8 +256,10 @@ export function EditJobModal({ job, isOpen, onClose, onUpdated }: EditJobModalPr
               </div>
             </form>
           </m.div>
-        </div>
+        </m.div>
       )}
     </AnimatePresence>
   );
+
+  return createPortal(modalContent, document.body);
 }

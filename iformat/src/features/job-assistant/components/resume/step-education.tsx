@@ -8,6 +8,7 @@ import { ResumeData } from "../../types/resume.types";
 
 interface StepEducationProps {
   education: ResumeData["education"];
+  errors?: Record<string, string>;
   onChange: (id: string, field: string, value: string) => void;
   onAdd: () => void;
   onRemove: (id: string) => void;
@@ -17,6 +18,7 @@ interface StepEducationProps {
 
 export function StepEducation({
   education,
+  errors = {},
   onChange,
   onAdd,
   onRemove,
@@ -36,17 +38,34 @@ export function StepEducation({
           <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center">
             <GraduationCap className="w-5 h-5" />
           </div>
-          <h2 className="text-xl font-bold text-slate-800">Education</h2>
+          <h2 className="text-xl font-bold text-slate-800">Education <span className="text-rose-500">*</span></h2>
         </div>
         <p className="text-xs text-slate-500 pl-13">Add your academic background and achievements.</p>
       </div>
 
+      {errors?.education && (
+        <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-xl text-xs font-semibold text-rose-600 flex items-center gap-2">
+          <span>{errors.education}</span>
+        </div>
+      )}
+
       <div className="space-y-6">
-        {education.map((edu) => (
+        {education.map((edu) => {
+          const itemError = errors?.[`edu_${edu.id}`];
+          return (
           <div
             key={edu.id}
-            className="bg-slate-50/50 rounded-2xl border border-slate-100 p-6 relative group hover:border-slate-200 hover:bg-white transition-all"
+            className={`rounded-2xl border p-6 relative group transition-all ${
+              itemError
+                ? "border-rose-300 bg-rose-50/15"
+                : "bg-slate-50/50 border-slate-100 hover:border-slate-200 hover:bg-white"
+            }`}
           >
+            {itemError && (
+              <div className="mb-4 pb-3 border-b border-rose-200 text-xs font-semibold text-rose-600 flex items-center gap-1.5">
+                <span>{itemError}</span>
+              </div>
+            )}
             {education.length > 1 && (
               <button
                 onClick={() => onRemove(edu.id)}
@@ -99,7 +118,8 @@ export function StepEducation({
               </div>
             </div>
           </div>
-        ))}
+        );
+      })}
 
         <button
           onClick={onAdd}

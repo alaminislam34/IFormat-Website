@@ -17,6 +17,8 @@ import { JobDetailsHeader } from "./details/job-details-header";
 import { JobDetailsBadges } from "./details/job-details-badges";
 import { JobDetailsContent } from "./details/job-details-content";
 import { JobDetailsApplicants } from "./details/job-details-applicants";
+import { JobAnalyzerModal } from "./modal/job-analyzer-modal";
+import { AuthPromptModal } from "@/components/auth/auth-prompt-modal";
 
 interface JobDetailsSheetProps {
   job: Job | null;
@@ -37,11 +39,25 @@ export function JobDetailsSheet({
   const [mounted, setMounted] = useState(false);
   const { user, isAuthenticated } = useAuthStore();
   const userRole = user?.role?.toUpperCase();
-  const isEmployerOrAdmin = userRole === "EMPLOYER" || userRole === "ADMIN";
+  const isAdmin = userRole === "ADMIN";
+
+  // Check if current user is the owner of this job posting or platform Admin
+  const isJobOwner = Boolean(
+    user?.id &&
+      job &&
+      (
+        (job.employerId && job.employerId === user.id) ||
+        (job.employer?.id && job.employer?.id === user.id) ||
+        (user.companyName && job.company && user.companyName.trim().toLowerCase() === job.company.trim().toLowerCase())
+      )
+  );
+  const canManageJob = isJobOwner || isAdmin;
 
   const [activeTab, setActiveTab] = useState<"details" | "applicants">("details");
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isAnalyzerModalOpen, setIsAnalyzerModalOpen] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [hasAppliedLocally, setHasAppliedLocally] = useState(false);
 
@@ -51,10 +67,23 @@ export function JobDetailsSheet({
     setMounted(true);
   }, []);
 
-  // Must run on every render (before any early return). Opening a job used to
-  // add this hook after `if (!job) return null` and crash the job portal.
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [isOpen]);
+
+  useEffect(() => {
+    setActiveTab("details");
+  }, [job?.id]);
+
   const { data: fetchedApplicants, isLoading: isLoadingApplicants } = useJobApplicants(
-    isOpen && isEmployerOrAdmin ? job?.id : null
+    isOpen && canManageJob ? job?.id : null
   );
 
   if (!mounted || !job) return null;
@@ -105,12 +134,17 @@ export function JobDetailsSheet({
   };
 
   const handleAiAnalyserClick = () => {
-    onClose();
-    router.push(
-      `/job-assistant?tab=cover-letter&role=${encodeURIComponent(job.title)}&company=${encodeURIComponent(
-        job.company
-      )}`
-    );
+    if (!isAuthenticated) {
+      setShowAuthModal(true);
+      return;
+    }
+
+    if (userRole === "EMPLOYER") {
+      toast.info("Candidate job fit analysis is designed for job applicants.");
+      return;
+    }
+
+    setIsAnalyzerModalOpen(true);
   };
 
   const sheetContent = (
@@ -138,18 +172,22 @@ export function JobDetailsSheet({
               {/* Header */}
               <JobDetailsHeader
                 job={job}
-                isEmployerOrAdmin={isEmployerOrAdmin}
+                isEmployerOrAdmin={canManageJob}
                 isDeleting={isDeleting}
                 onEdit={() => setIsEditModalOpen(true)}
                 onDelete={handleDeleteJob}
                 onClose={onClose}
               />
 
-              {/* Badges Bar (Full Time, Remote, Salary, Posted) */}
-              <JobDetailsBadges job={job} />
+              {/* Badges Bar (Full Time, Remote, Salary, Posted, and Applicants Count for non-owners) */}
+              <JobDetailsBadges
+                job={job}
+                applicantsCount={applicantsCount}
+                showApplicantsBadge={!canManageJob}
+              />
 
-              {/* Tab Switcher for Employers */}
-              {isEmployerOrAdmin && (
+              {/* Tab Switcher: Only shown for the Posting Company or Admin */}
+              {canManageJob && (
                 <div className="flex bg-white px-6 border-b border-slate-100 shrink-0">
                   <button
                     onClick={() => setActiveTab("details")}
@@ -194,7 +232,7 @@ export function JobDetailsSheet({
 
               {/* Scrollable Content Area */}
               <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6">
-                {activeTab === "details" ? (
+                {!canManageJob || activeTab === "details" ? (
                   <JobDetailsContent job={job} />
                 ) : (
                   <JobDetailsApplicants
@@ -205,8 +243,8 @@ export function JobDetailsSheet({
                 )}
               </div>
 
-              {/* Sticky Action Footer Matching Figma Design */}
-              {!isEmployerOrAdmin && activeTab === "details" && (
+              {/* Sticky Action Footer: Only visible to candidates and visitors, never for company/employer accounts */}
+              {!canManageJob && userRole !== "EMPLOYER" && userRole !== "ADMIN" && (
                 <div className="p-5 border-t border-slate-100 bg-white space-y-2.5 shrink-0">
                   {/* Button 1: AI Job Analyser */}
                   <button
@@ -277,6 +315,24 @@ export function JobDetailsSheet({
           }}
         />
       )}
+
+      {/* AI Candidate Job Fit Analyzer Modal */}
+      {isAnalyzerModalOpen && job && (
+        <JobAnalyzerModal
+          job={job as any}
+          isOpen={isAnalyzerModalOpen}
+          onClose={() => setIsAnalyzerModalOpen(false)}
+          onApplyNow={handleApplyClick}
+        />
+      )}
+
+      {/* Auth Prompt Modal */}
+      <AuthPromptModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        title="Sign In to Analyze Job Fit"
+        description="Sign in to your candidate account to scan your resume against this job's requirements and see your real-time match score."
+      />
     </>
   );
 

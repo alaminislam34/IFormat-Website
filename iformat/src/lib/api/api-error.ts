@@ -5,13 +5,15 @@ export class ApiError extends Error {
   public code?: string;
   public errors?: any;
   public isNetworkError: boolean;
+  public data?: any;
 
   constructor(
     message: string,
     statusCode = 500,
     errors?: any,
     isNetworkError = false,
-    code?: string
+    code?: string,
+    data?: any
   ) {
     super(message);
     this.name = "ApiError";
@@ -19,6 +21,7 @@ export class ApiError extends Error {
     this.code = code;
     this.errors = errors;
     this.isNetworkError = isNetworkError;
+    this.data = data;
 
     if (Error.captureStackTrace) {
       Error.captureStackTrace(this, ApiError);

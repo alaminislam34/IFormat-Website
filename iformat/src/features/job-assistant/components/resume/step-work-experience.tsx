@@ -8,6 +8,7 @@ import { ResumeData } from "../../types/resume.types";
 
 interface StepWorkExperienceProps {
   workExperience: ResumeData["workExperience"];
+  errors?: Record<string, string>;
   onChange: (id: string, field: string, value: string) => void;
   onAdd: () => void;
   onRemove: (id: string) => void;
@@ -17,6 +18,7 @@ interface StepWorkExperienceProps {
 
 export function StepWorkExperience({
   workExperience,
+  errors = {},
   onChange,
   onAdd,
   onRemove,
@@ -35,15 +37,35 @@ export function StepWorkExperience({
         <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center">
           <Briefcase className="w-5 h-5" />
         </div>
-        <h2 className="text-xl font-bold text-slate-800">Work Experience</h2>
+        <div>
+          <h2 className="text-xl font-bold text-slate-800">Work Experience <span className="text-rose-500">*</span></h2>
+          <p className="text-xs text-slate-500">List your relevant roles, achievements, and impact.</p>
+        </div>
       </div>
 
+      {errors?.workExperience && (
+        <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-xl text-xs font-semibold text-rose-600 flex items-center gap-2">
+          <span>{errors.workExperience}</span>
+        </div>
+      )}
+
       <div className="space-y-6">
-        {workExperience.map((work) => (
+        {workExperience.map((work) => {
+          const itemError = errors?.[`work_${work.id}`];
+          return (
           <div
             key={work.id}
-            className="bg-slate-50/50 rounded-2xl border border-slate-100 p-6 relative group hover:border-slate-200 hover:bg-white transition-all"
+            className={`rounded-2xl border p-6 relative group transition-all ${
+              itemError
+                ? "border-rose-300 bg-rose-50/15"
+                : "bg-slate-50/50 border-slate-100 hover:border-slate-200 hover:bg-white"
+            }`}
           >
+            {itemError && (
+              <div className="mb-4 pb-3 border-b border-rose-200 text-xs font-semibold text-rose-600 flex items-center gap-1.5">
+                <span>{itemError}</span>
+              </div>
+            )}
             {workExperience.length > 1 && (
               <button
                 onClick={() => onRemove(work.id)}
@@ -106,7 +128,8 @@ export function StepWorkExperience({
               </div>
             </div>
           </div>
-        ))}
+        );
+      })}
 
         <button
           onClick={onAdd}

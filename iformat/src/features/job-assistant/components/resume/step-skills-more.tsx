@@ -8,6 +8,7 @@ import { ResumeData } from "../../types/resume.types";
 
 interface StepSkillsMoreProps {
   data: ResumeData;
+  errors?: Record<string, string>;
   onChange: <K extends keyof ResumeData>(field: K, value: ResumeData[K]) => void;
   onSkillGroupChange: (id: string, field: string, value: string) => void;
   onAddSkillGroup: () => void;
@@ -21,6 +22,7 @@ interface StepSkillsMoreProps {
 
 export function StepSkillsMore({
   data,
+  errors = {},
   onChange,
   onSkillGroupChange,
   onAddSkillGroup,
@@ -43,40 +45,65 @@ export function StepSkillsMore({
         <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center">
           <Award className="w-5 h-5" />
         </div>
-        <h2 className="text-xl font-bold text-slate-800">Skills & More</h2>
+        <div>
+          <h2 className="text-xl font-bold text-slate-800">Skills & More <span className="text-rose-500">*</span></h2>
+          <p className="text-xs text-slate-500">Add your technical skill sets, certifications, and languages.</p>
+        </div>
       </div>
+
+      {errors?.skillGroups && (
+        <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-xl text-xs font-semibold text-rose-600 flex items-center gap-2">
+          <span>{errors.skillGroups}</span>
+        </div>
+      )}
 
       <div className="space-y-6">
         {/* Skill groups */}
         <div className="space-y-3">
           <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-            Skill Groups (e.g. Frontend: React, Next.js)
+            Skill Groups (e.g. Frontend: React, Next.js) <span className="text-rose-500">*</span>
           </label>
           <div className="space-y-3">
-            {data.skillGroups.map((group) => (
-              <div key={group.id} className="flex gap-3 items-center">
-                <input
-                  type="text"
-                  value={group.category ?? ""}
-                  onChange={(e) => onSkillGroupChange(group.id, "category", e.target.value)}
-                  placeholder="Group name (e.g. Frontend)"
-                  className="w-1/3 h-11 px-4 rounded-xl border border-slate-200 bg-white text-slate-800 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#0A54B1]/20 focus:border-[#0A54B1]"
-                />
-                <input
-                  type="text"
-                  value={group.skills ?? ""}
-                  onChange={(e) => onSkillGroupChange(group.id, "skills", e.target.value)}
-                  placeholder="React, Next.js, HTML, CSS"
-                  className="flex-1 h-11 px-4 rounded-xl border border-slate-200 bg-white text-slate-800 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#0A54B1]/20 focus:border-[#0A54B1]"
-                />
-                <button
-                  onClick={() => onRemoveSkillGroup(group.id)}
-                  className="text-slate-400 hover:text-red-500 p-1 cursor-pointer"
-                >
-                  &times;
-                </button>
-              </div>
-            ))}
+            {data.skillGroups.map((group) => {
+              const itemError = errors?.[`skill_${group.id}`];
+              return (
+                <div key={group.id} className="space-y-1">
+                  <div className="flex gap-3 items-center">
+                    <input
+                      type="text"
+                      value={group.category ?? ""}
+                      onChange={(e) => onSkillGroupChange(group.id, "category", e.target.value)}
+                      placeholder="Group name (e.g. Frontend)"
+                      className={`w-1/3 h-11 px-4 rounded-xl border text-sm font-medium focus:outline-none focus:ring-2 ${
+                        itemError
+                          ? "border-rose-300 bg-rose-50/15 focus:ring-rose-500/20 focus:border-rose-500"
+                          : "border-slate-200 bg-white text-slate-800 focus:ring-[#0A54B1]/20 focus:border-[#0A54B1]"
+                      }`}
+                    />
+                    <input
+                      type="text"
+                      value={group.skills ?? ""}
+                      onChange={(e) => onSkillGroupChange(group.id, "skills", e.target.value)}
+                      placeholder="React, Next.js, HTML, CSS"
+                      className={`flex-1 h-11 px-4 rounded-xl border text-sm font-medium focus:outline-none focus:ring-2 ${
+                        itemError
+                          ? "border-rose-300 bg-rose-50/15 focus:ring-rose-500/20 focus:border-rose-500"
+                          : "border-slate-200 bg-white text-slate-800 focus:ring-[#0A54B1]/20 focus:border-[#0A54B1]"
+                      }`}
+                    />
+                    <button
+                      onClick={() => onRemoveSkillGroup(group.id)}
+                      className="text-slate-400 hover:text-red-500 p-1 cursor-pointer"
+                    >
+                      &times;
+                    </button>
+                  </div>
+                  {itemError && (
+                    <p className="text-[11px] font-medium text-rose-500 pl-1">{itemError}</p>
+                  )}
+                </div>
+              );
+            })}
           </div>
           <button
             onClick={onAddSkillGroup}

@@ -105,15 +105,15 @@ export default function SignupPage() {
             </span>
             <div className="grow border-t border-slate-100"></div>
           </div>
-
-          <GoogleAuthButton />
-
-          <button
+  <button
             type="submit"
             className="w-full h-12 mt-2 bg-linear-to-r from-[#52CEDE] to-[#0A54B1] text-white text-sm font-bold rounded-xl shadow-lg shadow-blue-500/20 hover:opacity-95 hover:shadow-xl transition-all duration-200 active:scale-[0.99] flex items-center justify-center cursor-pointer"
           >
             Create an account
           </button>
+          <GoogleAuthButton />
+
+        
         </form>
       </div>
     </AuthLayout>

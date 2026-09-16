@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuthStore } from "@/stores/use-auth-store";
+import { ProfileSkeleton } from "@/features/dashboard/components/profile-skeleton";
 import { userService } from "@/services/user.service";
 import { authService } from "@/services/auth.service";
 import { Button } from "@/components/ui/button";
@@ -37,6 +38,7 @@ export default function ProfileDashboardPage() {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [isSavingProfile, setIsSavingProfile] = useState(false);
+  const [profileErrors, setProfileErrors] = useState<{ name?: string; server?: string }>({});
 
   // Security / Password Form State
   const [currentPassword, setCurrentPassword] = useState("");
@@ -46,6 +48,12 @@ export default function ProfileDashboardPage() {
   const [showNewPass, setShowNewPass] = useState(false);
   const [showConfirmPass, setShowConfirmPass] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [passwordErrors, setPasswordErrors] = useState<{
+    currentPassword?: string;
+    newPassword?: string;
+    confirmPassword?: string;
+    server?: string;
+  }>({});
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -61,10 +69,12 @@ export default function ProfileDashboardPage() {
 
   const handleProfileSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    // Inline validation — no toast
     if (!name.trim()) {
-      toast.error("Name cannot be empty.");
+      setProfileErrors({ name: "Full name is required." });
       return;
     }
+    setProfileErrors({});
 
     try {
       setIsSavingProfile(true);
@@ -80,7 +90,7 @@ export default function ProfileDashboardPage() {
 
       toast.success("Profile details updated successfully!");
     } catch (err: any) {
-      toast.error(err?.message || "Failed to update profile details.");
+      setProfileErrors({ server: err?.message || "Failed to update profile details." });
     } finally {
       setIsSavingProfile(false);
     }
@@ -88,18 +98,17 @@ export default function ProfileDashboardPage() {
 
   const handleChangePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!currentPassword) {
-      toast.error("Current password is required.");
+    // Inline validation — no toast
+    const errs: typeof passwordErrors = {};
+    if (!currentPassword) errs.currentPassword = "Current password is required.";
+    if (newPassword.length < 8) errs.newPassword = "New password must be at least 8 characters.";
+    if (newPassword !== confirmPassword) errs.confirmPassword = "Passwords do not match.";
+
+    if (Object.keys(errs).length > 0) {
+      setPasswordErrors(errs);
       return;
     }
-    if (newPassword.length < 8) {
-      toast.error("New password must be at least 8 characters.");
-      return;
-    }
-    if (newPassword !== confirmPassword) {
-      toast.error("New password and confirm password do not match.");
-      return;
-    }
+    setPasswordErrors({});
 
     try {
       setIsChangingPassword(true);
@@ -113,23 +122,14 @@ export default function ProfileDashboardPage() {
       setNewPassword("");
       setConfirmPassword("");
     } catch (err: any) {
-      toast.error(err?.message || "Failed to change password. Check your current password.");
+      setPasswordErrors({ server: err?.message || "Failed to change password. Check your current password." });
     } finally {
       setIsChangingPassword(false);
     }
   };
 
   if (!user) {
-    return (
-      <div className="py-24 flex items-center justify-center">
-        <div className="text-center space-y-3">
-          <Loader2 className="w-9 h-9 text-[#0A54B1] animate-spin mx-auto" />
-          <p className="text-xs font-extrabold text-slate-500 uppercase tracking-widest">
-            Loading Profile Settings...
-          </p>
-        </div>
-      </div>
-    );
+    return <ProfileSkeleton />;
   }
 
   const role = user.role?.toUpperCase() || "CANDIDATE";
@@ -139,8 +139,8 @@ export default function ProfileDashboardPage() {
   const initial = (name || user.name || user.email || "U").charAt(0).toUpperCase();
 
   return (
-    <div className="py-8 relative selection:bg-sky-100 selection:text-sky-900">
-      <div className="w-11/12 mx-auto space-y-8 relative z-10">
+    <div className="py-8 p-6 relative selection:bg-sky-100 selection:text-sky-900">
+      <div className="space-y-8 relative z-10">
           {/* Header Navigation & Title */}
           <div className="space-y-3">
             <Link
@@ -242,13 +242,20 @@ export default function ProfileDashboardPage() {
                         <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                         <input
                           type="text"
-                          required
                           value={name}
-                          onChange={(e) => setName(e.target.value)}
+                          onChange={(e) => { setName(e.target.value); setProfileErrors({}); }}
                           placeholder="Your full name"
-                          className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 text-sm font-medium focus:outline-hidden focus:ring-2 focus:ring-[#0A54B1]/20 focus:border-[#0A54B1] transition-all"
+                          aria-invalid={!!profileErrors.name}
+                          className={`w-full pl-10 pr-3.5 py-2.5 rounded-xl border bg-slate-50/50 text-slate-900 text-sm font-medium focus:outline-hidden focus:ring-2 focus:ring-[#0A54B1]/20 focus:border-[#0A54B1] transition-all ${
+                            profileErrors.name ? "border-rose-400 bg-rose-50/30" : "border-slate-200"
+                          }`}
                         />
                       </div>
+                      {profileErrors.name && (
+                        <p className="mt-1 text-[11px] font-semibold text-rose-600 flex items-center gap-1" role="alert">
+                          <span>⚠</span> {profileErrors.name}
+                        </p>
+                      )}
                     </div>
 
                     {/* Email Address (Read-only) */}
@@ -288,6 +295,12 @@ export default function ProfileDashboardPage() {
                     </div>
                   </div>
 
+                  {profileErrors.server && (
+                    <div className="flex items-start gap-2 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold" role="alert">
+                      <AlertCircle className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+                      {profileErrors.server}
+                    </div>
+                  )}
                   <div className="pt-3 flex justify-end">
                     <Button
                       type="submit"
@@ -332,11 +345,13 @@ export default function ProfileDashboardPage() {
                       <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                       <input
                         type={showCurrentPass ? "text" : "password"}
-                        required
                         value={currentPassword}
-                        onChange={(e) => setCurrentPassword(e.target.value)}
+                        onChange={(e) => { setCurrentPassword(e.target.value); setPasswordErrors({}); }}
                         placeholder="Enter current password"
-                        className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 text-sm font-medium focus:outline-hidden focus:ring-2 focus:ring-[#0A54B1]/20 focus:border-[#0A54B1] transition-all"
+                        aria-invalid={!!passwordErrors.currentPassword}
+                        className={`w-full pl-10 pr-10 py-2.5 rounded-xl border bg-slate-50/50 text-slate-900 text-sm font-medium focus:outline-hidden focus:ring-2 focus:ring-[#0A54B1]/20 focus:border-[#0A54B1] transition-all ${
+                          passwordErrors.currentPassword ? "border-rose-400 bg-rose-50/30" : "border-slate-200"
+                        }`}
                       />
                       <button
                         type="button"
@@ -346,6 +361,11 @@ export default function ProfileDashboardPage() {
                         {showCurrentPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
                     </div>
+                    {passwordErrors.currentPassword && (
+                      <p className="mt-1 text-[11px] font-semibold text-rose-600 flex items-center gap-1" role="alert">
+                        <span>⚠</span> {passwordErrors.currentPassword}
+                      </p>
+                    )}
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -358,11 +378,13 @@ export default function ProfileDashboardPage() {
                         <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                         <input
                           type={showNewPass ? "text" : "password"}
-                          required
                           value={newPassword}
-                          onChange={(e) => setNewPassword(e.target.value)}
+                          onChange={(e) => { setNewPassword(e.target.value); setPasswordErrors({}); }}
                           placeholder="At least 8 characters"
-                          className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 text-sm font-medium focus:outline-hidden focus:ring-2 focus:ring-[#0A54B1]/20 focus:border-[#0A54B1] transition-all"
+                          aria-invalid={!!passwordErrors.newPassword}
+                          className={`w-full pl-10 pr-10 py-2.5 rounded-xl border bg-slate-50/50 text-slate-900 text-sm font-medium focus:outline-hidden focus:ring-2 focus:ring-[#0A54B1]/20 focus:border-[#0A54B1] transition-all ${
+                            passwordErrors.newPassword ? "border-rose-400 bg-rose-50/30" : "border-slate-200"
+                          }`}
                         />
                         <button
                           type="button"
@@ -372,6 +394,13 @@ export default function ProfileDashboardPage() {
                           {showNewPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                         </button>
                       </div>
+                      {passwordErrors.newPassword ? (
+                        <p className="mt-1 text-[11px] font-semibold text-rose-600 flex items-center gap-1" role="alert">
+                          <span>⚠</span> {passwordErrors.newPassword}
+                        </p>
+                      ) : (
+                        <p className="mt-1 text-[10px] text-slate-400">Min. 8 characters.</p>
+                      )}
                     </div>
 
                     {/* Confirm New Password */}
@@ -383,11 +412,13 @@ export default function ProfileDashboardPage() {
                         <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                         <input
                           type={showConfirmPass ? "text" : "password"}
-                          required
                           value={confirmPassword}
-                          onChange={(e) => setConfirmPassword(e.target.value)}
+                          onChange={(e) => { setConfirmPassword(e.target.value); setPasswordErrors({}); }}
                           placeholder="Re-enter new password"
-                          className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 text-sm font-medium focus:outline-hidden focus:ring-2 focus:ring-[#0A54B1]/20 focus:border-[#0A54B1] transition-all"
+                          aria-invalid={!!passwordErrors.confirmPassword}
+                          className={`w-full pl-10 pr-10 py-2.5 rounded-xl border bg-slate-50/50 text-slate-900 text-sm font-medium focus:outline-hidden focus:ring-2 focus:ring-[#0A54B1]/20 focus:border-[#0A54B1] transition-all ${
+                            passwordErrors.confirmPassword ? "border-rose-400 bg-rose-50/30" : "border-slate-200"
+                          }`}
                         />
                         <button
                           type="button"
@@ -397,8 +428,21 @@ export default function ProfileDashboardPage() {
                           {showConfirmPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                         </button>
                       </div>
+                      {passwordErrors.confirmPassword && (
+                        <p className="mt-1 text-[11px] font-semibold text-rose-600 flex items-center gap-1" role="alert">
+                          <span>⚠</span> {passwordErrors.confirmPassword}
+                        </p>
+                      )}
                     </div>
                   </div>
+
+                  {/* Server-side error banner for password form */}
+                  {passwordErrors.server && (
+                    <div className="flex items-start gap-2 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold" role="alert">
+                      <AlertCircle className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+                      {passwordErrors.server}
+                    </div>
+                  )}
 
                   <div className="pt-3 flex justify-end">
                     <Button

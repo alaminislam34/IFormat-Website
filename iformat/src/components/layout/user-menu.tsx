@@ -132,11 +132,7 @@ export function UserMenu({ variant = "light" }: UserMenuProps) {
               </div>
             </div>
 
-            {/* Clean Role Badge */}
-            <div className="px-2.5 py-1 rounded-lg bg-sky-50 border border-sky-100 text-[#0A54B1] text-[11px] font-bold flex items-center justify-between">
-              <span>{fullRoleLabel}</span>
-              <span className="text-[9px] font-extrabold uppercase tracking-wider text-sky-600">Active</span>
-            </div>
+           
           </div>
 
           {/* Navigation Links (Essential Account Options Only) */}

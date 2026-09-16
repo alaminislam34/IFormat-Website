@@ -9,6 +9,7 @@ import {
   BuildCvInput,
   RecommendProductsInput,
   CareerChatInput,
+  AnalyzeJobFitInput,
 } from "./ai.validation.js";
 
 export class AIController {
@@ -86,5 +87,16 @@ export class AIController {
     const result = await AIService.careerChat(input, userId);
 
     return ApiResponse.success(res, "Career Advisor response generated successfully", result);
+  }
+
+  /**
+   * POST /api/v1/ai/analyze-job
+   */
+  static async analyzeJobFit(req: Request, res: Response) {
+    const input = req.body as AnalyzeJobFitInput;
+    const userId = (req as any).user.id;
+    const result = await AIService.analyzeJobFit(input, userId);
+
+    return ApiResponse.success(res, "Job fit analysis completed successfully", result);
   }
 }

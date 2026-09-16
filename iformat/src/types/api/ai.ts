@@ -125,3 +125,26 @@ export interface CareerChatResponseDTO {
   supported: boolean;
   sources: Array<{ sourceId: string; title: string }>;
 }
+
+export interface AnalyzeJobFitRequest {
+  jobId: string;
+  cvId?: string;
+}
+
+export interface JobFitAnalysisDTO {
+  hasResume: boolean;
+  score: number;
+  recommendation: string;
+  summary: string;
+  strengths: string[];
+  gaps: string[];
+  scoreBreakdown: {
+    skills: number;
+    experience: number;
+    education: number;
+    domainMatch: number;
+  };
+  jobTitle?: string;
+  company?: string;
+  model?: string;
+}
