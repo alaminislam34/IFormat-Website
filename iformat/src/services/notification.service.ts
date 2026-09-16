@@ -1,26 +1,43 @@
 import { apiClient } from "@/lib/api/api-client";
-import { NotificationDTO } from "@/types/api";
+
+export interface AppNotification {
+  id: string;
+  userId: string;
+  type: string;
+  title: string;
+  message: string;
+  read: boolean;
+  payload?: Record<string, any> | null;
+  createdAt: string;
+}
 
 export const notificationService = {
   /**
-   * Fetch all notifications for the authenticated user (newest first, max 50).
+   * Fetch current user's recent notifications
    */
-  async getMyNotifications(): Promise<NotificationDTO[]> {
-    const data = await apiClient.get<NotificationDTO[]>("/notifications");
-    return data ?? [];
+  async getMyNotifications(): Promise<AppNotification[]> {
+    return apiClient.get<AppNotification[]>("/notifications");
   },
 
   /**
-   * Mark a single notification as read.
+   * Mark a single notification as read
    */
+  async markAsRead(id: string): Promise<void> {
+    return apiClient.patch<void>(`/notifications/${id}/read`);
+  },
+
   async markRead(id: string): Promise<void> {
-    await apiClient.patch(`/notifications/${id}/read`);
+    return apiClient.patch<void>(`/notifications/${id}/read`);
   },
 
   /**
-   * Mark every unread notification as read for the current user.
+   * Mark all notifications as read
    */
+  async markAllAsRead(): Promise<void> {
+    return apiClient.post<void>("/notifications/read-all");
+  },
+
   async markAllRead(): Promise<void> {
-    await apiClient.post("/notifications/read-all");
+    return apiClient.post<void>("/notifications/read-all");
   },
 };

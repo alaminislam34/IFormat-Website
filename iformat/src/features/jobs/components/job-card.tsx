@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { useRouter } from "next/navigation";
 import { Calendar, MapPin, ArrowRight, CheckCircle2, Users, DollarSign } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { JobDTO as Job, JobApplicantDTO as Applicant } from "@/types/api";
@@ -20,6 +21,15 @@ export function JobCard({
   isApplied = false,
   isEmployer = false,
 }: JobCardProps) {
+  const router = useRouter();
+
+  const handleCompanyNavigation = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (job.company) {
+      router.push(`/companies/${encodeURIComponent(job.company.trim())}`);
+    }
+  };
+
   const displayDate = React.useMemo(() => {
     if (job.date && !job.date.includes("-") && !job.date.includes("/")) {
       return job.date;
@@ -113,8 +123,12 @@ export function JobCard({
           </h3>
 
           <div className="flex items-center justify-between gap-3 pt-1">
-            <div className="flex items-center gap-2.5 min-w-0">
-              <div className="w-8 h-8 rounded-xl bg-black text-white font-extrabold text-xs flex items-center justify-center shrink-0 overflow-hidden shadow-2xs">
+            <div
+              onClick={handleCompanyNavigation}
+              className="flex items-center gap-2.5 min-w-0 group/company hover:opacity-85 transition-opacity cursor-pointer"
+              title={`View ${job.company} company profile`}
+            >
+              <div className="w-8 h-8 rounded-xl bg-black text-white font-extrabold text-xs flex items-center justify-center shrink-0 overflow-hidden shadow-2xs group-hover/company:ring-2 group-hover/company:ring-[#0A54B1]/40 transition-all">
                 {companyLogo ? (
                   <img
                     src={companyLogo}
@@ -128,7 +142,7 @@ export function JobCard({
                   <span>{logoLetter}</span>
                 )}
               </div>
-              <span className="text-sm font-semibold text-slate-600 truncate">
+              <span className="text-sm font-semibold text-slate-600 truncate group-hover/company:text-[#0A54B1] group-hover/company:underline">
                 {job.company}
               </span>
             </div>
@@ -191,10 +205,14 @@ export function JobCard({
             {job.title}
           </h3>
 
-          <div className="flex items-center gap-3 mt-3">
+          <div
+            onClick={handleCompanyNavigation}
+            className="flex items-center gap-3 mt-3 group/company hover:opacity-85 transition-opacity cursor-pointer max-w-full"
+            title={`View ${job.company} company profile`}
+          >
             <div
               className={cn(
-                "w-8 h-8 rounded-full flex items-center justify-center overflow-hidden text-white font-bold text-sm shadow-xs shrink-0 border border-slate-100",
+                "w-8 h-8 rounded-full flex items-center justify-center overflow-hidden text-white font-bold text-sm shadow-xs shrink-0 border border-slate-100 group-hover/company:ring-2 group-hover/company:ring-[#0A54B1]/40 transition-all",
                 !companyLogo ? logoBg : "bg-white"
               )}
             >
@@ -211,7 +229,9 @@ export function JobCard({
                 logoLetter
               )}
             </div>
-            <span className="text-sm font-semibold text-slate-600 truncate">{job.company}</span>
+            <span className="text-sm font-semibold text-slate-600 truncate group-hover/company:text-[#0A54B1] group-hover/company:underline">
+              {job.company}
+            </span>
           </div>
         </div>
       </div>

@@ -41,6 +41,7 @@ export const updateJobSchema = createJobSchema.partial().extend({
 
 export const queryJobsSchema = z.object({
   search: z.string().optional(),
+  company: z.string().optional(),
   category: z.string().optional(),
   jobType: z.string().optional(),
   workplaceType: z.string().optional(),

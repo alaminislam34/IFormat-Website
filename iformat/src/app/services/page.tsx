@@ -24,7 +24,7 @@ import {
 } from "lucide-react";
 import { Footer } from "@/components/layout/footer";
 import { ScrollReveal } from "@/components/ui/scroll-reveal";
-import { BookConsultationModal } from "@/features/services/components/book-consultation-modal";
+import { OrderServiceModal } from "@/features/services/components/order-service-modal";
 import {
   ProductDetailModal,
   ServiceProduct,
@@ -33,33 +33,22 @@ import { Button } from "@/components/ui/button";
 
 import { SERVICES_DATA } from "@/features/services/data/services-data";
 
-
 export default function ServicesPage() {
   const router = useRouter();
   const { isAuthenticated } = useAuthStore();
   const [selectedProduct, setSelectedProduct] = useState<ServiceProduct | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
-  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
-  const [consultationTitle, setConsultationTitle] = useState("1-on-1 Strategy Consultation");
+  const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
 
   const handleOpenDetail = (product: ServiceProduct) => {
     setSelectedProduct(product);
     setIsDetailModalOpen(true);
   };
 
-  const handleOpenBooking = (serviceTitle: string) => {
-    setConsultationTitle(serviceTitle);
-    setIsBookingModalOpen(true);
-  };
-
   const handleOrderNow = (product: ServiceProduct) => {
-    if (!isAuthenticated) {
-      toast.info(`Please sign in or create an account to checkout ${product.title}.`);
-      router.push(`/signup?redirect=${encodeURIComponent("/dashboard/billing")}`);
-      return;
-    }
-    toast.success(`Redirecting to checkout for ${product.title}...`);
-    router.push(`/dashboard/billing?service=${encodeURIComponent(product.id)}`);
+    setSelectedProduct(product);
+    setIsOrderModalOpen(true);
+    setIsDetailModalOpen(false);
   };
 
   const features = [
@@ -103,14 +92,14 @@ export default function ServicesPage() {
         onClose={() => setIsDetailModalOpen(false)}
         product={selectedProduct}
         onOrderNow={handleOrderNow}
-        onBookConsultation={(prod) => handleOpenBooking(prod.title)}
+        onBookConsultation={handleOrderNow}
       />
 
-      {/* Book Consultation Modal */}
-      <BookConsultationModal
-        isOpen={isBookingModalOpen}
-        onClose={() => setIsBookingModalOpen(false)}
-        serviceTitle={consultationTitle}
+      {/* Order Service Modal */}
+      <OrderServiceModal
+        isOpen={isOrderModalOpen}
+        onClose={() => setIsOrderModalOpen(false)}
+        service={selectedProduct}
       />
 
       {/* Hero Header */}
@@ -124,14 +113,14 @@ export default function ServicesPage() {
               Executive Products & <span className="text-[#0A54B1]">Strategic Advisory</span>
             </h1>
             <p className="text-slate-600 text-base sm:text-lg leading-relaxed mb-8">
-              Explore our tailored career engineering products, ATS-beating resumes, and 1-on-1 executive advisory sessions. Click any product to view deliverables or book an instant consultation.
+              Explore our tailored career engineering products, ATS-beating resumes, and executive branding packages. Select any package to configure requirements and proceed to secure order checkout.
             </p>
             <div className="flex flex-wrap items-center justify-center gap-4">
               <button
-                onClick={() => handleOpenBooking("1-on-1 Career Strategy Consultation")}
+                onClick={() => handleOrderNow(SERVICES_DATA[0])}
                 className="px-7 py-3.5 rounded-xl bg-linear-to-r from-[#52CEDE] to-[#0A54B1] text-white font-extrabold text-sm shadow-lg shadow-blue-500/20 hover:opacity-95 transition-all cursor-pointer flex items-center gap-2"
               >
-                <Calendar className="w-4 h-4" /> Book a Free Consultation <ArrowRight className="w-4 h-4" />
+                <ShoppingBag className="w-4 h-4" /> Order a Career Package <ArrowRight className="w-4 h-4" />
               </button>
               <Link
                 href="/job-assistant"
@@ -213,20 +202,20 @@ export default function ServicesPage() {
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleOpenBooking(service.title);
+                        handleOpenDetail(service);
                       }}
-                      className="text-xs font-bold text-slate-700 hover:text-[#0A54B1] bg-slate-100 hover:bg-slate-200 px-3 py-2 rounded-xl transition-colors cursor-pointer flex items-center gap-1.5"
+                      className="text-xs font-bold text-slate-700 hover:text-[#0A54B1] bg-slate-100 hover:bg-slate-200 px-3.5 py-2 rounded-xl transition-colors cursor-pointer flex items-center gap-1.5"
                     >
-                      <Calendar className="w-3.5 h-3.5 text-[#0A54B1]" /> Book Session
+                      <Eye className="w-3.5 h-3.5 text-slate-500" /> Details
                     </button>
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         handleOrderNow(service);
                       }}
-                      className="text-xs font-extrabold text-white bg-[#0A54B1] hover:bg-[#08428C] px-4 py-2 rounded-xl transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
+                      className="text-xs font-extrabold text-white bg-linear-to-r from-[#52CEDE] to-[#0A54B1] hover:opacity-95 px-4 py-2 rounded-xl transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
                     >
-                      <ShoppingBag className="w-3.5 h-3.5" /> Order Now
+                      <ShoppingBag className="w-3.5 h-3.5" /> Order Service
                     </button>
                   </div>
                 </div>

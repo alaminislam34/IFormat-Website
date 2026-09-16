@@ -82,7 +82,16 @@ export interface JobApplicantDTO {
     id?: string;
     title?: string;
     company?: string;
+    category?: string;
+    jobType?: string;
+    workplaceType?: string;
     location?: string;
+    salary?: string;
+    status?: string;
+    employer?: {
+      companyLogoUrl?: string | null;
+      companyName?: string | null;
+    };
   } | null;
   screeningResult?: ScreeningResultDTO | null;
 }
@@ -132,12 +141,28 @@ export interface JobDTO {
 export interface JobFilterParams {
   category?: string;
   search?: string;
+  company?: string;
   location?: string;
   jobType?: string;
   workplaceType?: string;
   status?: JobStatus;
   page?: number;
   limit?: number;
+}
+
+export interface PublicCompanyProfileDTO {
+  company: {
+    name: string;
+    logoUrl?: string | null;
+    videoUrl?: string | null;
+    website?: string | null;
+    description?: string | null;
+    isVerified: boolean;
+    memberSince?: string | null;
+    employerId?: string | null;
+  };
+  jobs: JobDTO[];
+  totalJobs: number;
 }
 
 export interface CreateJobRequest {

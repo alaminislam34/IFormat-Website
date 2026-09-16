@@ -60,6 +60,10 @@ export class JobService {
       where.location = { contains: query.location, mode: "insensitive" };
     }
 
+    if (query.company) {
+      where.company = { contains: query.company, mode: "insensitive" };
+    }
+
     if (query.search) {
       where.OR = [
         { title: { contains: query.search, mode: "insensitive" } },
@@ -272,5 +276,89 @@ export class JobService {
 
     const meta = createPaginationMeta(total, page, limit);
     return { jobs, meta };
+  }
+
+  /**
+   * Public: Fetch company public profile & its published jobs
+   */
+  static async getCompanyProfile(rawCompanyName: string) {
+    const companyName = decodeURIComponent(rawCompanyName).trim();
+
+    // 1. Try to find employer user with matching companyName
+    const employer = await prisma.user.findFirst({
+      where: {
+        role: Role.EMPLOYER,
+        isDeleted: false,
+        isBanned: false,
+        companyName: { equals: companyName, mode: "insensitive" },
+      },
+      select: {
+        id: true,
+        name: true,
+        companyName: true,
+        companyLogoUrl: true,
+        companyVideoUrl: true,
+        companyWebsite: true,
+        companyDescription: true,
+        isVerifiedCompany: true,
+        createdAt: true,
+      },
+    });
+
+    // 2. Query published jobs by employerId or company string
+    const jobs = await prisma.jobPosting.findMany({
+      where: {
+        status: JobStatus.PUBLISHED,
+        isDeleted: false,
+        ...(employer
+          ? {
+              OR: [
+                { employerId: employer.id },
+                { company: { equals: companyName, mode: "insensitive" } },
+              ],
+            }
+          : { company: { equals: companyName, mode: "insensitive" } }),
+      },
+      orderBy: { createdAt: "desc" },
+      include: {
+        employer: {
+          select: {
+            id: true,
+            name: true,
+            companyName: true,
+            companyLogoUrl: true,
+            companyVideoUrl: true,
+            companyWebsite: true,
+            companyDescription: true,
+          },
+        },
+        _count: {
+          select: { applications: true },
+        },
+      },
+    });
+
+    if (!employer && jobs.length === 0) {
+      throw new NotFoundError("Company", companyName);
+    }
+
+    const firstJobWithEmployer = jobs.find((j) => j.employer);
+
+    const profile = {
+      name: employer?.companyName || firstJobWithEmployer?.employer?.companyName || jobs[0]?.company || companyName,
+      logoUrl: employer?.companyLogoUrl || firstJobWithEmployer?.employer?.companyLogoUrl || null,
+      videoUrl: employer?.companyVideoUrl || firstJobWithEmployer?.employer?.companyVideoUrl || null,
+      website: employer?.companyWebsite || firstJobWithEmployer?.employer?.companyWebsite || null,
+      description: employer?.companyDescription || firstJobWithEmployer?.employer?.companyDescription || null,
+      isVerified: employer?.isVerifiedCompany || false,
+      memberSince: employer?.createdAt || jobs[0]?.createdAt || null,
+      employerId: employer?.id || firstJobWithEmployer?.employer?.id || null,
+    };
+
+    return {
+      company: profile,
+      jobs,
+      totalJobs: jobs.length,
+    };
   }
 }

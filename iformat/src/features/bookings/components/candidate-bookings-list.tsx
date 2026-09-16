@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import {
   Video,
   Clock,
@@ -10,8 +10,16 @@ import {
   Plus,
   Sparkles,
   CheckCircle2,
+  XCircle,
+  Loader2,
+  ShoppingBag,
+  FileText,
+  CreditCard,
+  Phone,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import { useCancelBooking } from "@/hooks";
+import Link from "next/link";
 
 interface CandidateBookingsListProps {
   bookings: any[];
@@ -28,29 +36,44 @@ export function CandidateBookingsList({
   onBookClick,
   onRetry,
 }: CandidateBookingsListProps) {
+  const cancelBookingMutation = useCancelBooking();
+  const [confirmCancelId, setConfirmCancelId] = useState<string | null>(null);
+
+  const handleCancelBooking = async (bookingId: string) => {
+    try {
+      await cancelBookingMutation.mutateAsync(bookingId);
+      toast.success("Order / session cancelled successfully.");
+      setConfirmCancelId(null);
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || err?.message || "Failed to cancel order");
+    }
+  };
+
   return (
     <div className="bg-white border border-slate-200/80 rounded-3xl p-6 sm:p-8 shadow-sm space-y-6">
       <div className="flex items-center justify-between pb-4 border-b border-slate-100">
         <div>
-          <h2 className="text-lg font-extrabold text-slate-900 tracking-tight">Scheduled Appointments</h2>
+          <h2 className="text-lg font-extrabold text-slate-900 tracking-tight">
+            My Service Orders & Consultations
+          </h2>
           <p className="text-xs text-slate-500 mt-0.5">
-            Your confirmed upcoming & past consultations.
+            Your purchased career packages, project briefs, and advisory sessions.
           </p>
         </div>
         <span className="px-3 py-1 rounded-full text-xs font-extrabold bg-slate-100 text-slate-700 border border-slate-200/60">
-          {bookings.length} {bookings.length === 1 ? "Session" : "Sessions"}
+          {bookings.length} {bookings.length === 1 ? "Order" : "Orders"}
         </span>
       </div>
 
       {isLoading ? (
         <div className="py-16 text-center text-slate-400 text-sm animate-pulse flex flex-col items-center justify-center gap-3">
           <div className="w-8 h-8 rounded-full border-2 border-[#0A54B1] border-t-transparent animate-spin" />
-          <span className="font-semibold text-slate-500">Loading your sessions...</span>
+          <span className="font-semibold text-slate-500">Loading your service orders...</span>
         </div>
       ) : error ? (
         <div className="p-6 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-center space-y-3">
           <AlertCircle className="w-6 h-6 text-rose-500 mx-auto" />
-          <p className="text-xs font-semibold">Failed to load consultation bookings.</p>
+          <p className="text-xs font-semibold">Failed to load orders.</p>
           <button
             onClick={onRetry}
             className="px-4 py-2 rounded-xl bg-white border border-rose-200 text-rose-700 font-bold text-xs hover:bg-rose-50 transition-colors cursor-pointer"
@@ -61,45 +84,48 @@ export function CandidateBookingsList({
       ) : bookings.length === 0 ? (
         <div className="py-16 text-center space-y-4">
           <div className="w-16 h-16 rounded-2xl bg-blue-50/80 border border-blue-100/80 text-[#0A54B1] flex items-center justify-center mx-auto shadow-sm">
-            <CalendarCheck className="w-8 h-8" />
+            <ShoppingBag className="w-8 h-8" />
           </div>
           <div className="space-y-1">
-            <h3 className="text-base font-extrabold text-slate-800">No Scheduled Sessions</h3>
+            <h3 className="text-base font-extrabold text-slate-800">No Service Orders Yet</h3>
             <p className="text-xs text-slate-500 max-w-sm mx-auto leading-relaxed">
-              You don&apos;t have any consultation bookings yet. Book a session with an
-              industry advisor to level up your resume and executive job strategy.
+              You haven&apos;t ordered any professional career services or booked sessions yet.
+              Explore our ATS resume and personal branding packages to accelerate your job search.
             </p>
           </div>
-          <button
-            onClick={onBookClick}
+          <Link
+            href="/services"
             className="inline-flex items-center gap-2 h-11 px-6 rounded-xl bg-[#0A54B1] hover:bg-[#0A54B1]/95 text-white font-extrabold text-xs shadow-md shadow-blue-500/20 active:scale-95 transition-all cursor-pointer"
           >
-            <Plus className="w-4 h-4" /> Book Your First Consultation
-          </button>
+            <ShoppingBag className="w-4 h-4" /> Explore Career Packages
+          </Link>
         </div>
       ) : (
         <div className="divide-y divide-slate-100">
           {bookings.map((booking) => {
-            const startTime = booking.slot?.startTime
-              ? new Date(booking.slot.startTime).toLocaleString([], {
-                  weekday: "short",
-                  month: "short",
-                  day: "numeric",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })
-              : "Date TBD";
+            const isPackageOrder = !booking.slotId;
+            const title = booking.serviceTitle || booking.slot?.title || "Career Service Package";
 
             const isConfirmed = booking.status === "CONFIRMED";
             const isCompleted = booking.status === "COMPLETED";
+            const isCancelled = booking.status === "CANCELLED";
+            const isPendingCancel = confirmCancelId === booking.id;
+            const isCancelling =
+              cancelBookingMutation.isPending &&
+              cancelBookingMutation.variables === booking.id;
+
+            const priceNum = booking.priceInCents ?? booking.slot?.priceInCents;
+            const priceFormatted = priceNum
+              ? `$${(priceNum / 100).toFixed(2)} USD`
+              : "Paid";
 
             return (
               <div
                 key={booking.id}
-                className="py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 first:pt-0 last:pb-0"
+                className="py-5 flex flex-col sm:flex-row sm:items-start justify-between gap-4 first:pt-0 last:pb-0"
               >
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
+                <div className="space-y-2.5 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
                     <span
                       className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider border ${
                         isConfirmed
@@ -109,23 +135,35 @@ export function CandidateBookingsList({
                           : "bg-rose-50 text-rose-700 border-rose-200"
                       }`}
                     >
-                      {booking.status}
+                      {isConfirmed ? "In Progress" : booking.status}
                     </span>
+
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                      {isPackageOrder ? "Service Package" : "Consultation Slot"}
+                    </span>
+
                     <span className="text-xs text-slate-400 font-medium">
-                      Booked on {new Date(booking.createdAt).toLocaleDateString()}
+                      Ordered on {new Date(booking.createdAt).toLocaleDateString()}
                     </span>
                   </div>
 
                   <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                    <Video className="w-4 h-4 text-[#0A54B1] shrink-0" />
-                    <span>{booking.slot?.title || "Career Consultation"}</span>
+                    {isPackageOrder ? (
+                      <ShoppingBag className="w-4 h-4 text-[#0A54B1] shrink-0" />
+                    ) : (
+                      <Video className="w-4 h-4 text-[#0A54B1] shrink-0" />
+                    )}
+                    <span>{title}</span>
                   </h3>
 
+                  {/* Contact Phone & Advisor */}
                   <div className="flex flex-wrap items-center gap-3 text-xs text-slate-600">
-                    <div className="flex items-center gap-1.5 text-[#0A54B1] font-bold">
-                      <Clock className="w-3.5 h-3.5" />
-                      <span>{startTime}</span>
-                    </div>
+                    {booking.clientPhone && (
+                      <div className="flex items-center gap-1.5 text-cyan-800 font-medium">
+                        <Phone className="w-3.5 h-3.5 text-cyan-600" />
+                        <span>Phone: {booking.clientPhone}</span>
+                      </div>
+                    )}
                     {booking.slot?.advisor && (
                       <div className="flex items-center gap-1.5 text-slate-500 font-medium">
                         <User className="w-3.5 h-3.5" />
@@ -134,20 +172,67 @@ export function CandidateBookingsList({
                     )}
                   </div>
 
+                  {/* Requirements / Brief */}
+                  {booking.requirements && (
+                    <div className="text-xs text-slate-700 bg-blue-50/50 p-3.5 rounded-2xl border border-blue-100/80 leading-relaxed font-medium space-y-1">
+                      <div className="font-bold text-[#0A54B1] flex items-center gap-1.5">
+                        <FileText className="w-3.5 h-3.5" /> Project Brief & Requirements:
+                      </div>
+                      <p className="whitespace-pre-wrap text-slate-600">{booking.requirements}</p>
+                    </div>
+                  )}
+
+                  {/* Session Notes */}
                   {booking.notes && (
                     <p className="text-xs text-slate-600 bg-slate-50/80 p-3 rounded-xl border border-slate-200/60 leading-relaxed font-medium">
-                      <span className="font-bold text-slate-800">Session Notes:</span>{" "}
-                      {booking.notes}
+                      <span className="font-bold text-slate-800">Notes:</span> {booking.notes}
                     </p>
                   )}
                 </div>
 
-                <div className="flex items-center gap-2 shrink-0">
-                  <span className="text-xs font-extrabold text-emerald-700 px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200">
-                    {booking.slot?.priceInCents
-                      ? `$${(booking.slot.priceInCents / 100).toFixed(0)} USD`
-                      : "Free"}
-                  </span>
+                {/* Price & Action */}
+                <div className="flex flex-col sm:items-end gap-2.5 shrink-0">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs font-extrabold text-emerald-700 px-3 py-1 rounded-xl bg-emerald-50 border border-emerald-200">
+                      {priceFormatted}
+                    </span>
+                    <span className="text-[10px] font-bold text-emerald-600 uppercase">
+                      {booking.paymentStatus || "PAID"}
+                    </span>
+                  </div>
+
+                  {isConfirmed && !isPendingCancel && (
+                    <button
+                      onClick={() => setConfirmCancelId(booking.id)}
+                      className="text-[11px] font-bold text-rose-600 hover:text-rose-700 hover:bg-rose-50 px-2.5 py-1 rounded-lg border border-transparent hover:border-rose-200 transition-colors cursor-pointer"
+                    >
+                      Cancel Order
+                    </button>
+                  )}
+
+                  {isConfirmed && isPendingCancel && (
+                    <div className="flex items-center gap-1.5 bg-rose-50/80 p-1.5 rounded-xl border border-rose-200">
+                      <span className="text-[10px] font-bold text-rose-800 mr-1">Cancel?</span>
+                      <button
+                        onClick={() => handleCancelBooking(booking.id)}
+                        disabled={isCancelling}
+                        className="bg-rose-600 hover:bg-rose-700 text-white text-[10px] font-extrabold px-2.5 py-1 rounded-lg transition-colors cursor-pointer flex items-center gap-1 disabled:opacity-50"
+                      >
+                        {isCancelling ? (
+                          <Loader2 className="w-3 h-3 animate-spin" />
+                        ) : (
+                          "Yes, Cancel"
+                        )}
+                      </button>
+                      <button
+                        onClick={() => setConfirmCancelId(null)}
+                        disabled={isCancelling}
+                        className="bg-white hover:bg-slate-100 text-slate-700 text-[10px] font-bold px-2 py-1 rounded-lg border border-slate-200 transition-colors cursor-pointer disabled:opacity-50"
+                      >
+                        Keep
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             );

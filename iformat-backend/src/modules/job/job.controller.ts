@@ -13,6 +13,11 @@ export class JobController {
     return ApiResponse.success(res, "Job retrieved successfully", job);
   }
 
+  static async getByCompany(req: Request, res: Response) {
+    const data = await JobService.getCompanyProfile(req.params.companyName);
+    return ApiResponse.success(res, "Company profile retrieved successfully", data);
+  }
+
   static async create(req: Request, res: Response) {
     const job = await JobService.createJob(req.user!.id, req.body);
     return ApiResponse.success(res, "Job created successfully", job, 201);

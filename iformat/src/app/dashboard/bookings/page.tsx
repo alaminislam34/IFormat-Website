@@ -15,6 +15,7 @@ export default function CandidateBookingsPage() {
   const router = useRouter();
   const { isAuthenticated } = useAuthStore();
   const [isBookModalOpen, setIsBookModalOpen] = useState(false);
+  const [selectedSlotIdForModal, setSelectedSlotIdForModal] = useState<string | undefined>(undefined);
 
   const {
     data: bookings = [],
@@ -40,11 +41,16 @@ export default function CandidateBookingsPage() {
     toast.success("Consultations updated.");
   };
 
+  const handleOpenBookingModal = (slotId?: string) => {
+    setSelectedSlotIdForModal(slotId);
+    setIsBookModalOpen(true);
+  };
+
   return (
     <div className="text-slate-900 py-8 p-6 relative selection:bg-sky-100 selection:text-sky-900">
       <div className="space-y-8 relative z-10">
         <CandidateBookingsHeader
-          onBookClick={() => setIsBookModalOpen(true)}
+          onBookClick={() => handleOpenBookingModal()}
           onRefresh={handleRefresh}
         />
 
@@ -56,7 +62,7 @@ export default function CandidateBookingsPage() {
               bookings={bookings}
               isLoading={loadingBookings}
               error={bookingsError}
-              onBookClick={() => setIsBookModalOpen(true)}
+              onBookClick={() => handleOpenBookingModal()}
               onRetry={() => refetchBookings()}
             />
           </div>
@@ -66,7 +72,7 @@ export default function CandidateBookingsPage() {
             <CandidateBookingsSidebar
               availableSlots={availableSlots}
               loadingSlots={loadingSlots}
-              onBookSlot={() => setIsBookModalOpen(true)}
+              onBookSlot={(slotId) => handleOpenBookingModal(slotId)}
             />
           </div>
         </div>
@@ -76,8 +82,10 @@ export default function CandidateBookingsPage() {
       {isBookModalOpen && (
         <BookConsultationModal
           isOpen={isBookModalOpen}
+          defaultSlotId={selectedSlotIdForModal}
           onClose={() => {
             setIsBookModalOpen(false);
+            setSelectedSlotIdForModal(undefined);
             refetchBookings();
             refetchSlots();
           }}

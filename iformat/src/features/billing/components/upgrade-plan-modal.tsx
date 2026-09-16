@@ -83,8 +83,7 @@ export function UpgradePlanModal({
   const modalContent = (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[100005] flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
-          {/* Backdrop with Blur */}
+        <div className="fixed inset-0 z-100005 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -94,7 +93,6 @@ export function UpgradePlanModal({
             className="fixed inset-0 bg-slate-950/75 backdrop-blur-md"
           />
 
-          {/* Modal Container */}
           <motion.div
             initial={{ opacity: 0, scale: 0.94, y: 16 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}

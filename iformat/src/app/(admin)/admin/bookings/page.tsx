@@ -76,14 +76,30 @@ export default function AdminBookingsPage() {
     }
   };
 
+  const handleUpdateStatus = async (
+    bookingId: string,
+    status: "CONFIRMED" | "COMPLETED" | "CANCELLED"
+  ) => {
+    try {
+      await bookingService.updateStatus(bookingId, status);
+      toast.success(`Booking status updated to ${status}.`);
+      await loadBookings();
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || err?.message || "Failed to update booking status.");
+    }
+  };
+
   const filteredBookings = bookings.filter((b) => {
     const matchesStatus = statusFilter === "ALL" || b.status === statusFilter;
     const searchLower = search.toLowerCase();
     const matchesSearch =
       !search ||
+      b.serviceTitle?.toLowerCase().includes(searchLower) ||
       b.slot?.title?.toLowerCase().includes(searchLower) ||
       b.user?.name?.toLowerCase().includes(searchLower) ||
       b.user?.email?.toLowerCase().includes(searchLower) ||
+      b.clientPhone?.toLowerCase().includes(searchLower) ||
+      b.requirements?.toLowerCase().includes(searchLower) ||
       b.notes?.toLowerCase().includes(searchLower);
     return matchesStatus && matchesSearch;
   });
@@ -98,10 +114,10 @@ export default function AdminBookingsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-            Career Consultations & Bookings
+            Service Orders & Client Fulfillment
           </h1>
-          <p className="text-slate-400 text-xs mt-1">
-            Manage 1-on-1 career coaching appointments, advisor session slots, and booking statuses.
+          <p className="text-sm text-slate-400 mt-1">
+            Track client service package purchases, review project briefs, and manage delivery status.
           </p>
         </div>
 
@@ -140,6 +156,7 @@ export default function AdminBookingsPage() {
         setSearch={setSearch}
         statusFilter={statusFilter}
         setStatusFilter={setStatusFilter}
+        onUpdateStatus={handleUpdateStatus}
       />
 
       {/* Create Consultation Slot Modal */}

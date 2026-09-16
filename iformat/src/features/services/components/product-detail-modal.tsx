@@ -13,6 +13,7 @@ import {
   Calendar,
   ShoppingBag,
   ArrowRight,
+  CreditCard,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -63,7 +64,7 @@ export function ProductDetailModal({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.18, ease: "easeOut" }}
-          className="fixed inset-0 z-[99999] flex items-center justify-center p-4 sm:p-6 bg-slate-950/70 backdrop-blur-md overflow-y-auto"
+          className="fixed inset-0 z-99999 flex items-center justify-center p-4 sm:p-6 bg-slate-950/70 backdrop-blur-md overflow-y-auto"
         >
           {/* Backdrop click-away */}
           <div className="absolute inset-0" onClick={onClose} />
@@ -184,16 +185,13 @@ export function ProductDetailModal({
 
               <div className="flex items-center gap-2.5 w-full sm:w-auto">
                 <button
-                  onClick={() => onBookConsultation(product)}
-                  className="flex-1 sm:flex-initial px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                  onClick={() => {
+                    onOrderNow(product);
+                    onClose();
+                  }}
+                  className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-linear-to-r from-[#52CEDE] to-[#0A54B1] hover:opacity-95 text-white font-extrabold text-xs shadow-md shadow-blue-500/20 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                 >
-                  <Calendar className="w-3.5 h-3.5" /> Consult First
-                </button>
-                <button
-                  onClick={() => onOrderNow(product)}
-                  className="flex-1 sm:flex-initial px-6 py-2.5 rounded-xl bg-linear-to-r from-[#52CEDE] to-[#0A54B1] hover:opacity-95 text-white font-extrabold text-xs shadow-md shadow-blue-500/20 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
-                >
-                  <ShoppingBag className="w-3.5 h-3.5" /> Order Package <ArrowRight className="w-3.5 h-3.5" />
+                  <CreditCard className="w-3.5 h-3.5" /> Order Package ({product.price}) <ArrowRight className="w-3.5 h-3.5" />
                 </button>
               </div>
             </div>

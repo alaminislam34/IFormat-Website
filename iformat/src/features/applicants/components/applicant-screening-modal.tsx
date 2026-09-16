@@ -7,15 +7,15 @@ import { ApplicationStatus, JobApplicantDTO, isInsufficientResumeScreening } fro
 
 interface ApplicantScreeningModalProps {
   applicant: JobApplicantDTO | null;
-  isRerunning: boolean;
+  isRerunning?: boolean;
   onClose: () => void;
-  onRerunScreening: (id: string) => void;
-  onUpdateStatus: (id: string, newStatus: ApplicationStatus) => void;
+  onRerunScreening?: (id: string) => void;
+  onUpdateStatus?: (id: string, newStatus: ApplicationStatus) => void;
 }
 
 export function ApplicantScreeningModal({
   applicant,
-  isRerunning,
+  isRerunning = false,
   onClose,
   onRerunScreening,
   onUpdateStatus,
@@ -103,19 +103,21 @@ export function ApplicantScreeningModal({
             </div>
           </div>
 
-          <Button
-            size="sm"
-            disabled={isRerunning}
-            onClick={() => onRerunScreening(applicant.id || "")}
-            className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs h-9 rounded-xl font-semibold shadow-md cursor-pointer"
-          >
-            {isRerunning ? (
-              <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />
-            ) : (
-              <Sparkles className="w-3.5 h-3.5 mr-1.5" />
-            )}
-            Re-evaluate
-          </Button>
+          {onRerunScreening && (
+            <Button
+              size="sm"
+              disabled={isRerunning}
+              onClick={() => onRerunScreening(applicant.id || "")}
+              className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs h-9 rounded-xl font-semibold shadow-md cursor-pointer"
+            >
+              {isRerunning ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />
+              ) : (
+                <Sparkles className="w-3.5 h-3.5 mr-1.5" />
+              )}
+              Re-evaluate
+            </Button>
+          )}
         </div>
 
         {/* AI Summary */}
@@ -180,36 +182,38 @@ export function ApplicantScreeningModal({
           </div>
         </div>
 
-        {/* Quick Status Action Footer */}
-        <div className="pt-2 flex items-center justify-between border-t border-slate-800 gap-3 flex-wrap">
-          <span className="text-xs text-slate-400 font-medium">Quick Status Transition:</span>
-          <div className="flex items-center gap-2">
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => onUpdateStatus(applicant.id || "", "SHORTLISTED")}
-              className="border-emerald-700/60 bg-emerald-950/40 text-emerald-300 hover:bg-emerald-900/60 text-xs h-8 rounded-lg cursor-pointer"
-            >
-              Shortlist Candidate
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => onUpdateStatus(applicant.id || "", "INTERVIEWING")}
-              className="border-sky-700/60 bg-sky-950/40 text-sky-300 hover:bg-sky-900/60 text-xs h-8 rounded-lg cursor-pointer"
-            >
-              Invite to Interview
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => onUpdateStatus(applicant.id || "", "REJECTED")}
-              className="border-rose-700/60 bg-rose-950/40 text-rose-300 hover:bg-rose-900/60 text-xs h-8 rounded-lg cursor-pointer"
-            >
-              Decline
-            </Button>
+        {/* Quick Status Action Footer (Employer Only) */}
+        {onUpdateStatus && (
+          <div className="pt-2 flex items-center justify-between border-t border-slate-800 gap-3 flex-wrap">
+            <span className="text-xs text-slate-400 font-medium">Quick Status Transition:</span>
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => onUpdateStatus(applicant.id || "", "SHORTLISTED")}
+                className="border-emerald-700/60 bg-emerald-950/40 text-emerald-300 hover:bg-emerald-900/60 text-xs h-8 rounded-lg cursor-pointer"
+              >
+                Shortlist Candidate
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => onUpdateStatus(applicant.id || "", "INTERVIEWING")}
+                className="border-sky-700/60 bg-sky-950/40 text-sky-300 hover:bg-sky-900/60 text-xs h-8 rounded-lg cursor-pointer"
+              >
+                Invite to Interview
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => onUpdateStatus(applicant.id || "", "REJECTED")}
+                className="border-rose-700/60 bg-rose-950/40 text-rose-300 hover:bg-rose-900/60 text-xs h-8 rounded-lg cursor-pointer"
+              >
+                Decline
+              </Button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

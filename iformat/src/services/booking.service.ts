@@ -1,5 +1,12 @@
 import { apiClient } from "@/lib/api/api-client";
-import { BookingDTO, BookSlotRequest, ConsultationSlotDTO, CreateSlotRequest } from "@/types/api";
+import {
+  BookingDTO,
+  BookSlotRequest,
+  ConsultationSlotDTO,
+  CreateSlotRequest,
+  CreateServiceOrderRequest,
+  ServiceOrderCheckoutResponse,
+} from "@/types/api";
 
 export const bookingService = {
   /**
@@ -10,10 +17,17 @@ export const bookingService = {
   },
 
   /**
-   * Candidate: List authenticated candidate's booked sessions
+   * Candidate: List authenticated candidate's booked sessions & service orders
    */
   async listMyBookings(): Promise<BookingDTO[]> {
     return apiClient.get<BookingDTO[]>("/bookings/mine");
+  },
+
+  /**
+   * Candidate / Client: Checkout and purchase a career service package
+   */
+  async checkoutServiceOrder(payload: CreateServiceOrderRequest): Promise<ServiceOrderCheckoutResponse> {
+    return apiClient.post<ServiceOrderCheckoutResponse>("/bookings/checkout", payload);
   },
 
   /**
@@ -37,3 +51,4 @@ export const bookingService = {
     return apiClient.patch<BookingDTO>(`/bookings/${bookingId}/status`, { status });
   },
 };
+

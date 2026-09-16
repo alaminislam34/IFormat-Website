@@ -44,6 +44,10 @@ export interface AdminUserItemDTO {
   deletedAt?: string | null;
   companyName?: string | null;
   companyWebsite?: string | null;
+  companyLogoUrl?: string | null;
+  companyVideoUrl?: string | null;
+  companyDescription?: string | null;
+  phone?: string | null;
   createdAt: string;
   subscription?: {
     status: string;
@@ -119,6 +123,7 @@ export class AdminService {
     search?: string;
     role?: string;
     isBanned?: boolean | string;
+    isVerifiedCompany?: boolean | string;
     includeDeleted?: boolean | string;
   }): Promise<{ users: AdminUserItemDTO[]; meta: any }> {
     return apiClient.get<{ users: AdminUserItemDTO[]; meta: any }>("/admin/users", {

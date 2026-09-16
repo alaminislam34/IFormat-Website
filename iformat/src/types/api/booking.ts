@@ -15,16 +15,24 @@ export interface ConsultationSlotDTO {
 
 export interface BookingDTO {
   id: string;
-  slotId: string;
+  slotId?: string | null;
   userId: string;
+  serviceId?: string | null;
+  serviceTitle?: string | null;
+  priceInCents?: number;
+  clientPhone?: string | null;
+  requirements?: string | null;
   notes?: string | null;
+  paymentStatus?: string;
+  stripeSessionId?: string | null;
   status: "CONFIRMED" | "CANCELLED" | "COMPLETED";
   createdAt: string;
-  slot: ConsultationSlotDTO;
+  slot?: ConsultationSlotDTO | null;
   user?: {
     id: string;
     name: string;
     email: string;
+    phone?: string | null;
   };
 }
 
@@ -38,4 +46,18 @@ export interface CreateSlotRequest {
   startTime: string;
   endTime: string;
   priceInCents?: number;
+}
+
+export interface CreateServiceOrderRequest {
+  serviceId: string;
+  serviceTitle: string;
+  priceInCents: number;
+  requirements?: string;
+  clientPhone?: string;
+  notes?: string;
+}
+
+export interface ServiceOrderCheckoutResponse {
+  checkoutUrl: string;
+  booking: BookingDTO;
 }

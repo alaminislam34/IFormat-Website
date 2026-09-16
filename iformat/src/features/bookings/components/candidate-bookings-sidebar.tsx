@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 interface CandidateBookingsSidebarProps {
   availableSlots: any[];
   loadingSlots: boolean;
-  onBookSlot: () => void;
+  onBookSlot: (slotId?: string) => void;
 }
 
 export function CandidateBookingsSidebar({
@@ -56,7 +56,7 @@ export function CandidateBookingsSidebar({
                     <p className="text-[11px] text-[#0A54B1] font-extrabold">{timeFormatted}</p>
                   </div>
                   <button
-                    onClick={onBookSlot}
+                    onClick={() => onBookSlot(slot.id)}
                     className="bg-[#0A54B1] hover:bg-[#0A54B1]/90 text-white text-xs font-bold h-8 px-3 rounded-xl shrink-0 cursor-pointer shadow-xs active:scale-95 transition-all"
                   >
                     Book

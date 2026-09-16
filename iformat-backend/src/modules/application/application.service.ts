@@ -375,7 +375,7 @@ export class ApplicationService {
         companyName: application.job.company,
         newStatus: input.status,
         feedback: input.employerFeedback || "",
-        portalUrl: `${getFrontendUrl()}/dashboard`,
+        portalUrl: `${getFrontendUrl()}/dashboard/applications`,
       },
     }).catch((err) => {
       console.error("Failed to send application status update email:", err);

@@ -117,6 +117,7 @@ export class AdminService {
       search?: string;
       role?: Role;
       isBanned?: boolean | string;
+      isVerifiedCompany?: boolean | string;
       includeDeleted?: boolean | string;
     } = {}
   ) {
@@ -134,6 +135,10 @@ export class AdminService {
 
     if (query.isBanned !== undefined) {
       where.isBanned = query.isBanned === "true" || query.isBanned === true;
+    }
+
+    if (query.isVerifiedCompany !== undefined) {
+      where.isVerifiedCompany = query.isVerifiedCompany === "true" || query.isVerifiedCompany === true;
     }
 
     if (query.search) {
@@ -154,6 +159,7 @@ export class AdminService {
           id: true,
           name: true,
           email: true,
+          phone: true,
           role: true,
           avatarUrl: true,
           emailVerified: true,
@@ -164,6 +170,9 @@ export class AdminService {
           deletedAt: true,
           companyName: true,
           companyWebsite: true,
+          companyLogoUrl: true,
+          companyVideoUrl: true,
+          companyDescription: true,
           createdAt: true,
           subscription: {
             include: { plan: true },
@@ -482,6 +491,25 @@ export class AdminService {
       { companyName: user.companyName, isVerifiedCompany },
       ipAddress
     );
+
+    // Dispatch real-time in-app notification to the employer
+    try {
+      await prisma.notification.create({
+        data: {
+          userId,
+          type: "SYSTEM",
+          title: isVerifiedCompany
+            ? "🎉 Verified Company Badge Granted!"
+            : "Company Verification Status Updated",
+          message: isVerifiedCompany
+            ? `Your organization (${user.companyName || user.name}) is now an official Verified Hiring Partner. The verified badge is displayed on your job listings and company page.`
+            : `The verification trust badge for (${user.companyName || user.name}) has been revoked.`,
+          payload: { actionUrl: "/dashboard" },
+        },
+      });
+    } catch (notifErr: any) {
+      console.warn("Could not dispatch verification notification to employer:", notifErr.message);
+    }
 
     return updated;
   }

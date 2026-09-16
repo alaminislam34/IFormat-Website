@@ -24,12 +24,14 @@ interface BookConsultationModalProps {
   isOpen: boolean;
   onClose: () => void;
   serviceTitle?: string;
+  defaultSlotId?: string;
 }
 
 export function BookConsultationModal({
   isOpen,
   onClose,
   serviceTitle = "1-on-1 Career Strategy Consultation",
+  defaultSlotId,
 }: BookConsultationModalProps) {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
@@ -37,13 +39,21 @@ export function BookConsultationModal({
   const { data: slots, isLoading: loadingSlots } = useAvailableSlots();
   const bookSlotMutation = useBookSlot();
 
+  const [selectedSlotId, setSelectedSlotId] = useState<string>(defaultSlotId || "");
+  const [notes, setNotes] = useState<string>("");
+  const [isSuccess, setIsSuccess] = useState<boolean>(false);
+
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  const [selectedSlotId, setSelectedSlotId] = useState<string>("");
-  const [notes, setNotes] = useState<string>("");
-  const [isSuccess, setIsSuccess] = useState<boolean>(false);
+  useEffect(() => {
+    if (defaultSlotId) {
+      setSelectedSlotId(defaultSlotId);
+    } else if (slots && slots.length > 0 && !selectedSlotId) {
+      setSelectedSlotId(slots[0].id);
+    }
+  }, [defaultSlotId, slots, selectedSlotId]);
 
   const handleBooking = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -92,7 +102,7 @@ export function BookConsultationModal({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.18, ease: "easeOut" }}
-          className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md"
+          className="fixed inset-0 z-99999 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md"
         >
           {/* Backdrop click-away */}
           <div className="absolute inset-0" onClick={onClose} />
@@ -172,10 +182,12 @@ export function BookConsultationModal({
                             }`}
                           >
                             <div className="flex items-center gap-2.5">
-                              <Clock className="w-4 h-4 text-[#0A54B1]" />
+                              <Clock className="w-4 h-4 text-[#0A54B1] shrink-0" />
                               <div>
-                                <div className="text-xs font-bold">{dateStr} at {timeStr}</div>
-                                <div className="text-[10px] text-slate-500">Advisor: {slot.advisor?.name || "Career Specialist"}</div>
+                                <div className="text-xs font-bold text-slate-900">{slot.title || "Consultation Session"}</div>
+                                <div className="text-[11px] text-slate-500 font-medium">
+                                  {dateStr} at {timeStr} • Advisor: {slot.advisor?.name || "Career Specialist"}
+                                </div>
                               </div>
                             </div>
 

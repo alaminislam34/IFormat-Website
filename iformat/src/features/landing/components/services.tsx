@@ -12,7 +12,7 @@ import {
   ProductDetailModal,
   ServiceProduct,
 } from "@/features/services/components/product-detail-modal";
-import { BookConsultationModal } from "@/features/services/components/book-consultation-modal";
+import { OrderServiceModal } from "@/features/services/components/order-service-modal";
 import { SERVICES_DATA } from "@/features/services/data/services-data";
 
 export function Services() {
@@ -20,8 +20,7 @@ export function Services() {
   const { isAuthenticated } = useAuthStore();
   const [selectedProduct, setSelectedProduct] = useState<ServiceProduct | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
-  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
-  const [consultationTitle, setConsultationTitle] = useState("1-on-1 Career Strategy Consultation");
+  const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
 
   // Display top 3 featured services on landing page
   const featuredServices = SERVICES_DATA.slice(0, 3);
@@ -31,19 +30,10 @@ export function Services() {
     setIsDetailModalOpen(true);
   };
 
-  const handleOpenBooking = (serviceTitle: string) => {
-    setConsultationTitle(serviceTitle);
-    setIsBookingModalOpen(true);
-  };
-
   const handleOrderNow = (product: ServiceProduct) => {
-    if (!isAuthenticated) {
-      toast.info(`Please sign in or create an account to purchase ${product.title}.`);
-      router.push(`/signup?redirect=${encodeURIComponent("/dashboard/billing")}`);
-      return;
-    }
-    toast.success(`Redirecting to checkout for ${product.title}...`);
-    router.push(`/dashboard/billing?service=${encodeURIComponent(product.id)}`);
+    setSelectedProduct(product);
+    setIsOrderModalOpen(true);
+    setIsDetailModalOpen(false);
   };
 
   return (
@@ -54,14 +44,14 @@ export function Services() {
         onClose={() => setIsDetailModalOpen(false)}
         product={selectedProduct}
         onOrderNow={handleOrderNow}
-        onBookConsultation={(prod) => handleOpenBooking(prod.title)}
+        onBookConsultation={handleOrderNow}
       />
 
-      {/* Book Consultation Modal */}
-      <BookConsultationModal
-        isOpen={isBookingModalOpen}
-        onClose={() => setIsBookingModalOpen(false)}
-        serviceTitle={consultationTitle}
+      {/* Order Service Modal */}
+      <OrderServiceModal
+        isOpen={isOrderModalOpen}
+        onClose={() => setIsOrderModalOpen(false)}
+        service={selectedProduct}
       />
 
       <div className="max-w-7xl mx-auto px-8">
@@ -133,7 +123,7 @@ export function Services() {
                       }}
                       className="flex items-center gap-1.5 text-xs font-bold text-[#0A54B1] hover:text-[#08428C] bg-blue-50 hover:bg-blue-100 px-3.5 py-2 rounded-xl transition-colors cursor-pointer"
                     >
-                      <ShoppingCart className="w-3.5 h-3.5" /> Add to Cart
+                      <ShoppingBag className="w-3.5 h-3.5 text-[#0A54B1]" /> Order Package
                     </button>
                   </div>
                 </div>

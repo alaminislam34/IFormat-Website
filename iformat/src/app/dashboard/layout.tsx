@@ -16,12 +16,17 @@ import {
   Loader2,
   Home,
   ArrowUpRight,
+  Briefcase,
+  FileText,
+  Sparkles,
+  Compass,
   type LucideIcon,
 } from "lucide-react";
 import { useAuthStore } from "@/stores/use-auth-store";
 import { apiClient } from "@/lib/api/api-client";
 import { toast } from "sonner";
 import { BookConsultationModal } from "@/features/services/components/book-consultation-modal";
+import { NotificationBellPopover } from "@/components/layout/notification-bell-popover";
 
 interface NavItem {
   label: string;
@@ -68,7 +73,7 @@ export default function DashboardLayout({
 
   const navigationSections: NavSection[] = [
     {
-      title: "Menu",
+      title: isEmployer ? "Recruitment & Hiring" : "Career & Applications",
       items: [
         {
           label: "Overview",
@@ -76,6 +81,23 @@ export default function DashboardLayout({
           icon: LayoutDashboard,
           active: pathname === "/dashboard",
         },
+        ...(isEmployer
+          ? [
+              {
+                label: "Job Postings & Hiring",
+                href: "/dashboard/jobs",
+                icon: Briefcase,
+                active: pathname.startsWith("/dashboard/jobs"),
+              },
+            ]
+          : [
+              {
+                label: "My Applications",
+                href: "/dashboard/applications",
+                icon: FileText,
+                active: pathname.startsWith("/dashboard/applications"),
+              },
+            ]),
         {
           label: "Career Consultations",
           href: "/dashboard/bookings",
@@ -96,6 +118,42 @@ export default function DashboardLayout({
         },
       ],
     },
+    ...(!isEmployer
+      ? [
+          {
+            title: "Career Tools",
+            items: [
+              {
+                label: "AI Career Assistant",
+                href: "/job-assistant",
+                icon: Sparkles,
+                active: pathname.startsWith("/job-assistant"),
+                isExternalOrPublic: true,
+              },
+              {
+                label: "Explore Jobs",
+                href: "/job-portal",
+                icon: Compass,
+                active: pathname.startsWith("/job-portal"),
+                isExternalOrPublic: true,
+              },
+            ],
+          },
+        ]
+      : [
+          {
+            title: "Quick Navigation",
+            items: [
+              {
+                label: "Public Job Portal",
+                href: "/job-portal",
+                icon: Compass,
+                active: pathname.startsWith("/job-portal"),
+                isExternalOrPublic: true,
+              },
+            ],
+          },
+        ]),
     ...(isAdmin
       ? [
           {
@@ -280,6 +338,8 @@ export default function DashboardLayout({
 
           {/* Right Action Icons */}
           <div className="flex items-center gap-3">
+            <NotificationBellPopover />
+
             <button
               onClick={() => setIsConsultModalOpen(true)}
               className="px-4 py-2 rounded-xl bg-linear-to-r from-[#52CEDE] to-[#0A54B1] hover:opacity-95 text-white text-xs font-bold shadow-sm active:scale-95 cursor-pointer transition-all"

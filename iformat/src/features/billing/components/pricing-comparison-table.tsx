@@ -226,7 +226,7 @@ export function PricingComparisonTable({
     if (typeof val === "boolean") {
       return val ? (
         <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 text-emerald-700">
-          <Check className="w-3.5 h-3.5 stroke-[3]" />
+          <Check className="w-3.5 h-3.5 stroke-3" />
         </span>
       ) : (
         <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-slate-100 text-slate-300">
@@ -275,7 +275,7 @@ export function PricingComparisonTable({
       {/* Expandable Comparison Content */}
       {isExpanded && (
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse min-w-[760px]">
+          <table className="w-full text-left border-collapse min-w-190">
             {/* Table Head: Plans Header */}
             <thead>
               <tr className="border-b border-slate-100 bg-slate-50/50">
@@ -283,7 +283,13 @@ export function PricingComparisonTable({
                   Tier Features
                 </th>
                 {TIERS.map((tier) => {
-                  const isCurrent = currentPlanCode === tier.code;
+                  const isCurrent =
+                    currentPlanCode === tier.code ||
+                    (tier.code === "FREE" &&
+                      (!currentPlanCode ||
+                        currentPlanCode === "FREE" ||
+                        currentPlanCode === "EMPLOYER_FREE" ||
+                        currentPlanCode === "CANDIDATE_FREE"));
                   return (
                     <th
                       key={tier.code}

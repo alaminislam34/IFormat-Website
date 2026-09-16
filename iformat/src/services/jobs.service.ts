@@ -5,6 +5,7 @@ import {
   JobApplicantDTO,
   JobDTO,
   JobFilterParams,
+  PublicCompanyProfileDTO,
   UpdateApplicationStatusRequest,
 } from "@/types/api";
 
@@ -17,6 +18,7 @@ export const jobsService = {
       params: {
         category: params.category,
         search: params.search,
+        company: params.company,
         location: params.location,
         jobType: params.jobType,
         workplaceType: params.workplaceType,
@@ -32,6 +34,13 @@ export const jobsService = {
    */
   async getJobById(id: string): Promise<JobDTO> {
     return apiClient.get<JobDTO>(`/jobs/${id}`);
+  },
+
+  /**
+   * Public: Get public company profile & active job openings
+   */
+  async getCompanyProfile(companyName: string): Promise<PublicCompanyProfileDTO> {
+    return apiClient.get<PublicCompanyProfileDTO>(`/jobs/company/${encodeURIComponent(companyName)}`);
   },
 
   /**

@@ -18,18 +18,27 @@ model ConsultationSlot {
 }
 
 model Booking {
-  id        String           @id @default(uuid())
-  slotId    String           @unique
-  userId    String
-  notes     String?
-  status    BookingStatus    @default(CONFIRMED)
-  isDeleted Boolean          @default(false)
-  deletedAt DateTime?
-  createdAt DateTime         @default(now())
-  updatedAt DateTime         @updatedAt
+  id              String            @id @default(uuid())
+  slotId          String?           @unique
+  userId          String
+  serviceId       String?
+  serviceTitle    String?
+  priceInCents    Int               @default(0)
+  clientPhone     String?
+  requirements    String?
+  notes           String?
+  paymentStatus   String            @default("PAID")
+  stripeSessionId String?
+  status          BookingStatus     @default(CONFIRMED)
+  isDeleted       Boolean           @default(false)
+  deletedAt       DateTime?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
 
-  slot      ConsultationSlot @relation(fields: [slotId], references: [id], onDelete: Restrict)
-  user      User             @relation("UserBookings", fields: [userId], references: [id], onDelete: Cascade)
+  slot            ConsultationSlot? @relation(fields: [slotId], references: [id], onDelete: SetNull)
+  user            User              @relation("UserBookings", fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, isDeleted])
+  @@index([serviceId])
+  @@index([paymentStatus])
 }

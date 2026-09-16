@@ -1,26 +1,32 @@
 "use client";
 
 import React from "react";
-import { Mail, Calendar, Sparkles, AlertCircle, Loader2 } from "lucide-react";
+import { Mail, Calendar, Sparkles, AlertCircle, Loader2, Video } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ApplicationStatus, JobApplicantDTO, isInsufficientResumeScreening } from "@/types/api";
 
 interface ApplicantCardRowProps {
   app: JobApplicantDTO;
+  isSelected?: boolean;
   isRerunning: boolean;
   isUpdating: boolean;
+  onToggleSelect?: (id: string, e: React.MouseEvent) => void;
   onOpenDrawer: (app: JobApplicantDTO) => void;
   onRerunScreening: (id: string, e?: React.MouseEvent) => void;
   onUpdateStatus: (id: string, newStatus: ApplicationStatus, e?: React.MouseEvent) => void;
+  onScheduleInterview?: (app: JobApplicantDTO, e?: React.MouseEvent) => void;
 }
 
 export function ApplicantCardRow({
   app,
+  isSelected = false,
   isRerunning,
   isUpdating,
+  onToggleSelect,
   onOpenDrawer,
   onRerunScreening,
   onUpdateStatus,
+  onScheduleInterview,
 }: ApplicantCardRowProps) {
   const name = app.candidateName || app.candidate?.name || "Candidate";
   const email = app.candidateEmail || app.candidate?.email || "No email available";
@@ -34,16 +40,33 @@ export function ApplicantCardRow({
     <div
       onClick={() => hasScreening && onOpenDrawer(app)}
       className={`bg-slate-900/80 border rounded-3xl p-5 sm:p-6 transition-all flex flex-col lg:flex-row lg:items-center justify-between gap-6 ${
-        hasScreening
+        isSelected
+          ? "border-indigo-500 bg-indigo-950/20"
+          : hasScreening
           ? "hover:border-slate-700 cursor-pointer border-slate-800/90"
           : "border-slate-800/80"
       }`}
     >
-      {/* Left: Candidate Info */}
-      <div className="flex items-start gap-4">
+      {/* Left: Checkbox + Candidate Info */}
+      <div className="flex items-start gap-3.5">
+        {onToggleSelect && (
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="pt-3.5 shrink-0"
+          >
+            <input
+              type="checkbox"
+              checked={isSelected}
+              onChange={(e) => onToggleSelect(appId, e as any)}
+              className="w-4 h-4 rounded-md border-slate-700 bg-slate-950 text-indigo-600 focus:ring-0 focus:ring-offset-0 cursor-pointer accent-indigo-600"
+            />
+          </div>
+        )}
+
         <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 flex items-center justify-center font-bold text-base shrink-0">
           {name.charAt(0).toUpperCase()}
         </div>
+
         <div className="space-y-1">
           <div className="flex items-center gap-3 flex-wrap">
             <h3 className="text-base font-bold text-white">{name}</h3>
@@ -65,6 +88,7 @@ export function ApplicantCardRow({
               {app.status || "SUBMITTED"}
             </span>
           </div>
+
           <div className="flex items-center gap-4 text-xs text-slate-400 flex-wrap">
             <span className="flex items-center gap-1.5">
               <Mail className="w-3.5 h-3.5 text-slate-500" /> {email}
@@ -75,9 +99,16 @@ export function ApplicantCardRow({
               Applied {app.createdAt ? new Date(app.createdAt).toLocaleDateString() : "Recently"}
             </span>
           </div>
+
           {app.coverNote && (
             <p className="text-xs text-slate-400/90 line-clamp-1 italic mt-1 max-w-xl">
               &ldquo;{app.coverNote}&rdquo;
+            </p>
+          )}
+
+          {app.employerFeedback && (
+            <p className="text-xs text-sky-400/90 font-medium mt-1">
+              Note: {app.employerFeedback}
             </p>
           )}
         </div>
@@ -113,10 +144,10 @@ export function ApplicantCardRow({
                     : "Low Alignment"}
                 </span>
               </div>
-              <p className="text-[11px] text-slate-400 truncate max-w-50">
+              <p className="text-[11px] text-slate-400 truncate max-w-48">
                 {insufficient
-                  ? "Ask the candidate to upload a readable PDF, then re-run."
-                  : app.screeningResult?.summary || "Screening score calculated by AI engine."}
+                  ? "Ask candidate for readable PDF"
+                  : app.screeningResult?.summary || "Screening score calculated by AI."}
               </p>
             </div>
           </div>
@@ -128,7 +159,20 @@ export function ApplicantCardRow({
         )}
 
         {/* Actions */}
-        <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center gap-2 flex-wrap" onClick={(e) => e.stopPropagation()}>
+          {/* Interview Button */}
+          {onScheduleInterview && app.status !== "REJECTED" && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={(e) => onScheduleInterview(app, e)}
+              className="border-sky-800/80 bg-sky-950/40 hover:bg-sky-900/60 text-sky-300 text-xs h-9 rounded-xl font-medium cursor-pointer"
+            >
+              <Video className="w-3.5 h-3.5 mr-1" />
+              <span>Interview</span>
+            </Button>
+          )}
+
           {hasScreening ? (
             <Button
               variant="outline"
@@ -136,7 +180,7 @@ export function ApplicantCardRow({
               onClick={() => onOpenDrawer(app)}
               className="border-slate-800 bg-slate-950/40 hover:bg-slate-800 text-slate-300 text-xs h-9 rounded-xl font-medium cursor-pointer"
             >
-              View Evaluation
+              View Report
             </Button>
           ) : null}
 

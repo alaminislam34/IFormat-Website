@@ -24,6 +24,9 @@ router.get(
   catchAsync(JobController.listEmployerJobs)
 );
 
+// Public Company Profile & Open Roles
+router.get("/company/:companyName", catchAsync(JobController.getByCompany));
+
 // Single Job Details
 router.get("/:id", catchAsync(JobController.getById));
 
