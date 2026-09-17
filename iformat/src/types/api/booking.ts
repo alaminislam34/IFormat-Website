@@ -25,7 +25,7 @@ export interface BookingDTO {
   notes?: string | null;
   paymentStatus?: string;
   stripeSessionId?: string | null;
-  status: "CONFIRMED" | "CANCELLED" | "COMPLETED";
+  status: "CONFIRMED" | "CANCELLED" | "COMPLETED" | "PENDING";
   createdAt: string;
   slot?: ConsultationSlotDTO | null;
   user?: {

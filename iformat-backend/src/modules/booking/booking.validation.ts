@@ -13,7 +13,8 @@ export const bookSlotSchema = z.object({
 });
 
 export const updateBookingStatusSchema = z.object({
-  status: z.enum(["CONFIRMED", "COMPLETED", "CANCELLED"]),
+  status: z.enum(["CONFIRMED", "COMPLETED", "CANCELLED", "PENDING"]),
+  reason: z.string().max(1000).optional(),
 });
 
 export const createServiceOrderSchema = z.object({

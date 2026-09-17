@@ -172,7 +172,8 @@ export class BookingService {
   static async updateBookingStatus(
     bookingId: string,
     status: BookingStatus,
-    currentUser?: { id: string; role: Role }
+    currentUser?: { id: string; role: Role },
+    reason?: string
   ) {
     const booking = await prisma.booking.findUnique({
       where: { id: bookingId },
@@ -192,8 +193,8 @@ export class BookingService {
         if (booking.userId !== currentUser.id) {
           throw new ForbiddenError("You can only cancel your own bookings");
         }
-        if (status !== BookingStatus.CANCELLED) {
-          throw new ForbiddenError("Candidates are only permitted to cancel sessions");
+        if (status !== BookingStatus.CANCELLED && status !== BookingStatus.PENDING) {
+          throw new ForbiddenError("Candidates are only permitted to request cancellation or cancel sessions");
         }
       } else if (currentUser.role === Role.EMPLOYER) {
         if (booking.slot?.advisorId && booking.slot.advisorId !== currentUser.id) {
@@ -214,9 +215,21 @@ export class BookingService {
       }
     }
 
+    // Prepare notes update if a reason was submitted
+    let updatedNotes = booking.notes;
+    if (reason && reason.trim()) {
+      const reasonTag = status === BookingStatus.PENDING 
+        ? `[Cancellation Requested - ${new Date().toLocaleDateString()}]: ${reason.trim()}`
+        : `[Cancellation Reason]: ${reason.trim()}`;
+      updatedNotes = booking.notes ? `${booking.notes}\n${reasonTag}` : reasonTag;
+    }
+
     const updated = await prisma.booking.update({
       where: { id: bookingId },
-      data: { status },
+      data: {
+        status,
+        ...(updatedNotes !== booking.notes ? { notes: updatedNotes } : {}),
+      },
       include: {
         slot: { include: { advisor: true } },
         user: true,
@@ -226,11 +239,52 @@ export class BookingService {
     // Notify participants of status update
     try {
       const orderTitle = booking.serviceTitle || booking.slot?.title || "Professional Service";
-      const isCandidateCancelling =
-        status === BookingStatus.CANCELLED && currentUser?.id === booking.userId;
+      const isCandidatePending = status === BookingStatus.PENDING && currentUser?.id === booking.userId;
+      const isCandidateCancelling = status === BookingStatus.CANCELLED && currentUser?.id === booking.userId;
 
-      if (isCandidateCancelling) {
-        // Candidate cancelled -> notify advisor/admin
+      if (isCandidatePending) {
+        // 1. Notify all admins of the cancellation request
+        const admins = await prisma.user.findMany({
+          where: { role: Role.ADMIN, isDeleted: false },
+          select: { id: true },
+        });
+        for (const admin of admins) {
+          await prisma.notification.create({
+            data: {
+              userId: admin.id,
+              type: "BOOKING",
+              title: "⚠️ Order Cancellation Requested",
+              message: `${booking.user.name} requested to cancel "${orderTitle}". Reason: ${reason || "No reason specified."}`,
+              payload: { actionUrl: "/admin/bookings" },
+            },
+          });
+        }
+
+        // 2. Notify advisor if consultation slot
+        if (booking.slot?.advisorId && booking.slot.advisorId !== booking.userId) {
+          await prisma.notification.create({
+            data: {
+              userId: booking.slot.advisorId,
+              type: "BOOKING",
+              title: "⚠️ Client Requested Cancellation",
+              message: `${booking.user.name} has requested cancellation for consultation "${orderTitle}".`,
+              payload: { actionUrl: "/dashboard/bookings" },
+            },
+          });
+        }
+
+        // 3. Confirm to candidate that request is submitted & pending
+        await prisma.notification.create({
+          data: {
+            userId: booking.userId,
+            type: "BOOKING",
+            title: "Cancellation Request Received",
+            message: `Your cancellation request for "${orderTitle}" has been received and is pending administrator confirmation.`,
+            payload: { actionUrl: "/dashboard/bookings" },
+          },
+        });
+      } else if (isCandidateCancelling) {
+        // Direct candidate cancellation
         if (booking.slot?.advisorId && booking.slot.advisorId !== booking.userId) {
           await prisma.notification.create({
             data: {
@@ -242,7 +296,6 @@ export class BookingService {
             },
           });
         }
-        // Also confirm to candidate
         await prisma.notification.create({
           data: {
             userId: booking.userId,
@@ -258,18 +311,26 @@ export class BookingService {
           status === BookingStatus.COMPLETED
             ? "✅ Service Order Completed"
             : status === BookingStatus.CANCELLED
-            ? "⚠️ Service Order Cancelled"
+            ? "⚠️ Order Cancellation Approved"
+            : status === BookingStatus.CONFIRMED
+            ? "✅ Service Order Active"
             : "Service Order Updated";
+
+        const statusMsg =
+          status === BookingStatus.COMPLETED
+            ? `Your order "${orderTitle}" has been marked as completed.`
+            : status === BookingStatus.CANCELLED
+            ? `Your order for "${orderTitle}" has been cancelled by the administrator.`
+            : status === BookingStatus.CONFIRMED
+            ? `Your order "${orderTitle}" is active and in progress.`
+            : `Your order "${orderTitle}" status has been updated to ${status.toLowerCase()}.`;
 
         await prisma.notification.create({
           data: {
             userId: booking.userId,
             type: "BOOKING",
             title: statusTitle,
-            message:
-              status === BookingStatus.COMPLETED
-                ? `Your order "${orderTitle}" has been completed by our team!`
-                : `Your order "${orderTitle}" status has been updated to ${status.toLowerCase()}.`,
+            message: statusMsg,
             payload: { actionUrl: "/dashboard/bookings" },
           },
         });

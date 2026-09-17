@@ -45,10 +45,14 @@ export const bookingService = {
   },
 
   /**
-   * Admin / Advisor: Update booking status
+   * Admin / Advisor / Candidate: Update booking status or submit cancellation request
    */
-  async updateStatus(bookingId: string, status: "CONFIRMED" | "COMPLETED" | "CANCELLED"): Promise<BookingDTO> {
-    return apiClient.patch<BookingDTO>(`/bookings/${bookingId}/status`, { status });
+  async updateStatus(
+    bookingId: string,
+    status: "CONFIRMED" | "COMPLETED" | "CANCELLED" | "PENDING",
+    reason?: string
+  ): Promise<BookingDTO> {
+    return apiClient.patch<BookingDTO>(`/bookings/${bookingId}/status`, { status, reason });
   },
 };
 

@@ -20,9 +20,11 @@ import {
 import { toast } from "sonner";
 import { useCancelBooking } from "@/hooks";
 import Link from "next/link";
+import { BookingDTO } from "@/types/api";
+import { CancelBookingModal } from "./cancel-booking-modal";
 
 interface CandidateBookingsListProps {
-  bookings: any[];
+  bookings: BookingDTO[];
   isLoading: boolean;
   error: any;
   onBookClick: () => void;
@@ -37,15 +39,15 @@ export function CandidateBookingsList({
   onRetry,
 }: CandidateBookingsListProps) {
   const cancelBookingMutation = useCancelBooking();
-  const [confirmCancelId, setConfirmCancelId] = useState<string | null>(null);
+  const [selectedBookingForCancel, setSelectedBookingForCancel] = useState<BookingDTO | null>(null);
 
-  const handleCancelBooking = async (bookingId: string) => {
+  const handleCancelBooking = async (bookingId: string, reason: string) => {
     try {
-      await cancelBookingMutation.mutateAsync(bookingId);
-      toast.success("Order / session cancelled successfully.");
-      setConfirmCancelId(null);
+      await cancelBookingMutation.mutateAsync({ bookingId, reason });
+      toast.success("Cancellation request submitted! Awaiting administrator confirmation.");
+      setSelectedBookingForCancel(null);
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || err?.message || "Failed to cancel order");
+      toast.error(err?.response?.data?.message || err?.message || "Failed to submit cancellation request.");
     }
   };
 
@@ -109,10 +111,7 @@ export function CandidateBookingsList({
             const isConfirmed = booking.status === "CONFIRMED";
             const isCompleted = booking.status === "COMPLETED";
             const isCancelled = booking.status === "CANCELLED";
-            const isPendingCancel = confirmCancelId === booking.id;
-            const isCancelling =
-              cancelBookingMutation.isPending &&
-              cancelBookingMutation.variables === booking.id;
+            const isPending = booking.status === "PENDING";
 
             const priceNum = booking.priceInCents ?? booking.slot?.priceInCents;
             const priceFormatted = priceNum
@@ -130,12 +129,18 @@ export function CandidateBookingsList({
                       className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider border ${
                         isConfirmed
                           ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                          : isPending
+                          ? "bg-amber-50 text-amber-800 border-amber-200"
                           : isCompleted
                           ? "bg-blue-50 text-[#0A54B1] border-blue-200"
                           : "bg-rose-50 text-rose-700 border-rose-200"
                       }`}
                     >
-                      {isConfirmed ? "In Progress" : booking.status}
+                      {isConfirmed
+                        ? "In Progress"
+                        : isPending
+                        ? "Cancellation Pending"
+                        : booking.status}
                     </span>
 
                     <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
@@ -155,6 +160,16 @@ export function CandidateBookingsList({
                     )}
                     <span>{title}</span>
                   </h3>
+
+                  {/* Pending Cancellation Alert Banner */}
+                  {isPending && (
+                    <div className="flex items-center gap-2 p-3 rounded-2xl bg-amber-50/80 border border-amber-200 text-xs text-amber-900 font-medium">
+                      <Clock className="w-4 h-4 text-amber-600 shrink-0" />
+                      <span>
+                        Cancellation request submitted. Awaiting administrator review and confirmation.
+                      </span>
+                    </div>
+                  )}
 
                   {/* Contact Phone & Advisor */}
                   <div className="flex flex-wrap items-center gap-3 text-xs text-slate-600">
@@ -201,37 +216,19 @@ export function CandidateBookingsList({
                     </span>
                   </div>
 
-                  {isConfirmed && !isPendingCancel && (
+                  {isConfirmed && (
                     <button
-                      onClick={() => setConfirmCancelId(booking.id)}
-                      className="text-[11px] font-bold text-rose-600 hover:text-rose-700 hover:bg-rose-50 px-2.5 py-1 rounded-lg border border-transparent hover:border-rose-200 transition-colors cursor-pointer"
+                      onClick={() => setSelectedBookingForCancel(booking)}
+                      className="text-xs font-semibold text-slate-500 hover:text-rose-600 hover:bg-rose-50 px-3 py-1.5 rounded-xl border border-slate-200/80 hover:border-rose-200 transition-colors cursor-pointer"
                     >
                       Cancel Order
                     </button>
                   )}
 
-                  {isConfirmed && isPendingCancel && (
-                    <div className="flex items-center gap-1.5 bg-rose-50/80 p-1.5 rounded-xl border border-rose-200">
-                      <span className="text-[10px] font-bold text-rose-800 mr-1">Cancel?</span>
-                      <button
-                        onClick={() => handleCancelBooking(booking.id)}
-                        disabled={isCancelling}
-                        className="bg-rose-600 hover:bg-rose-700 text-white text-[10px] font-extrabold px-2.5 py-1 rounded-lg transition-colors cursor-pointer flex items-center gap-1 disabled:opacity-50"
-                      >
-                        {isCancelling ? (
-                          <Loader2 className="w-3 h-3 animate-spin" />
-                        ) : (
-                          "Yes, Cancel"
-                        )}
-                      </button>
-                      <button
-                        onClick={() => setConfirmCancelId(null)}
-                        disabled={isCancelling}
-                        className="bg-white hover:bg-slate-100 text-slate-700 text-[10px] font-bold px-2 py-1 rounded-lg border border-slate-200 transition-colors cursor-pointer disabled:opacity-50"
-                      >
-                        Keep
-                      </button>
-                    </div>
+                  {isPending && (
+                    <span className="text-[11px] font-bold text-amber-800 bg-amber-50 px-2.5 py-1 rounded-xl border border-amber-200 flex items-center gap-1">
+                      <Clock className="w-3 h-3 text-amber-600" /> Pending Admin Review
+                    </span>
                   )}
                 </div>
               </div>
@@ -239,6 +236,15 @@ export function CandidateBookingsList({
           })}
         </div>
       )}
+
+      {/* Professional Cancellation Modal */}
+      <CancelBookingModal
+        isOpen={Boolean(selectedBookingForCancel)}
+        onClose={() => setSelectedBookingForCancel(null)}
+        booking={selectedBookingForCancel}
+        onConfirm={handleCancelBooking}
+        isLoading={cancelBookingMutation.isPending}
+      />
     </div>
   );
 }

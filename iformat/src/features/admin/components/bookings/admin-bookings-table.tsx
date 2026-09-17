@@ -26,7 +26,7 @@ interface AdminBookingsTableProps {
   setSearch: (s: string) => void;
   statusFilter: string;
   setStatusFilter: (st: string) => void;
-  onUpdateStatus?: (bookingId: string, status: "CONFIRMED" | "COMPLETED" | "CANCELLED") => Promise<void>;
+  onUpdateStatus?: (bookingId: string, status: "CONFIRMED" | "COMPLETED" | "CANCELLED" | "PENDING") => Promise<void>;
 }
 
 export function AdminBookingsTable({
@@ -41,7 +41,7 @@ export function AdminBookingsTable({
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [selectedBrief, setSelectedBrief] = useState<BookingDTO | null>(null);
 
-  const handleAction = async (bookingId: string, status: "CONFIRMED" | "COMPLETED" | "CANCELLED") => {
+  const handleAction = async (bookingId: string, status: "CONFIRMED" | "COMPLETED" | "CANCELLED" | "PENDING") => {
     if (!onUpdateStatus) return;
     try {
       setUpdatingId(bookingId);
@@ -67,7 +67,7 @@ export function AdminBookingsTable({
         </div>
 
         <div className="flex items-center gap-1.5 overflow-x-auto w-full md:w-auto">
-          {["ALL", "CONFIRMED", "COMPLETED", "CANCELLED"].map((status) => (
+          {["ALL", "PENDING", "CONFIRMED", "COMPLETED", "CANCELLED"].map((status) => (
             <button
               key={status}
               onClick={() => setStatusFilter(status)}
@@ -77,7 +77,11 @@ export function AdminBookingsTable({
                   : "bg-slate-950 text-slate-400 border border-slate-800 hover:text-white"
               }`}
             >
-              {status === "ALL" ? "All Orders" : status.charAt(0) + status.slice(1).toLowerCase()}
+              {status === "ALL"
+                ? "All Orders"
+                : status === "PENDING"
+                ? "Cancellation Requests"
+                : status.charAt(0) + status.slice(1).toLowerCase()}
             </button>
           ))}
         </div>
@@ -108,25 +112,25 @@ export function AdminBookingsTable({
               <tr className="border-b border-slate-800 text-slate-400">
                 <th className="pb-3 font-semibold">Service Package / Brief</th>
                 <th className="pb-3 font-semibold">Client Contact</th>
-                <th className="pb-3 font-semibold">Date Placed</th>
-                <th className="pb-3 font-semibold">Payment / Fee</th>
-                <th className="pb-3 font-semibold">Fulfillment</th>
+                <th className="pb-3 font-semibold">Ordered At</th>
+                <th className="pb-3 font-semibold">Payment</th>
+                <th className="pb-3 font-semibold">Status</th>
                 {onUpdateStatus && <th className="pb-3 font-semibold text-right">Actions</th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/60">
               {bookings.map((b) => {
-                const title = b.serviceTitle || b.slot?.title || "Career Service Package";
                 const isPackageOrder = !b.slotId;
-                const orderDate = new Date(b.createdAt).toLocaleDateString([], {
+                const title = b.serviceTitle || b.slot?.title || "Career Service Package";
+                const orderDate = new Date(b.createdAt).toLocaleDateString("en-US", {
                   month: "short",
                   day: "numeric",
                   year: "numeric",
                 });
-
-                const priceNum = b.priceInCents ?? b.slot?.priceInCents;
-                const priceFormatted = priceNum
-                  ? `$${(priceNum / 100).toFixed(2)}`
+                const priceFormatted = b.priceInCents
+                  ? `$${(b.priceInCents / 100).toFixed(2)}`
+                  : b.slot?.priceInCents
+                  ? `$${(b.slot.priceInCents / 100).toFixed(2)}`
                   : "$0.00";
 
                 const isUpdating = updatingId === b.id;
@@ -150,7 +154,7 @@ export function AdminBookingsTable({
                             onClick={() => setSelectedBrief(b)}
                             className="text-[11px] text-cyan-400 hover:text-cyan-300 underline underline-offset-2 flex items-center gap-1 cursor-pointer"
                           >
-                            <FileText className="w-3 h-3" /> View Client Brief
+                            <FileText className="w-3 h-3" /> View Client Brief & Notes
                           </button>
                         )}
                       </div>
@@ -168,7 +172,7 @@ export function AdminBookingsTable({
                       </div>
                       {(b.clientPhone || b.user?.phone) && (
                         <div className="text-[11px] text-cyan-400 flex items-center gap-1.5 mt-0.5">
-                          <Phone className="w-3 h-3" />
+                          <Phone className="w-3.5 h-3.5" />
                           <span>{b.clientPhone || b.user?.phone}</span>
                         </div>
                       )}
@@ -203,12 +207,18 @@ export function AdminBookingsTable({
                         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${
                           b.status === "CONFIRMED"
                             ? "bg-emerald-950/80 text-emerald-400 border border-emerald-800/80"
+                            : b.status === "PENDING"
+                            ? "bg-amber-950/80 text-amber-300 border border-amber-500/50"
                             : b.status === "COMPLETED"
                             ? "bg-blue-950/80 text-blue-400 border border-blue-800/80"
                             : "bg-rose-950/80 text-rose-400 border border-rose-800/80"
                         }`}
                       >
-                        {b.status === "CONFIRMED" ? "Active / In Progress" : b.status}
+                        {b.status === "CONFIRMED"
+                          ? "Active / In Progress"
+                          : b.status === "PENDING"
+                          ? "⚠️ Cancellation Requested"
+                          : b.status}
                       </span>
                     </td>
 
@@ -219,6 +229,23 @@ export function AdminBookingsTable({
                           <span className="inline-flex items-center text-slate-400 text-[11px]">
                             <Loader2 className="w-3.5 h-3.5 animate-spin mr-1 text-sky-400" /> Updating...
                           </span>
+                        ) : b.status === "PENDING" ? (
+                          <div className="inline-flex items-center gap-1.5">
+                            <button
+                              onClick={() => handleAction(b.id, "CANCELLED")}
+                              className="px-2.5 py-1 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 font-semibold text-[11px] transition-colors cursor-pointer inline-flex items-center gap-1"
+                              title="Approve Cancellation"
+                            >
+                              <CheckCircle2 className="w-3 h-3" /> Approve Cancel
+                            </button>
+                            <button
+                              onClick={() => handleAction(b.id, "CONFIRMED")}
+                              className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 font-semibold text-[11px] transition-colors cursor-pointer inline-flex items-center gap-1"
+                              title="Decline Cancellation (Keep Active)"
+                            >
+                              <XCircle className="w-3 h-3" /> Decline
+                            </button>
+                          </div>
                         ) : b.status === "CONFIRMED" ? (
                           <div className="inline-flex items-center gap-1.5">
                             <button

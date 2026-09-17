@@ -78,7 +78,7 @@ export default function AdminBookingsPage() {
 
   const handleUpdateStatus = async (
     bookingId: string,
-    status: "CONFIRMED" | "COMPLETED" | "CANCELLED"
+    status: "CONFIRMED" | "COMPLETED" | "CANCELLED" | "PENDING"
   ) => {
     try {
       await bookingService.updateStatus(bookingId, status);

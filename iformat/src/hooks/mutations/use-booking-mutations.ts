@@ -68,7 +68,11 @@ export function useCancelBooking() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (bookingId: string) => bookingService.updateStatus(bookingId, "CANCELLED"),
+    mutationFn: (args: string | { bookingId: string; reason?: string }) => {
+      const bookingId = typeof args === "string" ? args : args.bookingId;
+      const reason = typeof args === "string" ? undefined : args.reason;
+      return bookingService.updateStatus(bookingId, "PENDING", reason);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: BOOKING_QUERY_KEYS.mine() });
       queryClient.invalidateQueries({ queryKey: BOOKING_QUERY_KEYS.slots() });

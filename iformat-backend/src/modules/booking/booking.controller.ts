@@ -30,8 +30,8 @@ export class BookingController {
 
   static async updateStatus(req: Request, res: Response) {
     const { id } = req.params;
-    const { status } = req.body;
-    const updated = await BookingService.updateBookingStatus(id, status, req.user!);
+    const { status, reason } = req.body;
+    const updated = await BookingService.updateBookingStatus(id, status, req.user!, reason);
     return ApiResponse.success(res, "Booking status updated successfully", updated);
   }
 }
