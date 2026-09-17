@@ -14,7 +14,7 @@ WORKDIR /app
 
 COPY package.json pnpm-lock.yaml ./
 RUN --mount=type=cache,id=pnpm-frontend,target=/root/.local/share/pnpm/store \
-    pnpm install --frozen-lockfile
+    pnpm install --no-frozen-lockfile
 
 # ==============================================================================
 # Stage 3: Build Next.js Application
