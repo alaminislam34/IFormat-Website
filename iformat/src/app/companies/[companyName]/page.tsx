@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -11,7 +10,6 @@ import {
   ExternalLink,
   Globe,
   Loader2,
-  MapPin,
   Play,
   Search,
   Share2,
@@ -27,10 +25,13 @@ import { Footer } from "@/components/layout/footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-export default function CompanyProfilePage() {
-  const params = useParams();
-  const router = useRouter();
-  const rawCompanyName = params?.companyName as string;
+interface PageProps {
+  params: Promise<{ companyName: string }>;
+}
+
+export default function CompanyProfilePage({ params }: PageProps) {
+  const resolvedParams = params && typeof (params as any).then === "function" ? React.use(params) : (params as any);
+  const rawCompanyName = resolvedParams?.companyName as string;
   const companyName = rawCompanyName ? decodeURIComponent(rawCompanyName) : "";
 
   const [profileData, setProfileData] = React.useState<PublicCompanyProfileDTO | null>(null);
@@ -160,13 +161,13 @@ export default function CompanyProfilePage() {
             We couldn&apos;t find an active company profile for &ldquo;{companyName}&rdquo;. The company may not have posted any active jobs yet.
           </p>
           <div className="flex items-center justify-center gap-3">
-            <Button
-              onClick={() => router.push("/job-portal")}
-              className="bg-[#0A54B1] hover:bg-[#08448f] text-white font-semibold rounded-xl"
+            <Link
+              href="/job-portal"
+              className="inline-flex items-center justify-center whitespace-nowrap text-sm font-semibold h-10 px-5 py-2 bg-[#0A54B1] hover:bg-[#08428C] text-white rounded-xl shadow-md shadow-blue-500/15 active:scale-[0.98] transition-all"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
               Browse All Jobs
-            </Button>
+            </Link>
           </div>
         </div>
         <Footer />
@@ -176,7 +177,6 @@ export default function CompanyProfilePage() {
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
-      {/* Top Breadcrumb Bar */}
       <div className="bg-white border-b border-slate-100 pt-20">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between">
           <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
