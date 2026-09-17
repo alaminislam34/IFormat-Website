@@ -26,7 +26,6 @@ export async function seedDatabase() {
           featuredJobPlacement: plan.featuredJobPlacement,
           unmaskedApplicantProfiles: plan.unmaskedApplicantProfiles,
           unlimitedCvTemplates: plan.unlimitedCvTemplates,
-          consultationDiscountPercent: plan.consultationDiscountPercent,
           customFeatures: plan.customFeatures as any,
         },
         update: {

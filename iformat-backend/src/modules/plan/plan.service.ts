@@ -22,7 +22,6 @@ export const SYSTEM_DEFAULT_PLANS = [
     featuredJobPlacement: false,
     unmaskedApplicantProfiles: true,
     unlimitedCvTemplates: true,
-    consultationDiscountPercent: 10,
     customFeatures: [
       "Weekly engagement (4)",
       "Email/Whatsapp support",
@@ -48,7 +47,6 @@ export const SYSTEM_DEFAULT_PLANS = [
     featuredJobPlacement: true,
     unmaskedApplicantProfiles: true,
     unlimitedCvTemplates: true,
-    consultationDiscountPercent: 25,
     customFeatures: [
       "Dedicated consultant",
       "1:1 Brand Strategy",
@@ -75,7 +73,6 @@ export const SYSTEM_DEFAULT_PLANS = [
     featuredJobPlacement: false,
     unmaskedApplicantProfiles: true,
     unlimitedCvTemplates: true,
-    consultationDiscountPercent: 15,
     customFeatures: [
       "Weekly engagement (4)",
       "Email/Whatsapp support",
@@ -102,7 +99,6 @@ export const SYSTEM_DEFAULT_PLANS = [
     featuredJobPlacement: true,
     unmaskedApplicantProfiles: true,
     unlimitedCvTemplates: true,
-    consultationDiscountPercent: 50,
     customFeatures: [
       "Outplacement Support",
       "Startup Brand Equity",
@@ -129,7 +125,6 @@ export const SYSTEM_DEFAULT_PLANS = [
     featuredJobPlacement: false,
     unmaskedApplicantProfiles: false,
     unlimitedCvTemplates: false,
-    consultationDiscountPercent: 0,
     customFeatures: [
       "5 AI generations/month",
       "10 job applications/month",
@@ -154,7 +149,6 @@ export const SYSTEM_DEFAULT_PLANS = [
     featuredJobPlacement: false,
     unmaskedApplicantProfiles: false,
     unlimitedCvTemplates: false,
-    consultationDiscountPercent: 0,
     customFeatures: [
       "1 active job posting",
       "Standard applicant review",
@@ -275,7 +269,6 @@ export class PlanService {
         featuredJobPlacement: data.featuredJobPlacement || false,
         unmaskedApplicantProfiles: data.unmaskedApplicantProfiles || false,
         unlimitedCvTemplates: data.unlimitedCvTemplates || false,
-        consultationDiscountPercent: data.consultationDiscountPercent || 0,
         customFeatures: data.customFeatures,
       },
     });

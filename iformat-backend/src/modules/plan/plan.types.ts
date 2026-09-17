@@ -22,7 +22,6 @@ export interface CreatePlanDto {
   featuredJobPlacement?: boolean;
   unmaskedApplicantProfiles?: boolean;
   unlimitedCvTemplates?: boolean;
-  consultationDiscountPercent?: number;
   customFeatures?: Record<string, any>;
 }
 

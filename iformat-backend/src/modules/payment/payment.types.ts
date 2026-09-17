@@ -34,6 +34,5 @@ export interface UserSubscriptionDetails {
     featuredJobPlacement: boolean;
     unmaskedApplicantProfiles: boolean;
     unlimitedCvTemplates: boolean;
-    consultationDiscountPercent: number;
   };
 }

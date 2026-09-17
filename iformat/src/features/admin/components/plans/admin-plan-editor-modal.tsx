@@ -23,7 +23,6 @@ export interface PlanFormData {
   featuredJobPlacement: boolean;
   unmaskedApplicantProfiles: boolean;
   unlimitedCvTemplates: boolean;
-  consultationDiscountPercent: number;
   isActive: boolean;
 }
 

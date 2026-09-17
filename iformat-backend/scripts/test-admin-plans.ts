@@ -54,7 +54,6 @@ async function testAdminPlanCRUD() {
       featuredJobPlacement: true,
       unmaskedApplicantProfiles: true,
       unlimitedCvTemplates: true,
-      consultationDiscountPercent: 10,
     }),
   });
 

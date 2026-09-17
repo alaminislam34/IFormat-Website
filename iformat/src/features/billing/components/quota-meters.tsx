@@ -8,7 +8,6 @@ import {
   Eye,
   Sparkles,
   CheckCircle2,
-  Percent,
   Layers,
   Crown,
 } from "lucide-react";
@@ -46,7 +45,6 @@ export function QuotaMeters({ subscription, userRole }: QuotaMetersProps) {
   const appPercentage =
     maxApps === 999999 ? 10 : Math.min(100, Math.round((monthlyApps / maxApps) * 100));
 
-  const discountPercent = currentPlan?.consultationDiscountPercent ?? 0;
   const hasUnlimitedVault = Boolean(currentPlan?.unlimitedCvTemplates || isPaid);
 
   return (
@@ -280,36 +278,36 @@ export function QuotaMeters({ subscription, userRole }: QuotaMetersProps) {
             </div>
           </div>
 
-          {/* 1:1 Consultation Discount */}
+          {/* Brand & Strategy Support */}
           <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm hover:shadow-md hover:border-slate-300 transition-all flex flex-col justify-between group">
             <div>
               <div className="flex items-center justify-between mb-3">
                 <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-500">
-                  Advisory Discount
+                  Brand & Strategy
                 </span>
                 <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <Percent className="w-4 h-4" />
+                  <Sparkles className="w-4 h-4" />
                 </div>
               </div>
 
               <div className="mt-1">
-                {discountPercent > 0 ? (
+                {isPaid ? (
                   <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-amber-50 text-amber-700 border border-amber-200">
-                    <Sparkles className="w-3.5 h-3.5 text-amber-600" />
-                    {discountPercent}% Off All Sessions
+                    <CheckCircle2 className="w-3.5 h-3.5 text-amber-600" />
+                    Active ({currentPlan?.name ?? "Paid"})
                   </span>
                 ) : (
                   <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-600">
-                    Standard Rates
+                    Standard Free Tier
                   </span>
                 )}
               </div>
             </div>
 
             <p className="text-[11px] text-slate-400 font-medium mt-5 leading-relaxed">
-              {discountPercent > 0
-                ? "Applied to 1:1 executive coaching and strategy."
-                : "Upgrade to Pro to save up to 20% on career consultations."}
+              {isPaid
+                ? "Connections strategy, brand authority & dedicated advisory active."
+                : "Upgrade to Starter or higher for dedicated career & brand advisory."}
             </p>
           </div>
 

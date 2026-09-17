@@ -60,7 +60,7 @@ export function UpgradeModal({
           "Unlimited AI CV Builder & Resume Tailoring (All Templates)",
           "Unlimited AI Cover Letters & Outreach Messages",
           "Unlimited Direct Job Applications per month",
-          "Up to 20% Discount on 1:1 Executive Coaching & Strategy",
+          "Dedicated Career Advisory, Brand Strategy & Coaching Support",
         ];
 
   return (

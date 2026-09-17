@@ -30,7 +30,6 @@ export const createPlanSchema = z.object({
   featuredJobPlacement: z.boolean().default(false),
   unmaskedApplicantProfiles: z.boolean().default(false),
   unlimitedCvTemplates: z.boolean().default(false),
-  consultationDiscountPercent: z.number().int().min(0).max(100).default(0),
   customFeatures: z.record(z.any()).optional(),
 });
 

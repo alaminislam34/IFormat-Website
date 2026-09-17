@@ -56,7 +56,6 @@ async function runPaymentAndEntitlementQATests() {
     featuredJobPlacement: true,
     unmaskedApplicantProfiles: true,
     unlimitedCvTemplates: false,
-    consultationDiscountPercent: 25,
   };
   const planValidation = createPlanSchema.safeParse(validPlanPayload);
   assert(planValidation.success, "CreatePlanSchema accepts valid custom plan payload");

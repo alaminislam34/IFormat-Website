@@ -30,7 +30,6 @@ const DEFAULT_FORM: PlanFormData = {
   featuredJobPlacement: false,
   unmaskedApplicantProfiles: true,
   unlimitedCvTemplates: true,
-  consultationDiscountPercent: 0,
   isActive: true,
 };
 
@@ -92,7 +91,6 @@ export default function AdminPlansPage() {
       featuredJobPlacement: plan.featuredJobPlacement,
       unmaskedApplicantProfiles: plan.unmaskedApplicantProfiles,
       unlimitedCvTemplates: plan.unlimitedCvTemplates,
-      consultationDiscountPercent: plan.consultationDiscountPercent || 0,
       isActive: plan.isActive,
     });
     setIsModalOpen(true);
@@ -137,7 +135,6 @@ export default function AdminPlansPage() {
       featuredJobPlacement: formData.featuredJobPlacement,
       unmaskedApplicantProfiles: formData.unmaskedApplicantProfiles,
       unlimitedCvTemplates: formData.unlimitedCvTemplates,
-      consultationDiscountPercent: Number(formData.consultationDiscountPercent) || 0,
     };
 
     try {

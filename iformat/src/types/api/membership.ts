@@ -28,7 +28,6 @@ export interface PlanDTO {
   featuredJobPlacement: boolean;
   unmaskedApplicantProfiles: boolean;
   unlimitedCvTemplates: boolean;
-  consultationDiscountPercent: number;
   customFeatures?: Record<string, any> | null;
 }
 
@@ -69,7 +68,6 @@ export interface UserSubscriptionDetailsDTO {
     featuredJobPlacement: boolean;
     unmaskedApplicantProfiles: boolean;
     unlimitedCvTemplates: boolean;
-    consultationDiscountPercent: number;
   };
 }
 
@@ -104,7 +102,6 @@ export interface CreatePlanDTO {
   featuredJobPlacement?: boolean;
   unmaskedApplicantProfiles?: boolean;
   unlimitedCvTemplates?: boolean;
-  consultationDiscountPercent?: number;
   customFeatures?: Record<string, any>;
 }
 

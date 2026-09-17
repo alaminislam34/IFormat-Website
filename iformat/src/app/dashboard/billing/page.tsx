@@ -11,7 +11,7 @@ import { BillingHeader } from "@/features/billing/components/billing-header";
 import { ActivePlanCard } from "@/features/billing/components/active-plan-card";
 import { QuotaMeters } from "@/features/billing/components/quota-meters";
 import { PlanSwitcherGrid } from "@/features/billing/components/plan-switcher-grid";
-import { PricingComparisonTable } from "@/features/billing/components/pricing-comparison-table";
+
 import { CancelDialog } from "@/features/billing/components/cancel-dialog";
 import { BillingSkeleton } from "@/features/billing/components/billing-skeleton";
 
@@ -157,11 +157,7 @@ export default function BillingDashboardPage() {
           onUpgradePlan={handleUpgradePlan}
         />
 
-        <PricingComparisonTable
-          currentPlanCode={subscription?.plan?.code}
-          onUpgradePlan={handleUpgradePlan}
-          actionLoading={actionLoading}
-        />
+
 
         <CancelDialog
           isOpen={showCancelModal}

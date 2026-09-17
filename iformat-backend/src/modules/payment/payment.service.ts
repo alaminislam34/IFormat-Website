@@ -565,7 +565,6 @@ export class PaymentService {
         featuredJobPlacement: plan.featuredJobPlacement,
         unmaskedApplicantProfiles: plan.unmaskedApplicantProfiles,
         unlimitedCvTemplates: plan.unlimitedCvTemplates,
-        consultationDiscountPercent: plan.consultationDiscountPercent,
       },
     };
   }

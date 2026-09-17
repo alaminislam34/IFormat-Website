@@ -7,7 +7,6 @@ import { membershipService } from "@/services/membership.service";
 import { useAuthStore } from "@/stores/use-auth-store";
 import { PricingHeader } from "./pricing-header";
 import { PricingCard, PricingCardItem } from "./pricing-card";
-import { PricingComparisonTable } from "@/features/billing/components/pricing-comparison-table";
 
 export const DEFAULT_BRANDING_PLANS: PricingCardItem[] = [
   {
@@ -150,22 +149,6 @@ export function Pricing() {
     }
   };
 
-  const handleSelectPlanByCode = (planCode: string) => {
-    const matched = plans.find((p) => p.code === planCode);
-    if (matched) {
-      handleSelectPlan(matched);
-    } else {
-      handleSelectPlan({
-        code: planCode,
-        name: planCode,
-        price: "",
-        features: [],
-        isPopular: false,
-        buttonText: "Get Started",
-        subtitle: "",
-      });
-    }
-  };
 
   return (
     <section id="pricing" className="py-24 px-6 bg-slate-50/50 relative overflow-hidden">
@@ -184,12 +167,6 @@ export function Pricing() {
           ))}
         </div>
 
-        <PricingComparisonTable
-          collapsible={true}
-          defaultExpanded={false}
-          onUpgradePlan={handleSelectPlanByCode}
-          actionLoading={loadingPlanCode}
-        />
       </div>
     </section>
   );
