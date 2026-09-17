@@ -129,7 +129,7 @@ export default function EmployerJobsPage() {
   }, [jobs]);
 
   return (
-    <div className="text-slate-900 py-8 p-6 relative selection:bg-sky-100 selection:text-sky-900 max-w-7xl mx-auto space-y-8">
+    <div className="text-slate-900 py-8 p-6 relative selection:bg-sky-100 selection:text-sky-900 space-y-8">
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>

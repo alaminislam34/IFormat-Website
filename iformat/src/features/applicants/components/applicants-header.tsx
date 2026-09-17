@@ -25,46 +25,46 @@ export function ApplicantsHeader({
     <div className="space-y-8">
       {/* Navigation Breadcrumb */}
       <div className="flex items-center gap-3">
-        <Link href="/dashboard">
+        <Link href="/dashboard/jobs">
           <Button
             variant="outline"
             size="sm"
-            className="border-slate-800 bg-slate-900/60 hover:bg-slate-800 text-slate-300 text-xs rounded-xl cursor-pointer"
+            className="border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs rounded-xl shadow-xs cursor-pointer"
           >
-            <ArrowLeft className="w-3.5 h-3.5 mr-1.5" /> Back to Dashboard
+            <ArrowLeft className="w-3.5 h-3.5 mr-1.5" /> Back to Job Postings
           </Button>
         </Link>
-        <span className="text-slate-600">/</span>
-        <span className="text-xs text-slate-400 font-medium">Job Postings</span>
-        <span className="text-slate-600">/</span>
-        <span className="text-xs text-white font-semibold">Applicants & AI Screening</span>
+        <span className="text-slate-300">/</span>
+        <span className="text-xs text-slate-500 font-medium">Job Postings</span>
+        <span className="text-slate-300">/</span>
+        <span className="text-xs text-slate-900 font-bold">Applicants & AI Screening</span>
       </div>
 
       {/* Job Header Card */}
-      <div className="bg-linear-to-r from-slate-900 via-slate-900/90 to-indigo-950/40 p-6 sm:p-8 rounded-3xl border border-slate-800 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200/80 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="space-y-2">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+            <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-blue-50 text-[#0A54B1] border border-blue-200/60">
               {job?.category || "Job Listing"}
             </span>
-            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 capitalize">
+            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/60 capitalize">
               {(job?.status || "PUBLISHED").toLowerCase()}
             </span>
-            <span className="text-xs text-slate-400 font-medium flex items-center gap-1">
-              <Building className="w-3.5 h-3.5 text-slate-500" />
+            <span className="text-xs text-slate-500 font-medium flex items-center gap-1">
+              <Building className="w-3.5 h-3.5 text-slate-400" />
               {job?.company || userCompanyName || "Your Company"}
             </span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
             {job?.title || "Job Applicants"}
           </h1>
-          <p className="text-xs text-slate-400 flex items-center gap-4 flex-wrap">
-            <span>Location: {job?.location || "Remote"}</span>
+          <p className="text-xs text-slate-500 flex items-center gap-4 flex-wrap">
+            <span>Location: <strong className="text-slate-700 font-medium">{job?.location || "Remote"}</strong></span>
             <span>•</span>
-            <span>Type: {job?.jobType || "Full Time"}</span>
+            <span>Type: <strong className="text-slate-700 font-medium">{job?.jobType || "Full Time"}</strong></span>
             <span>•</span>
             <span>
-              Total Applicants: <strong className="text-white font-semibold">{totalApplicants}</strong>
+              Total Applicants: <strong className="text-[#0A54B1] font-bold">{totalApplicants}</strong>
             </span>
           </p>
         </div>
@@ -74,9 +74,9 @@ export function ApplicantsHeader({
             onClick={onRefresh}
             variant="outline"
             disabled={loading}
-            className="border-slate-800 bg-slate-900/80 hover:bg-slate-800 text-slate-300 text-xs h-10 px-4 rounded-xl cursor-pointer"
+            className="border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs h-10 px-4 rounded-xl shadow-xs cursor-pointer"
           >
-            <RefreshCw className={`w-3.5 h-3.5 mr-2 ${loading ? "animate-spin" : ""}`} /> Refresh Data
+            <RefreshCw className={`w-3.5 h-3.5 mr-2 text-slate-500 ${loading ? "animate-spin" : ""}`} /> Refresh Data
           </Button>
         </div>
       </div>

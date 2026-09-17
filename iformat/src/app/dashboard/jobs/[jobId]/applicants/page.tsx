@@ -256,7 +256,7 @@ export default function JobApplicantsPage() {
     });
 
   return (
-    <section className="min-h-screen bg-slate-950 text-slate-100 py-8 p-6 relative selection:bg-sky-100 selection:text-sky-900">
+    <section className="text-slate-900 py-8 p-6 relative selection:bg-sky-100 selection:text-sky-900">
       <div className="space-y-6 relative z-10">
         <ApplicantsHeader
           job={job}
@@ -267,19 +267,19 @@ export default function JobApplicantsPage() {
         />
 
         {error && (
-          <div className="p-4 sm:p-5 rounded-2xl bg-rose-950/60 border border-rose-800/80 text-rose-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-lg">
+          <div className="p-4 sm:p-5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-900 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xs">
             <div className="flex items-center gap-3">
-              <AlertCircle className="w-5 h-5 text-rose-400 shrink-0" />
+              <AlertCircle className="w-5 h-5 text-rose-500 shrink-0" />
               <div>
-                <h4 className="text-sm font-semibold text-white">Could not retrieve applicants</h4>
-                <p className="text-xs text-rose-300/80 mt-0.5">{error}</p>
+                <h4 className="text-sm font-semibold text-rose-900">Could not retrieve applicants</h4>
+                <p className="text-xs text-rose-700/80 mt-0.5">{error}</p>
               </div>
             </div>
             <Button
               onClick={loadData}
               variant="outline"
               size="sm"
-              className="border-rose-700 bg-rose-900/40 hover:bg-rose-800 text-rose-100 text-xs shrink-0 cursor-pointer"
+              className="border-rose-200 bg-white hover:bg-rose-100 text-rose-800 text-xs shrink-0 cursor-pointer"
             >
               <RefreshCw className="w-3.5 h-3.5 mr-1.5" /> Retry
             </Button>
@@ -297,9 +297,9 @@ export default function JobApplicantsPage() {
 
         {/* ================= BULK ACTIONS BAR ================= */}
         {filteredApplicants.length > 0 && (
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3.5 rounded-2xl bg-slate-900/90 border border-slate-800 text-xs shadow-md">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3.5 rounded-2xl bg-blue-50/70 border border-blue-200/80 text-xs shadow-xs">
             <div className="flex items-center gap-3">
-              <label className="flex items-center gap-2 cursor-pointer text-slate-300 font-semibold select-none">
+              <label className="flex items-center gap-2 cursor-pointer text-slate-800 font-semibold select-none">
                 <input
                   type="checkbox"
                   checked={
@@ -307,13 +307,13 @@ export default function JobApplicantsPage() {
                     selectedIds.size === filteredApplicants.length
                   }
                   onChange={handleSelectAll}
-                  className="w-4 h-4 rounded-md border-slate-700 bg-slate-950 text-indigo-600 focus:ring-0 cursor-pointer accent-indigo-600"
+                  className="w-4 h-4 rounded-md border-slate-300 bg-white text-[#0A54B1] focus:ring-0 cursor-pointer accent-[#0A54B1]"
                 />
                 <span>Select All ({filteredApplicants.length})</span>
               </label>
 
               {selectedIds.size > 0 && (
-                <span className="px-2.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 font-bold">
+                <span className="px-2.5 py-0.5 rounded-full bg-blue-100 text-[#0A54B1] border border-blue-200 font-bold">
                   {selectedIds.size} Selected
                 </span>
               )}
@@ -326,7 +326,7 @@ export default function JobApplicantsPage() {
                   size="sm"
                   disabled={isBulkScreening}
                   onClick={handleBatchScreen}
-                  className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold h-8 rounded-xl shadow-md cursor-pointer"
+                  className="bg-[#0A54B1] hover:bg-[#08448f] text-white text-xs font-bold h-8 rounded-xl shadow-xs cursor-pointer"
                 >
                   {isBulkScreening ? (
                     <>
@@ -335,7 +335,7 @@ export default function JobApplicantsPage() {
                     </>
                   ) : (
                     <>
-                      <Sparkles className="w-3.5 h-3.5 mr-1.5 text-indigo-300" />
+                      <Sparkles className="w-3.5 h-3.5 mr-1.5 text-white" />
                       Batch Screen ({selectedIds.size})
                     </>
                   )}
@@ -346,9 +346,9 @@ export default function JobApplicantsPage() {
                   size="sm"
                   variant="outline"
                   onClick={() => handleBulkStatusChange("SHORTLISTED")}
-                  className="border-emerald-700/60 bg-emerald-950/40 text-emerald-300 hover:bg-emerald-900/60 text-xs h-8 rounded-xl cursor-pointer"
+                  className="border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 text-xs h-8 rounded-xl cursor-pointer"
                 >
-                  <CheckCircle2 className="w-3.5 h-3.5 mr-1 text-emerald-400" />
+                  <CheckCircle2 className="w-3.5 h-3.5 mr-1 text-emerald-600" />
                   Shortlist Selected
                 </Button>
 
@@ -357,7 +357,7 @@ export default function JobApplicantsPage() {
                   size="sm"
                   variant="outline"
                   onClick={() => handleBulkStatusChange("REJECTED")}
-                  className="border-rose-700/60 bg-rose-950/40 text-rose-300 hover:bg-rose-900/60 text-xs h-8 rounded-xl cursor-pointer"
+                  className="border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100 text-xs h-8 rounded-xl cursor-pointer"
                 >
                   Decline Selected
                 </Button>
@@ -367,7 +367,7 @@ export default function JobApplicantsPage() {
                   size="sm"
                   variant="ghost"
                   onClick={() => setSelectedIds(new Set())}
-                  className="text-slate-400 hover:text-white text-xs h-8 cursor-pointer"
+                  className="text-slate-400 hover:text-slate-600 text-xs h-8 cursor-pointer"
                 >
                   <X className="w-3.5 h-3.5" />
                 </Button>
@@ -381,36 +381,36 @@ export default function JobApplicantsPage() {
             {Array.from({ length: 4 }).map((_, i) => (
               <div
                 key={i}
-                className="bg-slate-900/60 border border-slate-800/80 rounded-3xl p-5 sm:p-6 flex flex-col lg:flex-row lg:items-center justify-between gap-6"
+                className="bg-white border border-slate-200/80 rounded-3xl p-5 sm:p-6 flex flex-col lg:flex-row lg:items-center justify-between gap-6 shadow-xs"
               >
                 <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-slate-800 shrink-0" />
+                  <div className="w-12 h-12 rounded-2xl bg-slate-100 shrink-0" />
                   <div className="space-y-2.5">
                     <div className="flex items-center gap-3">
-                      <div className="h-5 w-36 bg-slate-800 rounded-md" />
-                      <div className="h-5 w-20 bg-slate-800/60 rounded-full" />
+                      <div className="h-5 w-36 bg-slate-200 rounded-md" />
+                      <div className="h-5 w-20 bg-slate-100 rounded-full" />
                     </div>
                     <div className="flex items-center gap-4">
-                      <div className="h-3.5 w-48 bg-slate-800/70 rounded-md" />
-                      <div className="h-3.5 w-28 bg-slate-800/50 rounded-md" />
+                      <div className="h-3.5 w-48 bg-slate-100 rounded-md" />
+                      <div className="h-3.5 w-28 bg-slate-100 rounded-md" />
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-3 pt-3 lg:pt-0 border-t lg:border-t-0 border-slate-800/60">
-                  <div className="h-9 w-28 bg-slate-800 rounded-xl" />
-                  <div className="h-9 w-24 bg-slate-800/60 rounded-xl" />
+                <div className="flex items-center gap-3 pt-3 lg:pt-0 border-t lg:border-t-0 border-slate-100">
+                  <div className="h-9 w-28 bg-slate-100 rounded-xl" />
+                  <div className="h-9 w-24 bg-slate-100 rounded-xl" />
                 </div>
               </div>
             ))}
           </div>
         ) : filteredApplicants.length === 0 ? (
-          <div className="py-20 text-center space-y-4 bg-slate-900/30 rounded-3xl border border-slate-800/80 p-8">
-            <div className="w-12 h-12 rounded-2xl bg-slate-800 text-slate-400 flex items-center justify-center mx-auto">
+          <div className="py-20 text-center space-y-4 bg-white rounded-3xl border border-slate-200/80 p-8 shadow-xs">
+            <div className="w-12 h-12 rounded-2xl bg-slate-50 text-slate-400 flex items-center justify-center mx-auto border border-slate-100">
               <User className="w-6 h-6" />
             </div>
             <div className="space-y-1">
-              <h3 className="text-base font-bold text-white">No applicants found</h3>
-              <p className="text-xs text-slate-400 max-w-sm mx-auto">
+              <h3 className="text-base font-bold text-slate-900">No applicants found</h3>
+              <p className="text-xs text-slate-500 max-w-sm mx-auto">
                 {searchQuery || selectedStatus !== "ALL"
                   ? "No candidates match your active filters. Try clearing your search."
                   : "No candidates have applied to this position yet. Check back soon!"}
@@ -424,7 +424,7 @@ export default function JobApplicantsPage() {
                   setSearchQuery("");
                   setSelectedStatus("ALL");
                 }}
-                className="border-slate-700 text-xs cursor-pointer"
+                className="border-slate-200 text-slate-700 hover:bg-slate-50 text-xs cursor-pointer"
               >
                 Clear Filters
               </Button>

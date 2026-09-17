@@ -39,12 +39,12 @@ export function ApplicantCardRow({
   return (
     <div
       onClick={() => hasScreening && onOpenDrawer(app)}
-      className={`bg-slate-900/80 border rounded-3xl p-5 sm:p-6 transition-all flex flex-col lg:flex-row lg:items-center justify-between gap-6 ${
+      className={`bg-white border rounded-3xl p-5 sm:p-6 transition-all flex flex-col lg:flex-row lg:items-center justify-between gap-6 shadow-xs ${
         isSelected
-          ? "border-indigo-500 bg-indigo-950/20"
+          ? "border-[#0A54B1] bg-blue-50/30 ring-1 ring-[#0A54B1]"
           : hasScreening
-          ? "hover:border-slate-700 cursor-pointer border-slate-800/90"
-          : "border-slate-800/80"
+          ? "hover:border-blue-200 hover:shadow-md cursor-pointer border-slate-200/80"
+          : "border-slate-200/80"
       }`}
     >
       {/* Left: Checkbox + Candidate Info */}
@@ -58,56 +58,56 @@ export function ApplicantCardRow({
               type="checkbox"
               checked={isSelected}
               onChange={(e) => onToggleSelect(appId, e as any)}
-              className="w-4 h-4 rounded-md border-slate-700 bg-slate-950 text-indigo-600 focus:ring-0 focus:ring-offset-0 cursor-pointer accent-indigo-600"
+              className="w-4 h-4 rounded-md border-slate-300 bg-white text-[#0A54B1] focus:ring-0 focus:ring-offset-0 cursor-pointer accent-[#0A54B1]"
             />
           </div>
         )}
 
-        <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 flex items-center justify-center font-bold text-base shrink-0">
+        <div className="w-12 h-12 rounded-2xl bg-blue-50 text-[#0A54B1] border border-blue-100 flex items-center justify-center font-bold text-base shrink-0 shadow-xs">
           {name.charAt(0).toUpperCase()}
         </div>
 
         <div className="space-y-1">
           <div className="flex items-center gap-3 flex-wrap">
-            <h3 className="text-base font-bold text-white">{name}</h3>
+            <h3 className="text-base font-bold text-slate-900">{name}</h3>
             <span
               className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${
                 app.status === "SHORTLISTED"
-                  ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                  ? "bg-emerald-50 text-emerald-700 border-emerald-200"
                   : app.status === "SCREENED"
-                  ? "bg-indigo-500/10 text-indigo-400 border-indigo-500/20"
+                  ? "bg-blue-50 text-blue-700 border-blue-200"
                   : app.status === "INTERVIEWING"
-                  ? "bg-sky-500/10 text-sky-400 border-sky-500/20"
+                  ? "bg-sky-50 text-sky-700 border-sky-200"
                   : app.status === "OFFERED" || app.status === "HIRED"
-                  ? "bg-purple-500/10 text-purple-400 border-purple-500/20"
+                  ? "bg-purple-50 text-purple-700 border-purple-200"
                   : app.status === "REJECTED"
-                  ? "bg-rose-500/10 text-rose-400 border-rose-500/20"
-                  : "bg-amber-500/10 text-amber-400 border-amber-500/20"
+                  ? "bg-rose-50 text-rose-700 border-rose-200"
+                  : "bg-slate-100 text-slate-700 border-slate-200"
               }`}
             >
               {app.status || "SUBMITTED"}
             </span>
           </div>
 
-          <div className="flex items-center gap-4 text-xs text-slate-400 flex-wrap">
+          <div className="flex items-center gap-4 text-xs text-slate-500 flex-wrap">
             <span className="flex items-center gap-1.5">
-              <Mail className="w-3.5 h-3.5 text-slate-500" /> {email}
+              <Mail className="w-3.5 h-3.5 text-slate-400" /> {email}
             </span>
             <span>•</span>
             <span className="flex items-center gap-1.5">
-              <Calendar className="w-3.5 h-3.5 text-slate-500" />
+              <Calendar className="w-3.5 h-3.5 text-slate-400" />
               Applied {app.createdAt ? new Date(app.createdAt).toLocaleDateString() : "Recently"}
             </span>
           </div>
 
           {app.coverNote && (
-            <p className="text-xs text-slate-400/90 line-clamp-1 italic mt-1 max-w-xl">
+            <p className="text-xs text-slate-500 line-clamp-1 italic mt-1 max-w-xl">
               &ldquo;{app.coverNote}&rdquo;
             </p>
           )}
 
           {app.employerFeedback && (
-            <p className="text-xs text-sky-400/90 font-medium mt-1">
+            <p className="text-xs text-sky-700 font-medium mt-1">
               Note: {app.employerFeedback}
             </p>
           )}
@@ -117,24 +117,24 @@ export function ApplicantCardRow({
       {/* Middle: AI Screening Score Badge */}
       <div className="flex items-center gap-4 flex-wrap lg:flex-nowrap">
         {hasScreening ? (
-          <div className="flex items-center gap-3 p-3 rounded-2xl bg-slate-950/60 border border-slate-800">
+          <div className="flex items-center gap-3 p-3 rounded-2xl bg-slate-50 border border-slate-200/80">
             <div
               className={`w-12 h-12 rounded-xl flex items-center justify-center font-extrabold text-sm shrink-0 ${
                 insufficient
-                  ? "bg-amber-500/20 text-amber-400 border border-amber-500/30"
+                  ? "bg-amber-50 text-amber-700 border border-amber-200"
                   : score! >= 80
-                  ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+                  ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
                   : score! >= 60
-                  ? "bg-amber-500/20 text-amber-400 border border-amber-500/30"
-                  : "bg-rose-500/20 text-rose-400 border border-rose-500/30"
+                  ? "bg-amber-50 text-amber-700 border border-amber-200"
+                  : "bg-rose-50 text-rose-700 border border-rose-200"
               }`}
             >
               {insufficient ? "—" : `${score}%`}
             </div>
             <div className="space-y-0.5">
               <div className="flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
-                <span className="text-xs font-bold text-white">
+                <Sparkles className="w-3.5 h-3.5 text-[#0A54B1]" />
+                <span className="text-xs font-bold text-slate-900">
                   {insufficient
                     ? "Resume unreadable"
                     : recommendation === "RECOMMEND" || recommendation === "STRONG_MATCH"
@@ -144,7 +144,7 @@ export function ApplicantCardRow({
                     : "Low Alignment"}
                 </span>
               </div>
-              <p className="text-[11px] text-slate-400 truncate max-w-48">
+              <p className="text-[11px] text-slate-500 truncate max-w-48">
                 {insufficient
                   ? "Ask candidate for readable PDF"
                   : app.screeningResult?.summary || "Screening score calculated by AI."}
@@ -152,8 +152,8 @@ export function ApplicantCardRow({
             </div>
           </div>
         ) : (
-          <div className="p-3 rounded-2xl bg-slate-950/40 border border-slate-800/80 flex items-center gap-2 text-xs text-slate-400">
-            <AlertCircle className="w-4 h-4 text-slate-500 shrink-0" />
+          <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200/80 flex items-center gap-2 text-xs text-slate-500">
+            <AlertCircle className="w-4 h-4 text-slate-400 shrink-0" />
             <span>Not screened yet</span>
           </div>
         )}
@@ -166,7 +166,7 @@ export function ApplicantCardRow({
               variant="outline"
               size="sm"
               onClick={(e) => onScheduleInterview(app, e)}
-              className="border-sky-800/80 bg-sky-950/40 hover:bg-sky-900/60 text-sky-300 text-xs h-9 rounded-xl font-medium cursor-pointer"
+              className="border-sky-200 bg-sky-50 hover:bg-sky-100 text-sky-700 text-xs h-9 rounded-xl font-medium cursor-pointer"
             >
               <Video className="w-3.5 h-3.5 mr-1" />
               <span>Interview</span>
@@ -178,7 +178,7 @@ export function ApplicantCardRow({
               variant="outline"
               size="sm"
               onClick={() => onOpenDrawer(app)}
-              className="border-slate-800 bg-slate-950/40 hover:bg-slate-800 text-slate-300 text-xs h-9 rounded-xl font-medium cursor-pointer"
+              className="border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs h-9 rounded-xl font-medium shadow-xs cursor-pointer"
             >
               View Report
             </Button>
@@ -190,8 +190,8 @@ export function ApplicantCardRow({
             onClick={(e) => onRerunScreening(appId, e)}
             className={`text-xs h-9 rounded-xl font-semibold transition-all cursor-pointer ${
               hasScreening
-                ? "border border-slate-800 bg-slate-950/40 hover:bg-slate-800 text-slate-300"
-                : "bg-indigo-600 hover:bg-indigo-500 text-white shadow-md shadow-indigo-600/20"
+                ? "border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 shadow-xs"
+                : "bg-[#0A54B1] hover:bg-[#08448f] text-white shadow-xs"
             }`}
           >
             {isRerunning ? (
@@ -200,7 +200,7 @@ export function ApplicantCardRow({
               </>
             ) : (
               <>
-                <Sparkles className="w-3.5 h-3.5 mr-1.5 text-indigo-400" />
+                <Sparkles className={`w-3.5 h-3.5 mr-1.5 ${hasScreening ? "text-[#0A54B1]" : "text-white"}`} />
                 {hasScreening ? "Re-run" : "Run AI Screen"}
               </>
             )}
@@ -213,7 +213,7 @@ export function ApplicantCardRow({
             onChange={(e) =>
               onUpdateStatus(appId, e.target.value as ApplicationStatus)
             }
-            className="bg-slate-950 border border-slate-800 text-slate-200 text-xs font-semibold rounded-xl px-2.5 py-2 focus:outline-none focus:border-indigo-500 cursor-pointer"
+            className="bg-white border border-slate-200 text-slate-800 text-xs font-semibold rounded-xl px-2.5 py-2 focus:outline-none focus:border-[#0A54B1] shadow-xs cursor-pointer"
           >
             <option value="SUBMITTED">Submitted</option>
             <option value="SCREENED">Screened</option>
