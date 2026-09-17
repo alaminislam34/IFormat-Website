@@ -43,11 +43,27 @@ export default function BillingDashboardPage() {
       if (subRes) setSubscription(subRes);
       if (plansRes) setPlans(Array.isArray(plansRes) ? plansRes : (plansRes as any).plans || []);
 
-      if ((paymentParam === "success" || activeSessionId) && !hasNotifiedSuccess.current) {
-        hasNotifiedSuccess.current = true;
-        toast.success("Membership successfully activated! Your account is now upgraded.");
-        // Clean URL query parameters so refresh doesn't re-trigger the toast
-        window.history.replaceState({}, "", "/dashboard/billing");
+      const isPaymentSuccess = paymentParam === "success" || searchParams.get("mock_success") === "true";
+      const sessionTrackingKey = activeSessionId ? `notified_sub_${activeSessionId}` : null;
+
+      if (isPaymentSuccess && !hasNotifiedSuccess.current) {
+        const alreadyNotified = sessionTrackingKey && typeof window !== "undefined"
+          ? sessionStorage.getItem(sessionTrackingKey) === "true"
+          : false;
+
+        if (!alreadyNotified) {
+          hasNotifiedSuccess.current = true;
+          if (sessionTrackingKey && typeof window !== "undefined") {
+            sessionStorage.setItem(sessionTrackingKey, "true");
+          }
+          toast.success("Membership successfully activated! Your account is now upgraded.");
+        }
+
+        // Clean URL query parameters in both browser history and Next.js router
+        if (typeof window !== "undefined") {
+          window.history.replaceState({}, "", "/dashboard/billing");
+        }
+        router.replace("/dashboard/billing", { scroll: false });
       }
     } catch (err: any) {
       console.warn("Could not fetch billing details:", err.message);
