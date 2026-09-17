@@ -104,12 +104,12 @@ export const SYSTEM_DEFAULT_PLANS = [
     unlimitedCvTemplates: true,
     consultationDiscountPercent: 50,
     customFeatures: [
-      "Executive Positioning & Thought Leadership",
-      "Startup & Founder Brand Equity",
+      "Outplacement Support",
+      "Startup Brand Equity",
       "Stakeholder Brand Equity",
       "Investor Brand Engagement",
-      "C-Suite Reputation Management",
-      "Corporate Brand Advisory",
+      "Restructuring",
+      "Workforce Transitions",
     ],
   },
   {

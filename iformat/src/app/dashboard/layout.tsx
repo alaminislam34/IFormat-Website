@@ -98,12 +98,16 @@ export default function DashboardLayout({
                 active: pathname.startsWith("/dashboard/applications"),
               },
             ]),
-        {
-          label: "Career Consultations",
-          href: "/dashboard/bookings",
-          icon: Calendar,
-          active: pathname.startsWith("/dashboard/bookings"),
-        },
+        ...(!isEmployer
+          ? [
+              {
+                label: "Career Consultations",
+                href: "/dashboard/bookings",
+                icon: Calendar,
+                active: pathname.startsWith("/dashboard/bookings"),
+              },
+            ]
+          : []),
         {
           label: "Membership & Plans",
           href: "/dashboard/billing",

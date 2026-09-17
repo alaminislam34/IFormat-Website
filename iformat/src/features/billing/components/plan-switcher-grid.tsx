@@ -62,7 +62,7 @@ const EXACT_BRANDING_PLANS = [
       "Connections Strategy",
       "Reporting & analytics",
       "Recruiter messaging",
-      "Quarterly Linkdin Optimization",
+      "Quarterly LinkedIn Optimization",
     ],
   },
   {
@@ -78,8 +78,8 @@ const EXACT_BRANDING_PLANS = [
       "Startup Brand Equity",
       "Stakeholder Brand Equity",
       "Investor Brand Engagement",
+      "Restructuring",
       "Workforce Transitions",
-      "Corporate Brand Advisory",
     ],
   },
 ];

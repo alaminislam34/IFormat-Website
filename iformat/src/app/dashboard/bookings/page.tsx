@@ -13,7 +13,8 @@ import { CandidateBookingsSidebar } from "@/features/bookings/components/candida
 
 export default function CandidateBookingsPage() {
   const router = useRouter();
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, user } = useAuthStore();
+  const isEmployer = user?.role === "EMPLOYER" || user?.role === "employer";
   const [isBookModalOpen, setIsBookModalOpen] = useState(false);
   const [selectedSlotIdForModal, setSelectedSlotIdForModal] = useState<string | undefined>(undefined);
 
@@ -33,8 +34,13 @@ export default function CandidateBookingsPage() {
   React.useEffect(() => {
     if (!isAuthenticated) {
       router.push("/login?redirect=/dashboard/bookings");
+      return;
     }
-  }, [isAuthenticated, router]);
+    if (isEmployer) {
+      toast.error("Career Consultations are available for candidates only.");
+      router.push("/dashboard");
+    }
+  }, [isAuthenticated, isEmployer, router]);
 
   const handleRefresh = async () => {
     await Promise.all([refetchBookings(), refetchSlots()]);

@@ -57,7 +57,7 @@ export const DEFAULT_BRANDING_PLANS: PricingCardItem[] = [
       "Connections Strategy",
       "Reporting & analytics",
       "Recruiter messaging",
-      "Quarterly Linkdin Optimization",
+      "Quarterly LinkedIn Optimization",
     ],
   },
   {
@@ -73,8 +73,8 @@ export const DEFAULT_BRANDING_PLANS: PricingCardItem[] = [
       "Startup Brand Equity",
       "Stakeholder Brand Equity",
       "Investor Brand Engagement",
+      "Restructuring",
       "Workforce Transitions",
-      "Corporate Brand Advisory",
     ],
   },
 ];

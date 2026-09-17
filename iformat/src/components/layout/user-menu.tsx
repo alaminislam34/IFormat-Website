@@ -169,14 +169,16 @@ export function UserMenu({ variant = "light" }: UserMenuProps) {
               </Link>
             )}
 
-            <Link
-              href="/dashboard/bookings"
-              onClick={() => setIsOpen(false)}
-              className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-slate-100 hover:text-[#0A54B1] transition-colors"
-            >
-              <Calendar className="w-4 h-4 text-[#0A54B1]" />
-              <span>Career Consultations</span>
-            </Link>
+            {!isEmployer && (
+              <Link
+                href="/dashboard/bookings"
+                onClick={() => setIsOpen(false)}
+                className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-slate-100 hover:text-[#0A54B1] transition-colors"
+              >
+                <Calendar className="w-4 h-4 text-[#0A54B1]" />
+                <span>Career Consultations</span>
+              </Link>
+            )}
 
             <Link
               href="/dashboard/billing"
