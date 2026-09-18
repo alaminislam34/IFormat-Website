@@ -68,20 +68,20 @@ services:
       API_VERSION: v1
       DATABASE_URL: ${DATABASE_URL}
       REDIS_URL: ${REDIS_URL:-redis://redis:6379}
-      CORS_ORIGIN: ${CORS_ORIGIN}
+      CORS_ORIGIN: ${CORS_ORIGIN:-https://iformatbranding.com,https://www.iformatbranding.com}
       JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
       JWT_ACCESS_EXPIRES_IN: ${JWT_ACCESS_EXPIRES_IN:-15m}
       JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN:-7d}
-      COOKIE_DOMAIN: ${COOKIE_DOMAIN:-iformat.com}
+      COOKIE_DOMAIN: ${COOKIE_DOMAIN:-.iformatbranding.com}
       COOKIE_SECURE: ${COOKIE_SECURE:-true}
-      AI_SERVICE_URL: ${AI_SERVICE_URL:-http://10.10.28.89:8010}
+      AI_SERVICE_URL: ${AI_SERVICE_URL:-https://ai.bloodaidbd.com}
       AI_SERVICE_TIMEOUT_MS: ${AI_SERVICE_TIMEOUT_MS:-60000}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
-      GOOGLE_CALLBACK_URL: ${GOOGLE_CALLBACK_URL}
-      OAUTH_SUCCESS_REDIRECT_URL: ${OAUTH_SUCCESS_REDIRECT_URL}
-      OAUTH_FAILURE_REDIRECT_URL: ${OAUTH_FAILURE_REDIRECT_URL}
+      GOOGLE_CALLBACK_URL: ${GOOGLE_CALLBACK_URL:-https://api.iformatbranding.com/api/v1/oauth/google/callback}
+      OAUTH_SUCCESS_REDIRECT_URL: ${OAUTH_SUCCESS_REDIRECT_URL:-https://iformatbranding.com/account-type}
+      OAUTH_FAILURE_REDIRECT_URL: ${OAUTH_FAILURE_REDIRECT_URL:-https://iformatbranding.com/login?error=oauth_failed}
       STRIPE_PUBLISHABLE_KEY: ${STRIPE_PUBLISHABLE_KEY}
       STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
       STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
@@ -124,7 +124,7 @@ services:
       context: ./iformat
       dockerfile: Dockerfile
       args:
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-/api/v1}
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://api.iformatbranding.com/api/v1}
         NEXT_PUBLIC_USE_MOCK: "false"
         NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${STRIPE_PUBLISHABLE_KEY}
     environment:

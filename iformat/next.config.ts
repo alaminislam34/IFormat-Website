@@ -26,6 +26,16 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  async rewrites() {
+    const backendApiUrl =
+      process.env.NEXT_PUBLIC_API_URL || "https://api.iformatbranding.com/api/v1";
+    return [
+      {
+        source: "/api/v1/:path*",
+        destination: `${backendApiUrl.replace(/\/+$/, "")}/:path*`,
+      },
+    ];
+  },
   async headers() {
     return [
       {

@@ -18,25 +18,25 @@ const envSchema = z.object({
   JWT_REFRESH_EXPIRES_IN: z.string().default("7d"),
 
   // Cookie
-  COOKIE_DOMAIN: z.string().default("localhost"),
-  COOKIE_SECURE: z.preprocess((val) => val === "true" || val === true, z.boolean()).default(false),
+  COOKIE_DOMAIN: z.string().default(".iformatbranding.com"),
+  COOKIE_SECURE: z.preprocess((val) => val === "true" || val === true, z.boolean()).default(true),
 
   // CORS
-  CORS_ORIGIN: z.string().default("http://localhost:3000"),
+  CORS_ORIGIN: z.string().default("https://iformatbranding.com,https://www.iformatbranding.com,http://localhost:3000"),
 
   // OpenAI
   OPENAI_API_KEY: z.string().optional().default("sk-mock-key"),
 
   // AI Microservice (FastAPI + Bedrock)
-  AI_SERVICE_URL: z.string().default("http://18.185.68.217:8010"),
+  AI_SERVICE_URL: z.string().default("https://ai.bloodaidbd.com"),
   AI_SERVICE_TIMEOUT_MS: z.coerce.number().default(60000),
 
   // Google OAuth
   GOOGLE_CLIENT_ID: z.string().optional().default("mock-google-client-id"),
   GOOGLE_CLIENT_SECRET: z.string().optional().default("mock-google-client-secret"),
-  GOOGLE_CALLBACK_URL: z.string().default("http://localhost:5000/api/v1/oauth/google/callback"),
-  OAUTH_SUCCESS_REDIRECT_URL: z.string().default("http://localhost:3000/account-type"),
-  OAUTH_FAILURE_REDIRECT_URL: z.string().default("http://localhost:3000/login?error=oauth_failed"),
+  GOOGLE_CALLBACK_URL: z.string().default("https://api.iformatbranding.com/api/v1/oauth/google/callback"),
+  OAUTH_SUCCESS_REDIRECT_URL: z.string().default("https://iformatbranding.com/account-type"),
+  OAUTH_FAILURE_REDIRECT_URL: z.string().default("https://iformatbranding.com/login?error=oauth_failed"),
 
   // Stripe
   STRIPE_PUBLISHABLE_KEY: z.string().optional(),
@@ -84,6 +84,6 @@ const parseEnv = () => {
 export const env = parseEnv();
 
 export const getFrontendUrl = (): string => {
-  const origin = env.CORS_ORIGIN.split(",")[0]?.trim() || "http://localhost:3000";
+  const origin = env.CORS_ORIGIN.split(",")[0]?.trim() || "https://iformatbranding.com";
   return origin.replace(/\/+$/, "");
 };
