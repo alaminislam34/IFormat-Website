@@ -146,27 +146,6 @@ services:
     networks:
       - iformat-internal
 
-  # ============================================================================
-  # Nginx Gateway & Reverse Proxy
-  # ============================================================================
-  nginx:
-    image: ghcr.io/alaminislam34/iformat-website/gateway:latest
-    container_name: iformat-gateway-prod
-    restart: always
-    ports:
-      - "80:80"
-      - "443:443"
-    depends_on:
-      - frontend
-      - backend
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "20m"
-        max-file: "5"
-    networks:
-      - iformat-internal
-
 networks:
   iformat-internal:
     driver: bridge
