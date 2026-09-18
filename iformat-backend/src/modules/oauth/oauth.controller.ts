@@ -3,6 +3,7 @@ import { OAuthService } from "./oauth.service.js";
 import { setAuthCookies } from "../../utils/cookie.js";
 import { env, getFrontendUrl } from "../../config/env.js";
 import { Role } from "@prisma/client";
+import { prisma } from "../../lib/prisma.js";
 
 export class OAuthController {
   /**
@@ -40,18 +41,29 @@ export class OAuthController {
       setAuthCookies(res, accessToken, refreshToken);
 
       // Determine smart post-login redirect
+      let targetPath = "/dashboard";
       if (isNewUser) {
-        return res.redirect(env.OAUTH_SUCCESS_REDIRECT_URL); // /account-type
-      }
-
-      if (user.role === Role.EMPLOYER) {
-        if (user.companyName && user.companyName.trim()) {
-          return res.redirect(`${getFrontendUrl()}/dashboard`);
+        targetPath = "/account-type";
+      } else if (user.role === Role.EMPLOYER) {
+        targetPath = user.companyName && user.companyName.trim() ? "/dashboard" : "/company-details";
+      } else if (user.role === Role.CANDIDATE) {
+        // If candidate has no CV, no applications, and was created recently, direct to role choice onboarding
+        const hasHistory =
+          (await prisma.application.count({ where: { candidateId: user.id } })) > 0 ||
+          (await prisma.cV.count({ where: { userId: user.id } })) > 0;
+        const isRecent = Date.now() - new Date(user.createdAt).getTime() < 24 * 60 * 60 * 1000;
+        if (!hasHistory && isRecent) {
+          targetPath = "/account-type";
         }
-        return res.redirect(`${getFrontendUrl()}/company-details`);
       }
 
-      return res.redirect(`${getFrontendUrl()}/dashboard`);
+      // Secure handover to frontend auth/callback
+      const callbackUrl = new URL(`${getFrontendUrl()}/auth/callback`);
+      callbackUrl.searchParams.set("token", accessToken);
+      callbackUrl.searchParams.set("refreshToken", refreshToken);
+      callbackUrl.searchParams.set("redirect", targetPath);
+
+      return res.redirect(callbackUrl.toString());
     } catch {
       return res.redirect(env.OAUTH_FAILURE_REDIRECT_URL);
     }
