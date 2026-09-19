@@ -224,9 +224,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
       </aside>
 
-      {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
-        {/* Top Header */}
         <header className="h-16 px-6 bg-slate-900/80 border-b border-slate-800/80 backdrop-blur-md flex items-center justify-between sticky top-0 z-30">
           <div className="flex items-center gap-4">
             <button
