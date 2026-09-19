@@ -19,6 +19,7 @@ import { JobDetailsContent } from "./details/job-details-content";
 import { JobDetailsApplicants } from "./details/job-details-applicants";
 import { JobAnalyzerModal } from "./modal/job-analyzer-modal";
 import { AuthPromptModal } from "@/components/auth/auth-prompt-modal";
+import { UpgradeModal } from "@/components/ui/upgrade-modal";
 
 interface JobDetailsSheetProps {
   job: Job | null;
@@ -58,6 +59,8 @@ export function JobDetailsSheet({
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isAnalyzerModalOpen, setIsAnalyzerModalOpen] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [upgradeErrorMessage, setUpgradeErrorMessage] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [hasAppliedLocally, setHasAppliedLocally] = useState(false);
 
@@ -153,7 +156,8 @@ export function JobDetailsSheet({
     !isAnalyzerModalOpen &&
     !isApplyModalOpen &&
     !isEditModalOpen &&
-    !showAuthModal;
+    !showAuthModal &&
+    !showUpgradeModal;
 
   const sheetContent = (
     <>
@@ -337,6 +341,11 @@ export function JobDetailsSheet({
           job={job as any}
           isOpen={isAnalyzerModalOpen}
           onClose={() => setIsAnalyzerModalOpen(false)}
+          onRequireUpgrade={(msg) => {
+            setIsAnalyzerModalOpen(false);
+            if (msg) setUpgradeErrorMessage(msg);
+            setShowUpgradeModal(true);
+          }}
           onApplyNow={() => {
             setIsAnalyzerModalOpen(false);
             handleApplyClick();
@@ -350,6 +359,21 @@ export function JobDetailsSheet({
         onClose={() => setShowAuthModal(false)}
         title="Sign In to Analyze Job Fit"
         description="Sign in to your candidate account to scan your resume against this job's requirements and see your real-time match score."
+      />
+
+      {/* Subscription Upgrade Modal */}
+      <UpgradeModal
+        isOpen={showUpgradeModal}
+        onClose={() => {
+          setShowUpgradeModal(false);
+          setUpgradeErrorMessage(null);
+        }}
+        role="candidate"
+        title="AI Career Assistant Quota Reached"
+        message={
+          upgradeErrorMessage ||
+          "You have reached your free monthly limit of 5 AI generations. Upgrade to Pro for unlimited real-time job match analysis, tailored cover letters, and resume optimization."
+        }
       />
     </>
   );

@@ -85,8 +85,7 @@ export default function ServicesPage() {
   ];
 
   return (
-    <main className="min-h-screen bg-slate-50 flex flex-col pt-24">
-      {/* Product Detail Modal */}
+    <main className="min-h-screen bg-slate-50 flex flex-col pt-20">
       <ProductDetailModal
         isOpen={isDetailModalOpen}
         onClose={() => setIsDetailModalOpen(false)}
@@ -95,14 +94,12 @@ export default function ServicesPage() {
         onBookConsultation={handleOrderNow}
       />
 
-      {/* Order Service Modal */}
       <OrderServiceModal
         isOpen={isOrderModalOpen}
         onClose={() => setIsOrderModalOpen(false)}
         service={selectedProduct}
       />
 
-      {/* Hero Header */}
       <section className="bg-linear-to-b from-white to-slate-50 border-b border-slate-100 py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-6 md:px-8 text-center">
           <ScrollReveal>

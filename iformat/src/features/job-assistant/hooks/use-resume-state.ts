@@ -192,7 +192,20 @@ export function useResumeState() {
         toast.success("Resume created & saved to cloud!");
       }
     } catch (err: any) {
-      toast.error(err?.message || "Failed to save resume to cloud");
+      if (
+        err?.code === "SUBSCRIPTION_REQUIRED" ||
+        err?.statusCode === 403 ||
+        err?.status === 402 ||
+        err?.status === 403 ||
+        err?.message?.includes("free monthly limit") ||
+        err?.message?.includes("SUBSCRIPTION_REQUIRED") ||
+        err?.message?.includes("quota") ||
+        err?.message?.includes("limit")
+      ) {
+        setShowUpgradeModal(true);
+      } else {
+        toast.error(err?.message || "Failed to save resume to cloud");
+      }
     }
   };
 

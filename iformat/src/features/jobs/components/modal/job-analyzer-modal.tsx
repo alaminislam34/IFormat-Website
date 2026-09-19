@@ -32,6 +32,7 @@ interface JobAnalyzerModalProps {
     description?: string;
   };
   onApplyNow?: () => void;
+  onRequireUpgrade?: (message?: string) => void;
 }
 
 export function JobAnalyzerModal({
@@ -39,10 +40,12 @@ export function JobAnalyzerModal({
   onClose,
   job,
   onApplyNow,
+  onRequireUpgrade,
 }: JobAnalyzerModalProps) {
   const [loading, setLoading] = useState(true);
   const [analysis, setAnalysis] = useState<JobFitAnalysisDTO | null>(null);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [upgradeMessage, setUpgradeMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isOpen || !job?.id) return;
@@ -62,9 +65,29 @@ export function JobAnalyzerModal({
       .catch((err: any) => {
         if (!isMounted) return;
         setLoading(false);
-        if (err?.code === "SUBSCRIPTION_REQUIRED" || err?.statusCode === 403) {
-          setShowUpgradeModal(true);
-          onClose();
+
+        const isQuotaOrSubError =
+          err?.code === "SUBSCRIPTION_REQUIRED" ||
+          err?.statusCode === 403 ||
+          err?.status === 403 ||
+          err?.message?.includes("free monthly limit") ||
+          err?.message?.includes("SUBSCRIPTION_REQUIRED") ||
+          err?.message?.includes("Upgrade to Pro") ||
+          err?.message?.includes("quota") ||
+          err?.message?.includes("limit");
+
+        if (isQuotaOrSubError) {
+          const message =
+            err?.message ||
+            "You have reached your free monthly limit of 5 AI generations. Upgrade to Pro for unlimited real-time job match analysis, tailored cover letters, and resume optimization.";
+
+          setUpgradeMessage(message);
+
+          if (onRequireUpgrade) {
+            onRequireUpgrade(message);
+          } else {
+            setShowUpgradeModal(true);
+          }
         } else {
           toast.error(err?.message || "Failed to analyze job fit. Please try again.");
           onClose();
@@ -74,7 +97,7 @@ export function JobAnalyzerModal({
     return () => {
       isMounted = false;
     };
-  }, [isOpen, job?.id, onClose]);
+  }, [isOpen, job?.id, onClose, onRequireUpgrade]);
 
   const score = analysis?.score ?? 0;
   const scoreColor =
@@ -323,10 +346,16 @@ export function JobAnalyzerModal({
 
       <UpgradeModal
         isOpen={showUpgradeModal}
-        onClose={() => setShowUpgradeModal(false)}
+        onClose={() => {
+          setShowUpgradeModal(false);
+          onClose();
+        }}
         role="candidate"
         title="AI Career Assistant Quota Reached"
-        message="You've used all free AI generations for this month. Upgrade to Pro for unlimited real-time job match analysis, tailored cover letters, and resume optimization."
+        message={
+          upgradeMessage ||
+          "You have reached your free monthly limit of 5 AI generations. Upgrade to Pro for unlimited real-time job match analysis, tailored cover letters, and resume optimization."
+        }
       />
     </>
   );
