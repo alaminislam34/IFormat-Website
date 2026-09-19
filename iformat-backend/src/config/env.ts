@@ -44,6 +44,12 @@ const envSchema = z.object({
   STRIPE_WEBHOOK_SECRET: z.string().optional().default("whsec_mock_key"),
   STRIPE_CONNECT_WEBHOOK_SECRET: z.string().optional(),
   PRODUCT_ID: z.string().optional(),
+  STRIPE_PRICE_STARTER: z.string().optional(),
+  STRIPE_PRICE_GROW: z.string().optional(),
+  STRIPE_PRICE_PROFESSIONAL: z.string().optional(),
+  STRIPE_PRODUCT_STARTER: z.string().optional(),
+  STRIPE_PRODUCT_GROW: z.string().optional(),
+  STRIPE_PRODUCT_PROFESSIONAL: z.string().optional(),
 
   // AWS S3
   AWS_ACCESS_KEY_ID: z.string().optional(),

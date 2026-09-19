@@ -114,7 +114,6 @@ export function AdminPlanEditorModal({
             />
           </div>
 
-          {/* Audience, Interval, Price */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
               <label className="block text-xs font-semibold text-slate-300 mb-1.5">Target Audience</label>
@@ -132,13 +131,19 @@ export function AdminPlanEditorModal({
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">Billing Interval</label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-xs font-semibold text-slate-300">Billing Interval</label>
+                {editingPlan && (
+                  <span className="text-[9px] font-medium text-amber-400">Locked</span>
+                )}
+              </div>
               <select
+                disabled={!!editingPlan}
                 value={formData.billingInterval}
                 onChange={(e) =>
                   setFormData({ ...formData, billingInterval: e.target.value as PlanBillingInterval })
                 }
-                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs focus:outline-hidden focus:border-sky-500"
+                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs focus:outline-hidden focus:border-sky-500 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <option value="MONTHLY">Monthly</option>
                 <option value="YEARLY">Yearly</option>
@@ -146,14 +151,20 @@ export function AdminPlanEditorModal({
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">Price ($ USD)</label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-xs font-semibold text-slate-300">Price ($ USD)</label>
+                {editingPlan && (
+                  <span className="text-[9px] font-medium text-amber-400">Stripe Managed</span>
+                )}
+              </div>
               <input
                 type="number"
                 min="0"
                 step="1"
+                disabled={!!editingPlan}
                 value={formData.priceInDollars}
                 onChange={(e) => setFormData({ ...formData, priceInDollars: Number(e.target.value) })}
-                className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs focus:outline-hidden focus:border-sky-500"
+                className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs focus:outline-hidden focus:border-sky-500 disabled:opacity-50 disabled:cursor-not-allowed"
               />
             </div>
           </div>

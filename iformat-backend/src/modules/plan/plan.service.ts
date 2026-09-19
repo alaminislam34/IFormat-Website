@@ -1,10 +1,11 @@
 import { prisma } from "../../lib/prisma.js";
+import { env } from "../../config/env.js";
 import { CreatePlanDto, UpdatePlanDto, PlanFilterQuery } from "./plan.types.js";
 import { ConflictError, NotFoundError } from "../../errors/index.js";
 import { PlanAudience, PlanBillingInterval, Role } from "@prisma/client";
 
 export const SYSTEM_DEFAULT_PLANS = [
-  // Official iFormat Branding Packages
+  // 1. Starter Plan
   {
     code: "BRANDING_STARTER",
     name: "Starter",
@@ -14,8 +15,8 @@ export const SYSTEM_DEFAULT_PLANS = [
     billingInterval: PlanBillingInterval.MONTHLY,
     targetAudience: PlanAudience.BOTH,
     isActive: true,
-    stripePriceId: null as string | null,
-    stripeProductId: null as string | null,
+    stripePriceId: env.STRIPE_PRICE_STARTER || null,
+    stripeProductId: env.STRIPE_PRODUCT_STARTER || null,
     maxActiveJobs: null as number | null,
     maxApplicationsPerMonth: null as number | null,
     aiScreeningEnabled: true,
@@ -30,32 +31,7 @@ export const SYSTEM_DEFAULT_PLANS = [
       "Job market advise",
     ],
   },
-  {
-    code: "BRANDING_PROFESSIONAL",
-    name: "Professional",
-    description: "High-touch leadership advisory & brand authority",
-    priceInCents: 44900, // $449/month
-    currency: "USD",
-    billingInterval: PlanBillingInterval.MONTHLY,
-    targetAudience: PlanAudience.BOTH,
-    isActive: true,
-    stripePriceId: null as string | null,
-    stripeProductId: null as string | null,
-    maxActiveJobs: null as number | null,
-    maxApplicationsPerMonth: null as number | null,
-    aiScreeningEnabled: true,
-    featuredJobPlacement: true,
-    unmaskedApplicantProfiles: true,
-    unlimitedCvTemplates: true,
-    customFeatures: [
-      "Dedicated consultant",
-      "1:1 Brand Strategy",
-      "Recruiter Engagement",
-      "Brand Updates/Edits",
-      "Interview Coaching",
-      "Salary Negotiation",
-    ],
-  },
+  // 2. Grow Plan
   {
     code: "BRANDING_GROW",
     name: "Grow",
@@ -65,8 +41,8 @@ export const SYSTEM_DEFAULT_PLANS = [
     billingInterval: PlanBillingInterval.MONTHLY,
     targetAudience: PlanAudience.BOTH,
     isActive: true,
-    stripePriceId: null as string | null,
-    stripeProductId: null as string | null,
+    stripePriceId: env.STRIPE_PRICE_GROW || null,
+    stripeProductId: env.STRIPE_PRODUCT_GROW || null,
     maxActiveJobs: null as number | null,
     maxApplicationsPerMonth: null as number | null,
     aiScreeningEnabled: true,
@@ -82,6 +58,34 @@ export const SYSTEM_DEFAULT_PLANS = [
       "Quarterly LinkedIn Optimization",
     ],
   },
+  // 3. Professional Plan
+  {
+    code: "BRANDING_PROFESSIONAL",
+    name: "Professional",
+    description: "High-touch leadership advisory & brand authority",
+    priceInCents: 44900, // $449/month
+    currency: "USD",
+    billingInterval: PlanBillingInterval.MONTHLY,
+    targetAudience: PlanAudience.BOTH,
+    isActive: true,
+    stripePriceId: env.STRIPE_PRICE_PROFESSIONAL || null,
+    stripeProductId: env.STRIPE_PRODUCT_PROFESSIONAL || null,
+    maxActiveJobs: null as number | null,
+    maxApplicationsPerMonth: null as number | null,
+    aiScreeningEnabled: true,
+    featuredJobPlacement: true,
+    unmaskedApplicantProfiles: true,
+    unlimitedCvTemplates: true,
+    customFeatures: [
+      "Dedicated consultant",
+      "1:1 Brand Strategy",
+      "Recruiter Engagement",
+      "Brand Updates/Edits",
+      "Interview Coaching",
+      "Salary Negotiation",
+    ],
+  },
+  // 4. Enterprise Solutions
   {
     code: "BRANDING_ENTERPRISE",
     name: "Enterprise Solutions",
@@ -106,53 +110,6 @@ export const SYSTEM_DEFAULT_PLANS = [
       "Investor Brand Engagement",
       "Restructuring",
       "Workforce Transitions",
-    ],
-  },
-  {
-    code: "CANDIDATE_FREE",
-    name: "Free Candidate Tier",
-    description: "Standard job seeker access with 5 monthly AI generations and 10 job submissions.",
-    priceInCents: 0,
-    currency: "USD",
-    billingInterval: PlanBillingInterval.MONTHLY,
-    targetAudience: PlanAudience.CANDIDATE,
-    isActive: true,
-    stripePriceId: null as string | null,
-    stripeProductId: null as string | null,
-    maxActiveJobs: 0,
-    maxApplicationsPerMonth: 10,
-    aiScreeningEnabled: false,
-    featuredJobPlacement: false,
-    unmaskedApplicantProfiles: false,
-    unlimitedCvTemplates: false,
-    customFeatures: [
-      "5 AI generations/month",
-      "10 job applications/month",
-      "1 active resume draft",
-      "Community support",
-    ],
-  },
-  {
-    code: "EMPLOYER_FREE",
-    name: "Free Employer Tier",
-    description: "Post 1 active job opening with standard applicant discovery.",
-    priceInCents: 0,
-    currency: "USD",
-    billingInterval: PlanBillingInterval.MONTHLY,
-    targetAudience: PlanAudience.EMPLOYER,
-    isActive: true,
-    stripePriceId: null as string | null,
-    stripeProductId: null as string | null,
-    maxActiveJobs: 1,
-    maxApplicationsPerMonth: null as number | null,
-    aiScreeningEnabled: false,
-    featuredJobPlacement: false,
-    unmaskedApplicantProfiles: false,
-    unlimitedCvTemplates: false,
-    customFeatures: [
-      "1 active job posting",
-      "Standard applicant review",
-      "Masked candidate contacts",
     ],
   },
 ];
@@ -233,10 +190,9 @@ export class PlanService {
   /**
    * Find default fallback plan based on user role
    */
-  static getDefaultPlanForRole(role: Role) {
-    const code = role === Role.EMPLOYER ? "EMPLOYER_FREE" : "CANDIDATE_FREE";
+  static getDefaultPlanForRole(_role?: Role) {
     return (
-      SYSTEM_DEFAULT_PLANS.find((p) => p.code === code) || SYSTEM_DEFAULT_PLANS[0]
+      SYSTEM_DEFAULT_PLANS.find((p) => p.code === "BRANDING_STARTER") || SYSTEM_DEFAULT_PLANS[0]
     );
   }
 
@@ -283,9 +239,16 @@ export class PlanService {
       throw new NotFoundError("Plan", id);
     }
 
+    // Protect Stripe-linked subscriptions from accidental price desynchronization
+    const safeData = { ...data };
+    if (existing.stripePriceId) {
+      delete safeData.priceInCents;
+      delete safeData.billingInterval;
+    }
+
     return prisma.plan.update({
       where: { id },
-      data,
+      data: safeData,
     });
   }
 

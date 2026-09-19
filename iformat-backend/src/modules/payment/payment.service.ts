@@ -339,7 +339,7 @@ export class PaymentService {
             targetPlan = await PlanService.getPlanByIdOrCode(planCode);
           }
           if (!targetPlan) {
-            targetPlan = await PlanService.getPlanByIdOrCode("EMPLOYER_PRO");
+            targetPlan = await PlanService.getPlanByIdOrCode("BRANDING_STARTER");
           }
 
           const customerId = (session.customer as string) || user.subscription?.stripeCustomerId || `cus_${userId}`;
@@ -453,7 +453,7 @@ export class PaymentService {
               }
             }
             if (!targetPlan) {
-              targetPlan = await PlanService.getPlanByIdOrCode("EMPLOYER_PRO");
+              targetPlan = await PlanService.getPlanByIdOrCode("BRANDING_STARTER");
             }
 
             const periodStart = new Date(latestSub.current_period_start * 1000);
@@ -614,7 +614,7 @@ export class PaymentService {
 
         const plan = planCode
           ? await PlanService.getPlanByIdOrCode(planCode)
-          : await PlanService.getPlanByIdOrCode("EMPLOYER_PRO");
+          : await PlanService.getPlanByIdOrCode("BRANDING_STARTER");
 
         const customerId = session.customer as string;
         const subscriptionId = session.subscription as string;
