@@ -22,6 +22,7 @@ import {
   Activity,
 } from "lucide-react";
 import { useAuthStore } from "@/stores/use-auth-store";
+import { BrandLogo } from "@/components/ui/brand-logo";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -145,7 +146,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800 flex overflow-x-hidden selection:bg-sky-500 selection:text-white">
+    <div className="h-dvh bg-slate-50 text-slate-800 flex overflow-hidden selection:bg-sky-500 selection:text-white">
       {sidebarOpen && (
         <div
           onClick={() => setSidebarOpen(false)}
@@ -160,16 +161,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       >
         <div className="flex flex-col h-full min-h-0">
           <div className="p-5 flex items-center justify-between shrink-0">
-            <Link href="/admin" className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-linear-to-tr from-sky-500 to-blue-600 flex items-center justify-center shadow-md shadow-sky-500/20">
-                <Shield className="w-5 h-5 text-white" />
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="font-bold text-lg text-slate-900 tracking-tight">iFormat</span>
-                <span className="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-sky-50 text-sky-600 border border-sky-200/60">
-                  Admin
-                </span>
-              </div>
+            <Link href="/admin" className="flex items-center gap-2.5 group">
+              <BrandLogo size="sm" href="" priority />
+              <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-sky-50 text-sky-600 border border-sky-200/60 uppercase tracking-wider">
+                Admin
+              </span>
             </Link>
             <button
               onClick={() => setSidebarOpen(false)}
@@ -224,9 +220,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </aside>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 min-h-screen bg-slate-50">
+      <div className="flex-1 flex flex-col min-w-0 h-dvh overflow-hidden bg-slate-50">
         {/* Navbar */}
-        <header className="h-16 px-6 bg-white/95 border-b border-slate-200/80 backdrop-blur-md flex items-center justify-between sticky top-0 z-30">
+        <header className="h-16 px-6 bg-white/95 border-b border-slate-200/80 backdrop-blur-md flex items-center justify-between shrink-0 z-30">
           {/* Navbar Left Side: Active Page Name & Mobile Menu */}
           <div className="flex items-center gap-3">
             <button
@@ -283,7 +279,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </header>
 
         {/* Page View Body */}
-        <main className="flex-1 p-6 sm:p-8 w-full min-w-0">{children}</main>
+        <main className="flex-1 overflow-y-auto min-h-0 p-6 sm:p-8 pb-16 w-full min-w-0">
+          {children}
+        </main>
       </div>
     </div>
   );

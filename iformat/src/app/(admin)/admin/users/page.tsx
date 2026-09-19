@@ -9,6 +9,7 @@ import { AdminPageHeader } from "@/features/admin/components/shared/admin-page-h
 import { UserFilterBar } from "@/features/admin/components/users/user-filter-bar";
 import { UserTable } from "@/features/admin/components/users/user-table";
 import { BanUserModal } from "@/features/admin/components/users/ban-user-modal";
+import { Pagination } from "@/components/ui/table";
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<AdminUserItemDTO[]>([]);
@@ -16,6 +17,9 @@ export default function AdminUsersPage() {
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("ALL");
   const [includeDeleted, setIncludeDeleted] = useState(false);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [totalCount, setTotalCount] = useState(0);
 
   // Ban modal state
   const [banModalUser, setBanModalUser] = useState<AdminUserItemDTO | null>(null);
@@ -25,13 +29,20 @@ export default function AdminUsersPage() {
   const loadUsers = async () => {
     try {
       setLoading(true);
-      const params: any = { includeDeleted };
+      const params: any = {
+        includeDeleted,
+        page,
+        limit: pageSize,
+      };
       if (search.trim()) params.search = search.trim();
       if (roleFilter !== "ALL") params.role = roleFilter;
 
       const res = await adminService.listUsers(params);
       if (res) {
         setUsers(Array.isArray(res) ? res : res.users || []);
+        if (res.meta?.total !== undefined) {
+          setTotalCount(res.meta.total);
+        }
       }
     } catch (err: any) {
       toast.error(err?.message || "Could not load user list.");
@@ -42,10 +53,11 @@ export default function AdminUsersPage() {
 
   useEffect(() => {
     loadUsers();
-  }, [roleFilter, includeDeleted]);
+  }, [page, pageSize, roleFilter, includeDeleted]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setPage(1);
     loadUsers();
   };
 
@@ -137,6 +149,19 @@ export default function AdminUsersPage() {
         onOpenBanModal={(u) => setBanModalUser(u)}
         onSoftDelete={handleSoftDelete}
         onRestore={handleRestore}
+      />
+
+      <Pagination
+        card
+        currentPage={page}
+        pageSize={pageSize}
+        totalCount={totalCount}
+        loading={loading}
+        onPageChange={(newPage) => setPage(newPage)}
+        onPageSizeChange={(newSize) => {
+          setPageSize(newSize);
+          setPage(1);
+        }}
       />
 
       <BanUserModal

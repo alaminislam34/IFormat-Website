@@ -3,26 +3,39 @@
 import { useEffect, useState } from "react";
 import {
   CreditCard,
-  Search,
   Sparkles,
   CheckCircle2,
-  Calendar,
-  User,
   Loader2,
   X,
-  ShieldAlert,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { adminService, AdminUserItemDTO } from "@/services/admin.service";
 import { membershipService } from "@/services/membership.service";
 import { PlanDTO } from "@/types/api";
+import { AdminPageHeader } from "@/features/admin/components/shared/admin-page-header";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableFilterBar,
+  Pagination,
+  Skeleton,
+} from "@/components/ui/table";
 
 export default function AdminSubscriptionsPage() {
   const [users, setUsers] = useState<AdminUserItemDTO[]>([]);
   const [plans, setPlans] = useState<PlanDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [roleFilter, setRoleFilter] = useState<string>("ALL");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [totalCount, setTotalCount] = useState(0);
+
   const [overrideModalUser, setOverrideModalUser] = useState<AdminUserItemDTO | null>(null);
   const [selectedPlanId, setSelectedPlanId] = useState<string>("");
   const [durationDays, setDurationDays] = useState<number>(365);
@@ -32,12 +45,27 @@ export default function AdminSubscriptionsPage() {
   const loadData = async () => {
     try {
       setLoading(true);
+      const params: any = {
+        page,
+        limit: pageSize,
+      };
+      if (search.trim()) params.search = search.trim();
+      if (roleFilter !== "ALL") params.role = roleFilter;
+
       const [uRes, pRes] = await Promise.all([
-        adminService.listUsers({ search: search.trim() || undefined }),
+        adminService.listUsers(params),
         membershipService.getPlans(),
       ]);
-      if (uRes) setUsers(Array.isArray(uRes) ? uRes : uRes.users || []);
-      if (pRes) setPlans(Array.isArray(pRes) ? pRes : (pRes as any).plans || []);
+
+      if (uRes) {
+        setUsers(Array.isArray(uRes) ? uRes : uRes.users || []);
+        if (uRes.meta?.total !== undefined) {
+          setTotalCount(uRes.meta.total);
+        }
+      }
+      if (pRes) {
+        setPlans(Array.isArray(pRes) ? pRes : (pRes as any).plans || []);
+      }
     } catch (err: any) {
       console.warn("Could not load subscriptions:", err.message);
     } finally {
@@ -47,7 +75,13 @@ export default function AdminSubscriptionsPage() {
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [page, pageSize, roleFilter]);
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setPage(1);
+    loadData();
+  };
 
   const handleGrantPlan = async () => {
     if (!overrideModalUser || !selectedPlanId) return;
@@ -63,6 +97,12 @@ export default function AdminSubscriptionsPage() {
       setActionLoading(false);
     }
   };
+
+  const roleTabs = [
+    { key: "ALL", label: "All Users" },
+    { key: "EMPLOYER", label: "Employers" },
+    { key: "CANDIDATE", label: "Candidates" },
+  ];
 
   return (
     <div className="space-y-6">
@@ -80,117 +120,168 @@ export default function AdminSubscriptionsPage() {
       )}
 
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
-            Subscriptions Ledger & Comping
-          </h1>
-          <p className="text-slate-500 text-xs mt-1">
-            Monitor active user subscriptions and manually grant / override VIP access tiers without billing Stripe.
-          </p>
-        </div>
-      </div>
+      <AdminPageHeader
+        title="Subscriptions Ledger & Comping"
+        description="Monitor active user subscriptions and manually grant / override VIP access tiers without billing Stripe."
+      />
 
-      {/* Search Bar */}
-      <div className="bg-white border border-slate-200/80 rounded-2xl p-4 flex items-center justify-between shadow-xs">
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            loadData();
-          }}
-          className="relative w-full md:max-w-md"
-        >
-          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <Input
-            type="text"
-            placeholder="Search by user name or email..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-10 h-10 bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400 text-xs rounded-xl focus-visible:ring-sky-500"
-          />
-        </form>
-      </div>
+      {/* Filter Bar */}
+      <TableFilterBar
+        tabs={roleTabs}
+        activeTab={roleFilter}
+        onTabChange={(tab) => {
+          setRoleFilter(tab);
+          setPage(1);
+        }}
+        search={search}
+        onSearchChange={(val) => {
+          setSearch(val);
+          setPage(1);
+        }}
+        onSearchSubmit={handleSearchSubmit}
+        searchPlaceholder="Search by user name or email..."
+      />
 
       {/* Subscribers Table */}
       <div className="bg-white border border-slate-200/80 rounded-3xl overflow-hidden shadow-xs">
-        {loading ? (
-          <div className="py-20 flex items-center justify-center">
-            <Loader2 className="w-8 h-8 text-sky-500 animate-spin" />
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50 text-slate-500 font-semibold text-xs border-b border-slate-200/80">
-                <tr>
-                  <th className="p-4">User / Account</th>
-                  <th className="p-4">Role</th>
-                  <th className="p-4">Assigned Plan</th>
-                  <th className="p-4">Subscription Status</th>
-                  <th className="p-4 text-right">Manual Override</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {users.map((u) => {
-                  const sub = u.subscription;
-                  const hasPaidSub = sub && sub.plan;
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>User / Account</TableHead>
+              <TableHead>Role</TableHead>
+              <TableHead>Assigned Plan</TableHead>
+              <TableHead>Subscription Status</TableHead>
+              <TableHead className="text-right">Manual Override</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {loading ? (
+              /* UI-Preserving Skeleton Loading Rows */
+              Array.from({ length: 6 }).map((_, idx) => (
+                <TableRow key={`sub-skeleton-${idx}`} className="hover:bg-transparent">
+                  {/* User / Account */}
+                  <TableCell>
+                    <div className="space-y-1.5">
+                      <Skeleton className="h-4 w-36" />
+                      <Skeleton className="h-3 w-48" />
+                    </div>
+                  </TableCell>
 
-                  return (
-                    <tr key={u.id} className="hover:bg-slate-50/80 transition-colors">
-                      <td className="p-4">
-                        <p className="font-semibold text-slate-900 text-sm">{u.name}</p>
-                        <p className="text-slate-500 text-xs">{u.email}</p>
-                      </td>
+                  {/* Role */}
+                  <TableCell>
+                    <Skeleton className="h-5 w-16 rounded-md" />
+                  </TableCell>
 
-                      <td className="p-4">
-                        <span className="px-2 py-0.5 rounded-md text-xs font-medium bg-slate-100 text-slate-700 capitalize">
-                          {u.role?.toLowerCase()}
+                  {/* Assigned Plan */}
+                  <TableCell>
+                    <Skeleton className="h-6 w-32 rounded-lg" />
+                  </TableCell>
+
+                  {/* Subscription Status */}
+                  <TableCell>
+                    <Skeleton className="h-5 w-20 rounded-full" />
+                  </TableCell>
+
+                  {/* Manual Override */}
+                  <TableCell className="text-right">
+                    <div className="flex justify-end">
+                      <Skeleton className="h-8 w-36 rounded-xl" />
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : users.length === 0 ? (
+              /* Empty State */
+              <TableRow className="hover:bg-transparent">
+                <TableCell colSpan={5} className="p-0 border-none">
+                  <div className="py-16 px-6 text-center space-y-3 flex flex-col items-center justify-center">
+                    <div className="w-12 h-12 rounded-2xl bg-slate-100 border border-slate-200/60 text-slate-400 flex items-center justify-center shadow-xs">
+                      <CreditCard className="w-6 h-6" />
+                    </div>
+                    <div className="space-y-1">
+                      <h4 className="text-sm font-bold text-slate-800 tracking-tight">No Users Found</h4>
+                      <p className="text-xs text-slate-500 max-w-sm">
+                        No users match your criteria. Try adjusting your search query or role filter.
+                      </p>
+                    </div>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : (
+              users.map((u) => {
+                const sub = u.subscription;
+                const hasPaidSub = sub && sub.plan;
+
+                return (
+                  <TableRow key={u.id} className="hover:bg-slate-50/80 transition-colors">
+                    <TableCell>
+                      <p className="font-semibold text-slate-900 text-sm">{u.name}</p>
+                      <p className="text-slate-500 text-xs">{u.email}</p>
+                    </TableCell>
+
+                    <TableCell>
+                      <span className="px-2 py-0.5 rounded-md text-xs font-medium bg-slate-100 text-slate-700 capitalize">
+                        {u.role?.toLowerCase()}
+                      </span>
+                    </TableCell>
+
+                    <TableCell>
+                      {hasPaidSub ? (
+                        <span className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                          {sub.plan?.name} (${((sub.plan?.priceInCents || 0) / 100).toFixed(0)}/mo)
                         </span>
-                      </td>
+                      ) : (
+                        <span className="text-slate-500 text-xs">Free Tier</span>
+                      )}
+                    </TableCell>
 
-                      <td className="p-4">
-                        {hasPaidSub ? (
-                          <span className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                            {sub.plan?.name} (${((sub.plan?.priceInCents || 0) / 100).toFixed(0)}/mo)
-                          </span>
-                        ) : (
-                          <span className="text-slate-500 text-xs">Free Tier</span>
-                        )}
-                      </td>
+                    <TableCell>
+                      <span
+                        className={`px-2 py-0.5 rounded-md text-xs font-medium capitalize ${
+                          sub?.status === "ACTIVE"
+                            ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                            : "bg-slate-100 text-slate-600"
+                        }`}
+                      >
+                        {(sub?.status || "INACTIVE").toLowerCase()}
+                      </span>
+                    </TableCell>
 
-                      <td className="p-4">
-                        <span
-                          className={`px-2 py-0.5 rounded-md text-xs font-medium capitalize ${
-                            sub?.status === "ACTIVE"
-                              ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                              : "bg-slate-100 text-slate-600"
-                          }`}
-                        >
-                          {(sub?.status || "INACTIVE").toLowerCase()}
-                        </span>
-                      </td>
-
-                      <td className="p-4 text-right">
-                        <Button
-                          onClick={() => {
-                            setOverrideModalUser(u);
-                            setSelectedPlanId(plans[0]?.id || "");
-                          }}
-                          variant="outline"
-                          size="sm"
-                          className="h-8 px-3 rounded-xl text-xs font-semibold bg-white border-slate-200 text-sky-600 hover:text-sky-700 hover:bg-sky-50 shadow-xs"
-                        >
-                          <Sparkles className="w-3.5 h-3.5 mr-1.5" />
-                          <span>Grant / Comp Plan</span>
-                        </Button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
+                    <TableCell className="text-right">
+                      <Button
+                        onClick={() => {
+                          setOverrideModalUser(u);
+                          setSelectedPlanId(plans[0]?.id || "");
+                        }}
+                        variant="outline"
+                        size="sm"
+                        className="h-8 px-3 rounded-xl text-xs font-semibold bg-white border-slate-200 text-sky-600 hover:text-sky-700 hover:bg-sky-50 shadow-xs cursor-pointer"
+                      >
+                        <Sparkles className="w-3.5 h-3.5 mr-1.5" />
+                        <span>Grant / Comp Plan</span>
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                );
+              })
+            )}
+            </TableBody>
+          </Table>
       </div>
+
+      {/* Pagination */}
+      <Pagination
+        card
+        currentPage={page}
+        pageSize={pageSize}
+        totalCount={totalCount}
+        loading={loading}
+        onPageChange={(newPage) => setPage(newPage)}
+        onPageSizeChange={(newSize) => {
+          setPageSize(newSize);
+          setPage(1);
+        }}
+      />
 
       {/* Manual Plan Grant Modal */}
       {overrideModalUser && (
@@ -223,7 +314,7 @@ export default function AdminSubscriptionsPage() {
                 <select
                   value={selectedPlanId}
                   onChange={(e) => setSelectedPlanId(e.target.value)}
-                  className="w-full h-10 bg-slate-50 border border-slate-200 text-slate-900 text-xs rounded-xl px-3 font-medium focus:ring-sky-500"
+                  className="w-full h-10 bg-slate-50 border border-slate-200 text-slate-900 text-xs rounded-xl px-3 font-medium focus:ring-sky-500 cursor-pointer"
                 >
                   {plans.map((p) => (
                     <option key={p.id} value={p.id}>
@@ -250,14 +341,14 @@ export default function AdminSubscriptionsPage() {
               <Button
                 onClick={() => setOverrideModalUser(null)}
                 variant="outline"
-                className="rounded-xl text-xs font-semibold bg-white border-slate-200 text-slate-700 hover:bg-slate-50"
+                className="rounded-xl text-xs font-semibold bg-white border-slate-200 text-slate-700 hover:bg-slate-50 cursor-pointer"
               >
                 Cancel
               </Button>
               <Button
                 onClick={handleGrantPlan}
                 disabled={actionLoading}
-                className="bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-semibold shadow-xs"
+                className="bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-semibold shadow-xs cursor-pointer"
               >
                 {actionLoading ? (
                   <Loader2 className="w-4 h-4 animate-spin" />

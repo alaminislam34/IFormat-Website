@@ -2,13 +2,14 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Sparkles, Loader2, RefreshCw } from "lucide-react";
+import { Sparkles, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { adminService, AdminMetricsDTO, AdminAuditLogDTO } from "@/services/admin.service";
 import { AdminPageHeader } from "@/features/admin/components/shared/admin-page-header";
 import { StatCardsGrid } from "@/features/admin/components/dashboard/stat-cards-grid";
 import { QuickActionPanels } from "@/features/admin/components/dashboard/quick-action-panels";
 import { RecentAuditLogs } from "@/features/admin/components/dashboard/recent-audit-logs";
+import { AdminDashboardSkeleton } from "@/features/admin/components/dashboard/admin-dashboard-skeleton";
 
 export default function AdminDashboardPage() {
   const [metrics, setMetrics] = useState<AdminMetricsDTO | null>(null);
@@ -44,16 +45,7 @@ export default function AdminDashboardPage() {
   };
 
   if (loading) {
-    return (
-      <div className="py-24 flex items-center justify-center">
-        <div className="text-center space-y-3">
-          <Loader2 className="w-8 h-8 text-sky-500 animate-spin mx-auto" />
-          <p className="text-xs font-semibold text-slate-500">
-            Loading system telemetry & metrics...
-          </p>
-        </div>
-      </div>
-    );
+    return <AdminDashboardSkeleton />;
   }
 
   return (

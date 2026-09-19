@@ -26,7 +26,7 @@ export function AuthPromptModal({
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[100000] flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md">
+        <div className="fixed inset-0 z-100000 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md">
           {/* Backdrop Click-away */}
           <div className="absolute inset-0" onClick={onClose} />
 

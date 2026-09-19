@@ -9,13 +9,17 @@ import { toast } from "sonner";
 
 import { AdminBookingsKpiGrid } from "@/features/admin/components/bookings/admin-bookings-kpi-grid";
 import { AdminBookingsTable } from "@/features/admin/components/bookings/admin-bookings-table";
+import { BookingFilterBar } from "@/features/admin/components/bookings/booking-filter-bar";
 import { CreateSlotModal } from "@/features/admin/components/bookings/create-slot-modal";
+import { Pagination } from "@/components/ui/table";
 
 export default function AdminBookingsPage() {
   const [bookings, setBookings] = useState<BookingDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   // Create Slot Modal State
   const [isSlotModalOpen, setIsSlotModalOpen] = useState(false);
@@ -104,6 +108,11 @@ export default function AdminBookingsPage() {
     return matchesStatus && matchesSearch;
   });
 
+  const paginatedBookings = filteredBookings.slice(
+    (page - 1) * pageSize,
+    page * pageSize
+  );
+
   const confirmedCount = bookings.filter((b) => b.status === "CONFIRMED").length;
   const completedCount = bookings.filter((b) => b.status === "COMPLETED").length;
   const cancelledCount = bookings.filter((b) => b.status === "CANCELLED").length;
@@ -146,17 +155,42 @@ export default function AdminBookingsPage() {
         confirmedCount={confirmedCount}
         completedCount={completedCount}
         cancelledCount={cancelledCount}
+        loading={loading}
       />
 
-      {/* Filters, Search & Bookings Table */}
-      <AdminBookingsTable
-        bookings={filteredBookings}
-        loading={loading}
-        search={search}
-        setSearch={setSearch}
+      {/* Filters & Search */}
+      <BookingFilterBar
         statusFilter={statusFilter}
-        setStatusFilter={setStatusFilter}
+        setStatusFilter={(st) => {
+          setStatusFilter(st);
+          setPage(1);
+        }}
+        search={search}
+        setSearch={(s) => {
+          setSearch(s);
+          setPage(1);
+        }}
+      />
+
+      {/* Bookings Table */}
+      <AdminBookingsTable
+        bookings={paginatedBookings}
+        loading={loading}
         onUpdateStatus={handleUpdateStatus}
+      />
+
+      {/* Pagination */}
+      <Pagination
+        card
+        currentPage={page}
+        pageSize={pageSize}
+        totalCount={filteredBookings.length}
+        loading={loading}
+        onPageChange={(newPage) => setPage(newPage)}
+        onPageSizeChange={(newSize) => {
+          setPageSize(newSize);
+          setPage(1);
+        }}
       />
 
       {/* Create Consultation Slot Modal */}

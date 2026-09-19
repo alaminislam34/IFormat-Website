@@ -111,7 +111,7 @@ export function JobAnalyzerModal({
     <>
       <AnimatePresence>
         {isOpen && (
-          <div className="fixed inset-0 z-[100000] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-100000 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
             {/* Backdrop Click-away */}
             <div className="absolute inset-0" onClick={onClose} />
 

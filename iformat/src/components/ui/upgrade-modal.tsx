@@ -66,8 +66,7 @@ export function UpgradeModal({
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[100005] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
-          {/* Backdrop Click-away */}
+        <div className="fixed inset-0 z-100005 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
           <div className="absolute inset-0" onClick={onClose} />
 
           <motion.div

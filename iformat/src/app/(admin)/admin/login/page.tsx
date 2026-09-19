@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { authService } from "@/services/auth.service";
 import { useAuthStore } from "@/stores/use-auth-store";
+import { BrandLogo } from "@/components/ui/brand-logo";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -66,15 +67,14 @@ export default function AdminLoginPage() {
       <div className="absolute bottom-1/4 -right-32 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
 
       <div className="w-full max-w-md relative z-10">
-        {/* Shield Branding */}
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 rounded-2xl bg-linear-to-tr from-sky-500 to-blue-600 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-sky-500/20 ring-4 ring-sky-500/10">
-            <Shield className="w-8 h-8 text-white" />
+        {/* Website Brand Logo & Header */}
+        <div className="text-center mb-8 flex flex-col items-center">
+          <BrandLogo size="lg" href="/" priority className="mb-4" />
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-50 border border-sky-200/60 text-sky-700 text-xs font-semibold mb-2">
+            <Shield className="w-3.5 h-3.5" />
+            <span>Admin Control Center</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
-            Admin Control Center
-          </h1>
-          <p className="text-slate-500 text-xs mt-1.5 font-medium">
+          <p className="text-slate-500 text-xs font-medium">
             Restricted Authorization Required
           </p>
         </div>

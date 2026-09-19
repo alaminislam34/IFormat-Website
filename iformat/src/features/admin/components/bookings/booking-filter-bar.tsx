@@ -1,27 +1,27 @@
 import React from "react";
 import { TableFilterBar } from "@/components/ui/table";
 
-interface JobFilterBarProps {
+interface BookingFilterBarProps {
   statusFilter: string;
   setStatusFilter: (status: string) => void;
   search: string;
   setSearch: (search: string) => void;
-  onSearchSubmit: (e: React.FormEvent) => void;
+  onSearchSubmit?: (e: React.FormEvent) => void;
 }
 
-export function JobFilterBar({
+export function BookingFilterBar({
   statusFilter,
   setStatusFilter,
   search,
   setSearch,
   onSearchSubmit,
-}: JobFilterBarProps) {
+}: BookingFilterBarProps) {
   const statuses = [
-    { key: "ALL", label: "All Jobs" },
-    { key: "PUBLISHED", label: "Published" },
-    { key: "DRAFT", label: "Draft" },
-    { key: "CLOSED", label: "Closed" },
-    { key: "ARCHIVED", label: "Archived" },
+    { key: "ALL", label: "All Orders" },
+    { key: "PENDING", label: "Cancellation Requests" },
+    { key: "CONFIRMED", label: "Confirmed" },
+    { key: "COMPLETED", label: "Completed" },
+    { key: "CANCELLED", label: "Cancelled" },
   ];
 
   return (
@@ -32,7 +32,7 @@ export function JobFilterBar({
       search={search}
       onSearchChange={setSearch}
       onSearchSubmit={onSearchSubmit}
-      searchPlaceholder="Search by title, company, category..."
+      searchPlaceholder="Search by package, name, phone, email..."
     />
   );
 }
