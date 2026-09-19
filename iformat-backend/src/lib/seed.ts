@@ -19,7 +19,8 @@ export async function seedDatabase() {
           currency: plan.currency,
           billingInterval: plan.billingInterval as any,
           targetAudience: plan.targetAudience as any,
-          isActive: plan.isActive,
+          stripePriceId: plan.stripePriceId,
+          stripeProductId: plan.stripeProductId,
           maxActiveJobs: plan.maxActiveJobs,
           maxApplicationsPerMonth: plan.maxApplicationsPerMonth,
           aiScreeningEnabled: plan.aiScreeningEnabled,
@@ -34,10 +35,22 @@ export async function seedDatabase() {
           priceInCents: plan.priceInCents,
           customFeatures: plan.customFeatures as any,
           isActive: plan.isActive,
+          stripePriceId: plan.stripePriceId,
+          stripeProductId: plan.stripeProductId,
         },
       });
     }
-    console.log("✅ Default membership plans seeded successfully.");
+
+    // Clean up any obsolete non-branding plans
+    const validCodes = SYSTEM_DEFAULT_PLANS.map((p) => p.code);
+    await prisma.plan.updateMany({
+      where: { code: { notIn: validCodes } },
+      data: { isActive: false, isDeleted: true, deletedAt: new Date() },
+    });
+    await prisma.plan.deleteMany({
+      where: { code: { notIn: validCodes }, subscriptions: { none: {} } },
+    });
+    console.log("✅ Default membership plans seeded successfully and obsolete plans purged.");
 
     // 2. Ensure the primary Admin user exists (devamin.bd@gmail.com)
     const adminEmail = "devamin.bd@gmail.com";

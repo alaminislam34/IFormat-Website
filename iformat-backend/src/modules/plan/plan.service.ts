@@ -121,6 +121,8 @@ export class PlanService {
   static async listPlans(filters: PlanFilterQuery = {}) {
     const where: any = {};
 
+    where.isDeleted = false;
+
     if (filters.isActive !== undefined) {
       where.isActive = filters.isActive;
     } else {

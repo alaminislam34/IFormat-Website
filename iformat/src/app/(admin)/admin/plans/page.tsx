@@ -37,7 +37,7 @@ export default function AdminPlansPage() {
   const [plans, setPlans] = useState<PlanDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [audienceTab, setAudienceTab] = useState<"EMPLOYER" | "CANDIDATE" | "ALL">("EMPLOYER");
+  const [audienceTab, setAudienceTab] = useState<"EMPLOYER" | "CANDIDATE" | "ALL">("ALL");
 
   // Modal states
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -180,6 +180,16 @@ export default function AdminPlansPage() {
           {/* Audience Toggle */}
           <div className="flex items-center gap-1 p-1 bg-slate-900 rounded-2xl border border-slate-800">
             <button
+              onClick={() => setAudienceTab("ALL")}
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
+                audienceTab === "ALL"
+                  ? "bg-sky-500 text-white shadow-lg shadow-sky-500/20"
+                  : "text-slate-400 hover:text-white"
+              }`}
+            >
+              All Packages (4)
+            </button>
+            <button
               onClick={() => setAudienceTab("EMPLOYER")}
               className={`px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
                 audienceTab === "EMPLOYER"
@@ -187,7 +197,7 @@ export default function AdminPlansPage() {
                   : "text-slate-400 hover:text-white"
               }`}
             >
-              Employer Plans
+              Corporate / Employer
             </button>
             <button
               onClick={() => setAudienceTab("CANDIDATE")}
@@ -197,17 +207,7 @@ export default function AdminPlansPage() {
                   : "text-slate-400 hover:text-white"
               }`}
             >
-              Candidate Plans
-            </button>
-            <button
-              onClick={() => setAudienceTab("ALL")}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
-                audienceTab === "ALL"
-                  ? "bg-sky-500 text-white shadow-lg shadow-sky-500/20"
-                  : "text-slate-400 hover:text-white"
-              }`}
-            >
-              All
+              Executive / Candidate
             </button>
           </div>
 

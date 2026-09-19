@@ -40,7 +40,7 @@ export class AdminService {
         where: { status: SubscriptionStatus.ACTIVE },
         include: { plan: true },
       }),
-      prisma.plan.findMany({ where: { isDeleted: false } }),
+      prisma.plan.findMany({ where: { isDeleted: false, isActive: true } }),
     ]);
 
     // Calculate approximate MRR (Monthly Recurring Revenue) in USD

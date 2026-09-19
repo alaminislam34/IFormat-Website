@@ -126,9 +126,16 @@ export class AdminService {
     isVerifiedCompany?: boolean | string;
     includeDeleted?: boolean | string;
   }): Promise<{ users: AdminUserItemDTO[]; meta: any }> {
-    return apiClient.get<{ users: AdminUserItemDTO[]; meta: any }>("/admin/users", {
+    const res = await apiClient.get<any>("/admin/users", {
       params,
     });
+    if (Array.isArray(res)) {
+      return { users: res, meta: {} };
+    }
+    if (res && typeof res === "object" && Array.isArray(res.users)) {
+      return res;
+    }
+    return { users: [], meta: {} };
   }
 
   /**
@@ -170,9 +177,16 @@ export class AdminService {
     employerId?: string;
     includeDeleted?: boolean | string;
   }): Promise<{ jobs: AdminJobItemDTO[]; meta: any }> {
-    return apiClient.get<{ jobs: AdminJobItemDTO[]; meta: any }>("/admin/jobs", {
+    const res = await apiClient.get<any>("/admin/jobs", {
       params,
     });
+    if (Array.isArray(res)) {
+      return { jobs: res, meta: {} };
+    }
+    if (res && typeof res === "object" && Array.isArray(res.jobs)) {
+      return res;
+    }
+    return { jobs: [], meta: {} };
   }
 
   /**
@@ -223,9 +237,24 @@ export class AdminService {
     action?: string;
     targetType?: string;
   }): Promise<{ logs: AdminAuditLogDTO[]; meta: any }> {
-    return apiClient.get<{ logs: AdminAuditLogDTO[]; meta: any }>("/admin/audit-logs", {
+    const res = await apiClient.get<any>("/admin/audit-logs", {
       params,
     });
+    if (Array.isArray(res)) {
+      return { logs: res, meta: {} };
+    }
+    if (res && typeof res === "object" && Array.isArray(res.logs)) {
+      return res;
+    }
+    return { logs: [], meta: {} };
+  }
+
+  /**
+   * List all platform service orders & consultation bookings
+   */
+  static async listBookings(): Promise<any[]> {
+    const res = await apiClient.get<any>("/bookings/mine");
+    return Array.isArray(res) ? res : (res as any)?.data || [];
   }
 
   /**

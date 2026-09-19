@@ -36,7 +36,7 @@ export default function AdminSubscriptionsPage() {
         adminService.listUsers({ search: search.trim() || undefined }),
         membershipService.getPlans(),
       ]);
-      if (uRes?.users) setUsers(uRes.users);
+      if (uRes) setUsers(Array.isArray(uRes) ? uRes : uRes.users || []);
       if (pRes) setPlans(Array.isArray(pRes) ? pRes : (pRes as any).plans || []);
     } catch (err: any) {
       console.warn("Could not load subscriptions:", err.message);

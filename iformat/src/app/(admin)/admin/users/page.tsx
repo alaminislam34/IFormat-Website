@@ -30,7 +30,9 @@ export default function AdminUsersPage() {
       if (roleFilter !== "ALL") params.role = roleFilter;
 
       const res = await adminService.listUsers(params);
-      if (res?.users) setUsers(res.users);
+      if (res) {
+        setUsers(Array.isArray(res) ? res : res.users || []);
+      }
     } catch (err: any) {
       toast.error(err?.message || "Could not load user list.");
     } finally {

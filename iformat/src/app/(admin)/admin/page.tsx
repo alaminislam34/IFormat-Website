@@ -23,7 +23,9 @@ export default function AdminDashboardPage() {
         adminService.listAuditLogs({ limit: 6 }),
       ]);
       setMetrics(m);
-      if (logsRes?.logs) setRecentLogs(logsRes.logs);
+      if (logsRes) {
+        setRecentLogs(Array.isArray(logsRes) ? logsRes : (logsRes as any).logs || []);
+      }
     } catch (err: any) {
       console.warn("Could not fetch admin metrics:", err.message);
     } finally {

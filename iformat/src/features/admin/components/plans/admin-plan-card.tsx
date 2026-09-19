@@ -62,51 +62,70 @@ export function AdminPlanCard({ plan, onEdit, onToggleActive }: AdminPlanCardPro
           </div>
         </div>
 
-        {/* Entitlements Checklist */}
+        {/* Stripe Sync Badge */}
+        {plan.stripePriceId && (
+          <div className="mb-4 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-sky-950/60 border border-sky-800/80 text-[11px] font-medium text-sky-300">
+            <span className="w-1.5 h-1.5 rounded-full bg-sky-400 animate-pulse" />
+            <span>Stripe Live: {plan.stripePriceId}</span>
+          </div>
+        )}
+
+        {/* Entitlements & Features Checklist */}
         <div className="space-y-2.5 pt-4 border-t border-slate-800/80 text-xs">
-          {plan.maxActiveJobs !== null && plan.maxActiveJobs !== undefined && (
-            <div className="flex items-center gap-2 text-slate-300">
-              <Briefcase className="w-3.5 h-3.5 text-sky-400 shrink-0" />
-              <span>
-                {plan.maxActiveJobs === 0
-                  ? "No job postings"
-                  : `${plan.maxActiveJobs} Active Job Limit`}
-              </span>
-            </div>
+          {Array.isArray(plan.customFeatures) && plan.customFeatures.length > 0 ? (
+            plan.customFeatures.map((feat: any, idx: number) => (
+              <div key={idx} className="flex items-center gap-2 text-slate-300">
+                <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                <span className="truncate">{typeof feat === "string" ? feat : String(feat)}</span>
+              </div>
+            ))
+          ) : (
+            <>
+              {plan.maxActiveJobs !== null && plan.maxActiveJobs !== undefined && (
+                <div className="flex items-center gap-2 text-slate-300">
+                  <Briefcase className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+                  <span>
+                    {plan.maxActiveJobs === 0
+                      ? "No job postings"
+                      : `${plan.maxActiveJobs} Active Job Limit`}
+                  </span>
+                </div>
+              )}
+
+              {plan.maxApplicationsPerMonth !== null && plan.maxApplicationsPerMonth !== undefined && (
+                <div className="flex items-center gap-2 text-slate-300">
+                  <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                  <span>
+                    {plan.maxApplicationsPerMonth === 999999
+                      ? "Unlimited Applications"
+                      : `${plan.maxApplicationsPerMonth} Apps / Month`}
+                  </span>
+                </div>
+              )}
+
+              <div className="flex items-center gap-2 text-slate-300">
+                <Bot
+                  className={`w-3.5 h-3.5 ${
+                    plan.aiScreeningEnabled ? "text-emerald-400" : "text-slate-600"
+                  }`}
+                />
+                <span className={plan.aiScreeningEnabled ? "font-semibold text-white" : "text-slate-500"}>
+                  AI Screening: {plan.aiScreeningEnabled ? "Enabled" : "Disabled"}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2 text-slate-300">
+                <Eye
+                  className={`w-3.5 h-3.5 ${
+                    plan.unmaskedApplicantProfiles ? "text-emerald-400" : "text-slate-600"
+                  }`}
+                />
+                <span className={plan.unmaskedApplicantProfiles ? "font-semibold text-white" : "text-slate-500"}>
+                  Contact Masking: {plan.unmaskedApplicantProfiles ? "Unmasked" : "Masked"}
+                </span>
+              </div>
+            </>
           )}
-
-          {plan.maxApplicationsPerMonth !== null && plan.maxApplicationsPerMonth !== undefined && (
-            <div className="flex items-center gap-2 text-slate-300">
-              <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-              <span>
-                {plan.maxApplicationsPerMonth === 999999
-                  ? "Unlimited Applications"
-                  : `${plan.maxApplicationsPerMonth} Apps / Month`}
-              </span>
-            </div>
-          )}
-
-          <div className="flex items-center gap-2 text-slate-300">
-            <Bot
-              className={`w-3.5 h-3.5 ${
-                plan.aiScreeningEnabled ? "text-emerald-400" : "text-slate-600"
-              }`}
-            />
-            <span className={plan.aiScreeningEnabled ? "font-semibold text-white" : "text-slate-500"}>
-              AI Screening: {plan.aiScreeningEnabled ? "Enabled" : "Disabled"}
-            </span>
-          </div>
-
-          <div className="flex items-center gap-2 text-slate-300">
-            <Eye
-              className={`w-3.5 h-3.5 ${
-                plan.unmaskedApplicantProfiles ? "text-emerald-400" : "text-slate-600"
-              }`}
-            />
-            <span className={plan.unmaskedApplicantProfiles ? "font-semibold text-white" : "text-slate-500"}>
-              Contact Masking: {plan.unmaskedApplicantProfiles ? "Unmasked" : "Masked"}
-            </span>
-          </div>
         </div>
       </div>
 

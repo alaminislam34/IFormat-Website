@@ -25,7 +25,9 @@ export default function AdminJobsPage() {
       if (statusFilter !== "ALL") params.status = statusFilter;
 
       const res = await adminService.listJobs(params);
-      if (res?.jobs) setJobs(res.jobs);
+      if (res) {
+        setJobs(Array.isArray(res) ? res : res.jobs || []);
+      }
     } catch (err: any) {
       console.warn("Could not load jobs:", err.message);
     } finally {

@@ -21,7 +21,9 @@ export default function AdminAuditLogsPage() {
     try {
       setLoading(true);
       const res = await adminService.listAuditLogs({ limit: 50 });
-      if (res?.logs) setLogs(res.logs);
+      if (res) {
+        setLogs(Array.isArray(res) ? res : res.logs || []);
+      }
     } catch (err: any) {
       toast.error(err?.message || "Could not load audit logs.");
     } finally {

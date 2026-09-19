@@ -44,7 +44,7 @@ export default function AdminCompaniesPage() {
       if (activeFilter === "UNVERIFIED") params.isVerifiedCompany = false;
 
       const res = await adminService.listUsers(params);
-      if (res?.users) setCompanies(res.users);
+      if (res) setCompanies(Array.isArray(res) ? res : res.users || []);
     } catch (err: any) {
       console.warn("Could not load companies:", err.message);
     } finally {
