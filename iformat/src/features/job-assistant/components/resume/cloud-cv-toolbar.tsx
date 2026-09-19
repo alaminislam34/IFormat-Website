@@ -58,7 +58,7 @@ export function CloudCvToolbar({
             onClick={onOpenSavedModal}
             variant="outline"
             size="sm"
-            className="h-9 px-3.5 text-xs bg-slate-800 border-slate-700 text-slate-200 hover:bg-slate-700 font-medium cursor-pointer"
+            className="h-9 px-3.5 text-xs bg-slate-800 border-slate-700 text-slate-200 font-medium cursor-pointer"
           >
             <FolderOpen className="w-4 h-4 mr-1.5 text-blue-400" />
             My Cloud Resumes {totalCVsCount > 0 ? `(${totalCVsCount})` : ""}

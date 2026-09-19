@@ -204,7 +204,7 @@ function LoginContent() {
               <input
                 type="checkbox"
                 {...register("rememberMe")}
-                className="w-4.5 h-4.5 rounded border-slate-300 text-[#0A54B1] focus:ring-[#0A54B1]/20 transition-all cursor-pointer"
+                className="w-4 h-4 rounded border-slate-300 text-[#0A54B1] accent-[#0A54B1] focus:ring-[#0A54B1]/20 transition-all cursor-pointer shrink-0"
               />
               <span className="text-xs font-semibold text-slate-600 group-hover:text-slate-800 transition-colors">
                 Remember me

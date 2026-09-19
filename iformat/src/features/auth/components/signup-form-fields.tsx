@@ -138,7 +138,7 @@ export function SignupFormFields({
             <input
               type="checkbox"
               {...register("agreeTerms")}
-              className="w-4.5 h-4.5 mt-0.5 rounded border-slate-300 text-[#0A54B1] focus:ring-[#0A54B1]/20 transition-all cursor-pointer"
+              className="w-4 h-4 mt-0.5 rounded border-slate-300 text-[#0A54B1] accent-[#0A54B1] focus:ring-[#0A54B1]/20 transition-all cursor-pointer shrink-0"
             />
             <span className="text-xs text-slate-600 group-hover:text-slate-800 leading-snug transition-colors">
               By signing up, you are creating an iFormat account, and you agree to iFormat&apos;s{" "}
@@ -163,7 +163,7 @@ export function SignupFormFields({
           <input
             type="checkbox"
             {...register("agreeMarketing")}
-            className="w-4.5 h-4.5 mt-0.5 rounded border-slate-300 text-[#0A54B1] focus:ring-[#0A54B1]/20 transition-all cursor-pointer"
+            className="w-4 h-4 mt-0.5 rounded border-slate-300 text-[#0A54B1] accent-[#0A54B1] focus:ring-[#0A54B1]/20 transition-all cursor-pointer shrink-0"
           />
           <span className="text-xs text-slate-600 group-hover:text-slate-800 leading-snug transition-colors">
             Email me about product updates and resources.
