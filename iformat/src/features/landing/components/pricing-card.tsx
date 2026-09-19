@@ -1,7 +1,5 @@
-"use client";
-
 import React from "react";
-import { Check, Loader2 } from "lucide-react";
+import { Check, CheckCircle2, ArrowUpRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export interface PricingCardItem {
@@ -15,31 +13,47 @@ export interface PricingCardItem {
   features: string[];
   buttonText: string;
   isContactUs?: boolean;
+  isCurrent?: boolean;
+  hasActiveSub?: boolean;
 }
 
 interface PricingCardProps {
   item: PricingCardItem;
   loading?: boolean;
   onSelect: (item: PricingCardItem) => void;
+  onManageBilling?: () => void;
 }
 
-export function PricingCard({ item, loading = false, onSelect }: PricingCardProps) {
+export function PricingCard({
+  item,
+  loading = false,
+  onSelect,
+  onManageBilling,
+}: PricingCardProps) {
   const isPopular = item.isPopular;
+  const isCurrent = item.isCurrent;
 
   return (
     <div
       className={`w-full rounded-[24px] p-8 flex flex-col justify-between transition-all duration-300 relative bg-white ${
-        isPopular
+        isCurrent
+          ? "border-2 border-[#0A54B1] shadow-[0_0_30px_rgba(10,84,177,0.18)] ring-2 ring-[#0A54B1]/30"
+          : isPopular
           ? "border-2 border-[#00D2EE] shadow-[0_0_30px_rgba(0,210,238,0.22)] ring-1 ring-[#00D2EE]/40"
           : "border border-slate-100 shadow-sm hover:shadow-md"
       }`}
     >
-      {/* Most Popular Badge */}
-      {isPopular && (
+      {/* Badge: Current Plan or Most Popular */}
+      {isCurrent ? (
+        <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-[#0A54B1] text-white text-xs font-bold tracking-wide shadow-xs whitespace-nowrap flex items-center gap-1.5">
+          <CheckCircle2 className="w-3.5 h-3.5" />
+          <span>Current Active Plan</span>
+        </div>
+      ) : isPopular ? (
         <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-[#00D2EE] text-white text-xs font-bold tracking-wide shadow-xs whitespace-nowrap">
           Most Popular
         </div>
-      )}
+      ) : null}
 
       <div>
         {/* Title */}
@@ -83,24 +97,47 @@ export function PricingCard({ item, loading = false, onSelect }: PricingCardProp
 
       {/* Button */}
       <div className="pt-8 mt-auto">
-        <Button
-          onClick={() => onSelect(item)}
-          disabled={loading}
-          className={`w-full h-11 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-            isPopular || item.isContactUs
-              ? "bg-linear-to-r from-[#00D2EE] via-[#00B4D8] to-[#0A54B1] hover:opacity-95 text-white shadow-md shadow-sky-400/20 border-0"
-              : "bg-[#0B1528] hover:bg-[#16233B] text-white"
-          }`}
-        >
-          {loading ? (
-            <span className="flex items-center justify-center gap-2">
-              <Loader2 className="w-4 h-4 animate-spin" />
-              Processing...
-            </span>
-          ) : (
-            item.buttonText || "Get Started"
-          )}
-        </Button>
+        {isCurrent ? (
+          <div className="space-y-2">
+            <button
+              type="button"
+              disabled
+              className="w-full h-11 rounded-xl text-xs font-bold bg-sky-50 text-[#0A54B1] border border-sky-200/80 flex items-center justify-center gap-1.5 cursor-default shadow-xs select-none"
+            >
+              <CheckCircle2 className="w-4 h-4 text-[#0A54B1]" />
+              <span>Current Plan</span>
+            </button>
+            <button
+              type="button"
+              onClick={onManageBilling}
+              className="w-full text-center text-xs font-semibold text-slate-500 hover:text-sky-600 transition-colors py-1 cursor-pointer flex items-center justify-center gap-1"
+            >
+              <span>Manage in Billing</span>
+              <ArrowUpRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        ) : (
+          <Button
+            onClick={() => onSelect(item)}
+            disabled={loading}
+            className={`w-full h-11 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+              isPopular || item.isContactUs
+                ? "bg-linear-to-r from-[#00D2EE] via-[#00B4D8] to-[#0A54B1] hover:opacity-95 text-white shadow-md shadow-sky-400/20 border-0"
+                : "bg-[#0B1528] hover:bg-[#16233B] text-white"
+            }`}
+          >
+            {loading ? (
+              <span className="flex items-center justify-center gap-2">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Processing...
+              </span>
+            ) : item.hasActiveSub ? (
+              "Switch to Plan"
+            ) : (
+              item.buttonText || "Get Started"
+            )}
+          </Button>
+        )}
       </div>
     </div>
   );

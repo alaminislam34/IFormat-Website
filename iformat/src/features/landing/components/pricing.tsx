@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { membershipService } from "@/services/membership.service";
 import { useAuthStore } from "@/stores/use-auth-store";
+import { UserSubscriptionDetailsDTO } from "@/types/api";
 import { PricingHeader } from "./pricing-header";
 import { PricingCard, PricingCardItem } from "./pricing-card";
 
@@ -83,6 +84,7 @@ export function Pricing() {
   const { isAuthenticated } = useAuthStore();
   const [plans, setPlans] = useState<PricingCardItem[]>(DEFAULT_BRANDING_PLANS);
   const [loadingPlanCode, setLoadingPlanCode] = useState<string | null>(null);
+  const [subscription, setSubscription] = useState<UserSubscriptionDetailsDTO | null>(null);
 
   const fetchDynamicPlans = useCallback(async () => {
     try {
@@ -115,9 +117,46 @@ export function Pricing() {
     fetchDynamicPlans();
   }, [fetchDynamicPlans]);
 
+  useEffect(() => {
+    if (isAuthenticated) {
+      membershipService
+        .getUserSubscription()
+        .then((sub) => {
+          if (sub) setSubscription(sub);
+        })
+        .catch((err) => {
+          console.warn("Could not fetch user subscription on pricing section:", err?.message);
+        });
+    } else {
+      setSubscription(null);
+    }
+  }, [isAuthenticated]);
+
+  const isPaidActive = Boolean(
+    subscription &&
+      subscription.isPaidActive &&
+      subscription.plan &&
+      subscription.plan.priceInCents > 0 &&
+      (subscription.status === "ACTIVE" || subscription.subscription?.status === "ACTIVE")
+  );
+
+  const currentPlan = isPaidActive ? subscription?.plan : null;
+
   const handleSelectPlan = async (item: PricingCardItem) => {
     if (item.isContactUs) {
       router.push("/contact");
+      return;
+    }
+
+    if (item.isCurrent) {
+      toast.info("You already have an active subscription to this plan.");
+      router.push("/dashboard/billing");
+      return;
+    }
+
+    if (isPaidActive) {
+      toast.info(`You have an active plan. Redirecting to your billing dashboard to switch to the ${item.name} plan...`);
+      router.push("/dashboard/billing#available-plans");
       return;
     }
 
@@ -156,15 +195,32 @@ export function Pricing() {
         <PricingHeader />
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
-          {plans.map((item) => (
-            <div key={item.code} className="flex">
-              <PricingCard
-                item={item}
-                loading={loadingPlanCode === item.code}
-                onSelect={handleSelectPlan}
-              />
-            </div>
-          ))}
+          {plans.map((item) => {
+            const isCurrent = Boolean(
+              currentPlan &&
+                (currentPlan.code === item.code ||
+                  currentPlan.code?.replace("BRANDING_", "") === item.code.replace("BRANDING_", "") ||
+                  currentPlan.name?.toLowerCase().trim() === item.name.toLowerCase().trim() ||
+                  (item.id && currentPlan.id === item.id))
+            );
+
+            const cardItem: PricingCardItem = {
+              ...item,
+              isCurrent,
+              hasActiveSub: isPaidActive,
+            };
+
+            return (
+              <div key={item.code} className="flex">
+                <PricingCard
+                  item={cardItem}
+                  loading={loadingPlanCode === item.code}
+                  onSelect={handleSelectPlan}
+                  onManageBilling={() => router.push("/dashboard/billing")}
+                />
+              </div>
+            );
+          })}
         </div>
 
       </div>
