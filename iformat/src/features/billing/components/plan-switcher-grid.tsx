@@ -129,7 +129,7 @@ export function PlanSwitcherGrid({
           return (
             <div
               key={pkg.code}
-              className={`w-full rounded-[24px] p-8 flex flex-col justify-between transition-all duration-300 relative bg-white ${
+              className={`w-full rounded-3xl p-8 flex flex-col justify-between transition-all duration-300 relative bg-white ${
                 isCurrent
                   ? "border-2 border-[#0A54B1] shadow-[0_0_30px_rgba(10,84,177,0.18)] ring-2 ring-[#0A54B1]/30"
                   : isPopular
@@ -154,12 +154,12 @@ export function PlanSwitcherGrid({
                 <h4 className="text-2xl font-bold text-[#0B1528] tracking-tight">{pkg.name}</h4>
 
                 {/* Subtitle */}
-                <p className="text-xs text-[#64748B] mt-2 mb-6 min-h-[38px] leading-relaxed">
+                <p className="text-xs text-[#64748B] mt-2 mb-6 min-h-9.5 leading-relaxed">
                   {pkg.subtitle}
                 </p>
 
                 {/* Price Tag */}
-                <div className="mb-6 min-h-[44px] flex items-baseline">
+                <div className="mb-6 min-h-11 flex items-baseline">
                   {pkg.price ? (
                     <div className="flex items-baseline gap-1">
                       <span className="text-4xl font-extrabold text-[#0B1528] tracking-tight">

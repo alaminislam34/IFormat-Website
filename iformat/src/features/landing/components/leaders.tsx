@@ -51,7 +51,7 @@ export function Leaders() {
               viewport={{ once: true, margin: "-50px" }}
               transition={{ duration: 0.5, delay: idx * 0.15 }}
               key={idx} 
-              className="relative rounded-3xl overflow-hidden aspect-[3/4] group"
+              className="relative rounded-3xl overflow-hidden aspect-3/4 group"
             >
               <Image 
                 src={leader.image} 
@@ -64,7 +64,7 @@ export function Leaders() {
               
               <div className="absolute bottom-0 left-0 right-0 p-6">
                 <h3 className="text-white font-bold text-2xl mb-1">{leader.name}</h3>
-                <p className="text-[#22d3ee] font-medium text-sm">{leader.role}</p>
+                <p className="text-brand-cyan font-medium text-sm">{leader.role}</p>
               </div>
             </motion.div>
           ))}
