@@ -48,8 +48,8 @@ export default function AdminDashboardPage() {
       <div className="py-24 flex items-center justify-center">
         <div className="text-center space-y-3">
           <Loader2 className="w-8 h-8 text-sky-500 animate-spin mx-auto" />
-          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
-            Loading System Telemetry & Metrics...
+          <p className="text-xs font-semibold text-slate-500">
+            Loading system telemetry & metrics...
           </p>
         </div>
       </div>
@@ -66,16 +66,16 @@ export default function AdminDashboardPage() {
           onClick={handleRefresh}
           disabled={refreshing}
           variant="outline"
-          className="bg-slate-900 border-slate-800 text-slate-300 hover:text-white rounded-xl text-xs font-bold flex items-center gap-2 h-10 px-4"
+          className="bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-slate-900 rounded-xl text-xs font-semibold flex items-center gap-2 h-10 px-4 shadow-xs"
         >
-          <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? "animate-spin text-sky-400" : ""}`} />
-          Refresh Telemetry
+          <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? "animate-spin text-sky-500" : "text-slate-400"}`} />
+          <span>Refresh Telemetry</span>
         </Button>
 
         <Link href="/admin/plans">
-          <Button className="bg-sky-500 hover:bg-sky-400 text-white rounded-xl text-xs font-bold flex items-center gap-2 h-10 px-4 shadow-lg shadow-sky-500/20">
+          <Button className="bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs font-semibold flex items-center gap-2 h-10 px-4 shadow-sm shadow-sky-500/20">
             <Sparkles className="w-3.5 h-3.5" />
-            Manage Plans
+            <span>Manage Plans</span>
           </Button>
         </Link>
       </AdminPageHeader>

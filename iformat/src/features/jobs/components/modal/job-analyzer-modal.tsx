@@ -76,8 +76,6 @@ export function JobAnalyzerModal({
     };
   }, [isOpen, job?.id, onClose]);
 
-  if (!isOpen) return null;
-
   const score = analysis?.score ?? 0;
   const scoreColor =
     score >= 75
@@ -89,13 +87,18 @@ export function JobAnalyzerModal({
   return (
     <>
       <AnimatePresence>
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-100 flex flex-col max-h-[90vh]"
-          >
+        {isOpen && (
+          <div className="fixed inset-0 z-[100000] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+            {/* Backdrop Click-away */}
+            <div className="absolute inset-0" onClick={onClose} />
+
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              onClick={(e) => e.stopPropagation()}
+              className="relative z-10 w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-100 flex flex-col max-h-[90vh]"
+            >
             {/* Header */}
             <div className="p-6 border-b border-slate-100 flex items-start justify-between gap-4 bg-linear-to-r from-slate-50 to-sky-50/40">
               <div className="space-y-1">
@@ -315,6 +318,7 @@ export function JobAnalyzerModal({
             )}
           </motion.div>
         </div>
+        )}
       </AnimatePresence>
 
       <UpgradeModal

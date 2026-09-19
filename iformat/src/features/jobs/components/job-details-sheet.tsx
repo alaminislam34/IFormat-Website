@@ -147,11 +147,20 @@ export function JobDetailsSheet({
     setIsAnalyzerModalOpen(true);
   };
 
+  // The drawer sheet should only be visible when isOpen is true AND no child modal is currently active
+  const isDrawerVisible =
+    isOpen &&
+    !isAnalyzerModalOpen &&
+    !isApplyModalOpen &&
+    !isEditModalOpen &&
+    !showAuthModal;
+
   const sheetContent = (
     <>
       <AnimatePresence mode="wait">
-        {isOpen && (
+        {isDrawerVisible && (
           <motion.div
+            key="job-details-drawer-wrapper"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -163,6 +172,7 @@ export function JobDetailsSheet({
 
             {/* Drawer Sheet Container matching Figma */}
             <motion.div
+              key="job-details-drawer-panel"
               initial={{ x: "100%", opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               exit={{ x: "100%", opacity: 0 }}
@@ -295,7 +305,12 @@ export function JobDetailsSheet({
         <ApplyModal
           job={job as any}
           isOpen={isApplyModalOpen}
-          onClose={() => setIsApplyModalOpen(false)}
+          onClose={() => {
+            setIsApplyModalOpen(false);
+            if (hasAppliedLocally) {
+              onClose();
+            }
+          }}
           onApplied={(jobId) => {
             setHasAppliedLocally(true);
             onApplied?.(jobId);
@@ -322,7 +337,10 @@ export function JobDetailsSheet({
           job={job as any}
           isOpen={isAnalyzerModalOpen}
           onClose={() => setIsAnalyzerModalOpen(false)}
-          onApplyNow={handleApplyClick}
+          onApplyNow={() => {
+            setIsAnalyzerModalOpen(false);
+            handleApplyClick();
+          }}
         />
       )}
 

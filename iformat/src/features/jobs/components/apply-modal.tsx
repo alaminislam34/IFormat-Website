@@ -233,7 +233,7 @@ export function ApplyModal({ job, isOpen, onClose, onApplied }: ApplyModalProps)
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.18, ease: "easeOut" }}
-          className="fixed inset-0 z-99999 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md"
+          className="fixed inset-0 z-[100000] flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md"
         >
           {/* Backdrop Click-away */}
           <div className="absolute inset-0" onClick={onClose} />
@@ -243,6 +243,7 @@ export function ApplyModal({ job, isOpen, onClose, onApplied }: ApplyModalProps)
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: 10 }}
             transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            onClick={(e) => e.stopPropagation()}
             className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl p-6 md:p-8 z-10 overflow-hidden border border-slate-100 max-h-[90vh] overflow-y-auto"
           >
             <ApplyFormHeader job={job} onClose={onClose} />

@@ -144,7 +144,7 @@ export class AuthService {
     // Generate 6-digit verification OTP
     const otpCode = await this.createOtp(email, OtpType.EMAIL_VERIFICATION);
 
-    // Send OTP email
+    // Send only the OTP verification email (no links)
     sendEmail({
       to: user.email,
       subject: "Verify your iFormat account",
@@ -152,17 +152,6 @@ export class AuthService {
       data: {
         name: user.name,
         code: otpCode,
-      },
-    });
-
-    // Also send general welcome email
-    sendEmail({
-      to: user.email,
-      subject: "Welcome to iFormat!",
-      template: "welcome",
-      data: {
-        name: user.name,
-        dashboardUrl: `${getFrontendUrl()}/account-type`,
       },
     });
 

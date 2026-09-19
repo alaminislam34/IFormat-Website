@@ -83,16 +83,29 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   if (!authChecked) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="text-center space-y-3">
           <Loader2 className="w-8 h-8 text-sky-500 animate-spin mx-auto" />
-          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
-            Verifying Admin Authorization...
+          <p className="text-xs font-semibold text-slate-500">
+            Verifying admin authorization...
           </p>
         </div>
       </div>
     );
   }
+
+  const getActivePageName = (path: string) => {
+    if (path === "/admin") return "Dashboard";
+    if (path.startsWith("/admin/users")) return "User Directory";
+    if (path.startsWith("/admin/jobs")) return "Job Moderation";
+    if (path.startsWith("/admin/companies")) return "Company Badges";
+    if (path.startsWith("/admin/plans")) return "Membership Plans";
+    if (path.startsWith("/admin/subscriptions")) return "Subscriptions";
+    if (path.startsWith("/admin/bookings")) return "Consultation Bookings";
+    if (path.startsWith("/admin/audit-logs")) return "Audit Activity Logs";
+    if (path.startsWith("/admin/settings")) return "System Settings";
+    return "Admin Dashboard";
+  };
 
   const navItems = [
     {
@@ -132,48 +145,45 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex overflow-hidden selection:bg-sky-500 selection:text-white">
-      {/* Mobile Sidebar Overlay */}
+    <div className="min-h-screen bg-slate-50 text-slate-800 flex overflow-x-hidden selection:bg-sky-500 selection:text-white">
       {sidebarOpen && (
         <div
           onClick={() => setSidebarOpen(false)}
-          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
+          className="fixed inset-0 z-40 bg-black/40 backdrop-blur-xs lg:hidden"
         />
       )}
 
-      {/* Sidebar */}
       <aside
-        className={`fixed lg:static top-0 bottom-0 left-0 z-50 w-72 bg-slate-900 border-r border-slate-800 flex flex-col justify-between transition-transform duration-300 ${
+        className={`fixed lg:sticky top-0 left-0 z-50 w-72 h-dvh bg-white border-none flex flex-col justify-between shrink-0 transition-transform duration-300 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         }`}
       >
-        <div>
-          {/* Brand Header */}
-          <div className="p-6 flex items-center justify-between border-b border-slate-800/80">
+        <div className="flex flex-col h-full min-h-0">
+          <div className="p-5 flex items-center justify-between shrink-0">
             <Link href="/admin" className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-linear-to-tr from-sky-500 to-blue-600 flex items-center justify-center shadow-lg shadow-sky-500/20">
+              <div className="w-10 h-10 rounded-xl bg-linear-to-tr from-sky-500 to-blue-600 flex items-center justify-center shadow-md shadow-sky-500/20">
                 <Shield className="w-5 h-5 text-white" />
               </div>
-              <div>
-                <span className="font-extrabold text-lg text-white tracking-tight">iFormat</span>
-                <span className="ml-1.5 px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-sky-500/20 text-sky-400 border border-sky-500/30">
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-lg text-slate-900 tracking-tight">iFormat</span>
+                <span className="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-sky-50 text-sky-600 border border-sky-200/60">
                   Admin
                 </span>
               </div>
             </Link>
             <button
               onClick={() => setSidebarOpen(false)}
-              className="lg:hidden text-slate-400 hover:text-white"
+              className="lg:hidden text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
 
           {/* Navigation Links */}
-          <nav className="p-4 space-y-6 overflow-y-auto max-h-[calc(100vh-180px)]">
+          <nav className="p-4 space-y-5 overflow-y-auto flex-1 min-h-0">
             {navItems.map((group, gIdx) => (
-              <div key={gIdx} className="space-y-1.5">
-                <h4 className="px-3 text-[10px] font-extrabold uppercase tracking-widest text-slate-500">
+              <div key={gIdx} className="space-y-1">
+                <h4 className="px-3 text-xs font-semibold text-slate-400">
                   {group.group}
                 </h4>
                 {group.items.map((item, iIdx) => {
@@ -185,13 +195,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                       key={iIdx}
                       href={item.href}
                       onClick={() => setSidebarOpen(false)}
-                      className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                      className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all ${
                         isActive
-                          ? "bg-sky-500 text-white shadow-lg shadow-sky-500/20 font-extrabold"
-                          : "text-slate-400 hover:text-white hover:bg-slate-800/60"
+                          ? "bg-sky-50 text-sky-600 font-bold shadow-xs border border-sky-100"
+                          : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
                       }`}
                     >
-                      <Icon className={`w-4 h-4 ${isActive ? "text-white" : "text-slate-400"}`} />
+                      <Icon className={`w-4 h-4 ${isActive ? "text-sky-600" : "text-slate-400"}`} />
                       <span>{item.label}</span>
                     </Link>
                   );
@@ -199,56 +209,76 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               </div>
             ))}
           </nav>
-        </div>
 
-        <div className="p-4 border-t border-slate-800/80 bg-slate-900/50">
-          <div className="flex items-center justify-between gap-3 p-2 rounded-xl bg-slate-950/40 border border-slate-800/50">
-            <div className="flex items-center gap-2.5 min-w-0">
-              <div className="w-8 h-8 rounded-lg bg-sky-500/20 text-sky-400 flex items-center justify-center font-bold text-xs uppercase shrink-0">
-                {user?.name?.[0] || "A"}
-              </div>
-              <div className="min-w-0">
-                <p className="text-xs font-bold text-white truncate">{user?.name}</p>
-                <p className="text-[10px] text-slate-400 truncate">{user?.email}</p>
-              </div>
-            </div>
-
+          {/* Sidebar Footer / Sign Out */}
+          <div className="p-4 border-t border-slate-100 bg-white shrink-0">
             <button
               onClick={handleLogout}
-              title="Sign Out"
-              className="text-slate-400 hover:text-rose-400 transition-colors p-1.5 rounded-lg hover:bg-slate-800"
+              className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:text-rose-600 hover:bg-rose-50 transition-colors"
             >
               <LogOut className="w-4 h-4" />
+              <span>Sign Out</span>
             </button>
           </div>
         </div>
       </aside>
 
-      <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
-        <header className="h-16 px-6 bg-slate-900/80 border-b border-slate-800/80 backdrop-blur-md flex items-center justify-between sticky top-0 z-30">
-          <div className="flex items-center gap-4">
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col min-w-0 min-h-screen bg-slate-50">
+        {/* Navbar */}
+        <header className="h-16 px-6 bg-white/95 border-b border-slate-200/80 backdrop-blur-md flex items-center justify-between sticky top-0 z-30">
+          {/* Navbar Left Side: Active Page Name & Mobile Menu */}
+          <div className="flex items-center gap-3">
             <button
               onClick={() => setSidebarOpen(true)}
-              className="lg:hidden text-slate-400 hover:text-white p-2 rounded-lg hover:bg-slate-800"
+              className="lg:hidden text-slate-500 hover:text-slate-800 p-2 rounded-lg hover:bg-slate-100 transition-colors"
+              aria-label="Open sidebar"
             >
               <Menu className="w-5 h-5" />
             </button>
 
-            <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-950/60 border border-emerald-800/50 text-emerald-400 text-xs font-semibold">
-              <Activity className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Platform Core Online</span>
+            <div>
+              <h1 className="text-base sm:text-lg font-bold text-slate-800 tracking-tight">
+                {getActivePageName(pathname)}
+              </h1>
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
+          {/* Navbar Right Side: Admin Profile Image, Name, Email */}
+          <div className="flex items-center gap-3 sm:gap-4">
             <Link
               href="/"
               target="_blank"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition-colors"
+              className="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-600 hover:text-slate-900 text-xs font-semibold transition-colors"
             >
-              <span>View Public Portal</span>
+              <span>Public Portal</span>
               <ExternalLink className="w-3.5 h-3.5 text-slate-400" />
             </Link>
+
+            <div className="flex items-center gap-2.5 sm:gap-3 pl-2 sm:border-l sm:border-slate-200">
+              {/* Profile Image */}
+              {user?.avatarUrl || user?.avatar ? (
+                <img
+                  src={user.avatarUrl || user.avatar}
+                  alt={user?.name || "Admin"}
+                  className="w-9 h-9 rounded-full object-cover ring-2 ring-sky-500/20 border border-slate-200 shrink-0"
+                />
+              ) : (
+                <div className="w-9 h-9 rounded-full bg-linear-to-tr from-sky-500 to-blue-600 text-white flex items-center justify-center font-bold text-xs shadow-xs shrink-0">
+                  {user?.name?.[0]?.toUpperCase() || "A"}
+                </div>
+              )}
+
+              {/* Name & Email */}
+              <div className="flex flex-col min-w-0">
+                <span className="text-xs sm:text-sm font-semibold text-slate-800 truncate leading-tight">
+                  {user?.name || "Administrator"}
+                </span>
+                <span className="text-[11px] text-slate-500 truncate leading-tight">
+                  {user?.email || "admin@iformat.com"}
+                </span>
+              </div>
+            </div>
           </div>
         </header>
 

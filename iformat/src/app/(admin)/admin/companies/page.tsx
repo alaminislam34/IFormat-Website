@@ -100,15 +100,15 @@ export default function AdminCompaniesPage() {
         <div
           className={`p-4 rounded-2xl border text-xs font-semibold flex items-center justify-between transition-all ${
             toastMessage.type === "success"
-              ? "bg-emerald-950/80 border-emerald-800 text-emerald-300"
-              : "bg-rose-950/80 border-rose-800 text-rose-300"
+              ? "bg-emerald-50 border-emerald-200 text-emerald-800"
+              : "bg-rose-50 border-rose-200 text-rose-800"
           }`}
         >
           <div className="flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
             <span>{toastMessage.text}</span>
           </div>
-          <button onClick={() => setToastMessage(null)} className="text-emerald-400 hover:text-white">
+          <button onClick={() => setToastMessage(null)} className="text-emerald-600 hover:text-emerald-800 cursor-pointer">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -123,56 +123,56 @@ export default function AdminCompaniesPage() {
           onClick={handleRefresh}
           disabled={refreshing}
           variant="outline"
-          className="bg-slate-900 border-slate-800 text-slate-300 hover:text-white rounded-xl text-xs font-bold flex items-center gap-2 h-10 px-4 cursor-pointer"
+          className="bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-slate-900 rounded-xl text-xs font-semibold flex items-center gap-2 h-10 px-4 cursor-pointer shadow-xs"
         >
-          <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? "animate-spin text-sky-400" : ""}`} />
-          Refresh
+          <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? "animate-spin text-sky-500" : "text-slate-400"}`} />
+          <span>Refresh</span>
         </Button>
       </AdminPageHeader>
 
       {/* Telemetry Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-5 shadow-xs">
-          <div className="flex items-center justify-between text-slate-400 text-xs font-bold mb-2">
+        <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-xs">
+          <div className="flex items-center justify-between text-slate-500 text-xs font-semibold mb-2">
             <span>Total Employers</span>
-            <Building2 className="w-4 h-4 text-sky-400" />
+            <Building2 className="w-4 h-4 text-sky-500" />
           </div>
-          <div className="text-2xl font-black text-white">{stats.total}</div>
-          <p className="text-[11px] text-slate-500 mt-1">Registered employer profiles</p>
+          <div className="text-2xl font-bold text-slate-900">{stats.total}</div>
+          <p className="text-xs text-slate-500 mt-1">Registered employer profiles</p>
         </div>
 
-        <div className="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-5 shadow-xs">
-          <div className="flex items-center justify-between text-slate-400 text-xs font-bold mb-2">
+        <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-xs">
+          <div className="flex items-center justify-between text-slate-500 text-xs font-semibold mb-2">
             <span>Verified Partners</span>
-            <ShieldCheck className="w-4 h-4 text-emerald-400" />
+            <ShieldCheck className="w-4 h-4 text-emerald-600" />
           </div>
-          <div className="text-2xl font-black text-emerald-400">{stats.verified}</div>
-          <p className="text-[11px] text-slate-500 mt-1">Active trust badges displayed</p>
+          <div className="text-2xl font-bold text-emerald-600">{stats.verified}</div>
+          <p className="text-xs text-slate-500 mt-1">Active trust badges displayed</p>
         </div>
 
-        <div className="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-5 shadow-xs">
-          <div className="flex items-center justify-between text-slate-400 text-xs font-bold mb-2">
+        <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-xs">
+          <div className="flex items-center justify-between text-slate-500 text-xs font-semibold mb-2">
             <span>Pending Review</span>
-            <ShieldAlert className="w-4 h-4 text-amber-400" />
+            <ShieldAlert className="w-4 h-4 text-amber-500" />
           </div>
-          <div className="text-2xl font-black text-amber-400">{stats.pending}</div>
-          <p className="text-[11px] text-slate-500 mt-1">Awaiting trust credential review</p>
+          <div className="text-2xl font-bold text-amber-600">{stats.pending}</div>
+          <p className="text-xs text-slate-500 mt-1">Awaiting trust credential review</p>
         </div>
 
-        <div className="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-5 shadow-xs">
-          <div className="flex items-center justify-between text-slate-400 text-xs font-bold mb-2">
+        <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-xs">
+          <div className="flex items-center justify-between text-slate-500 text-xs font-semibold mb-2">
             <span>Active Job Postings</span>
-            <Briefcase className="w-4 h-4 text-indigo-400" />
+            <Briefcase className="w-4 h-4 text-indigo-500" />
           </div>
-          <div className="text-2xl font-black text-white">{stats.totalJobs}</div>
-          <p className="text-[11px] text-slate-500 mt-1">Total listings across companies</p>
+          <div className="text-2xl font-bold text-slate-900">{stats.totalJobs}</div>
+          <p className="text-xs text-slate-500 mt-1">Total listings across companies</p>
         </div>
       </div>
 
       {/* Filter Tabs & Search Bar */}
-      <div className="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-white border border-slate-200/80 rounded-2xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xs">
         {/* Filter Pills */}
-        <div className="flex items-center gap-1.5 bg-slate-950 p-1 rounded-xl border border-slate-800">
+        <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200/60 overflow-x-auto">
           {(
             [
               { id: "ALL", label: "All Companies" },
@@ -183,10 +183,10 @@ export default function AdminCompaniesPage() {
             <button
               key={tab.id}
               onClick={() => setActiveFilter(tab.id)}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
                 activeFilter === tab.id
-                  ? "bg-sky-500 text-white shadow-xs"
-                  : "text-slate-400 hover:text-white"
+                  ? "bg-white text-slate-900 shadow-xs"
+                  : "text-slate-600 hover:text-slate-900"
               }`}
             >
               {tab.label}
@@ -202,13 +202,13 @@ export default function AdminCompaniesPage() {
           }}
           className="relative w-full md:max-w-md"
         >
-          <Search className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <Input
             type="text"
             placeholder="Search by company name, email, website..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-10 h-10 bg-slate-950 border-slate-800 text-white text-xs rounded-xl focus-visible:ring-sky-500"
+            className="pl-10 h-10 bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400 text-xs rounded-xl focus-visible:ring-sky-500"
           />
         </form>
       </div>
@@ -218,18 +218,18 @@ export default function AdminCompaniesPage() {
         <div className="py-24 flex items-center justify-center">
           <div className="text-center space-y-3">
             <Loader2 className="w-8 h-8 text-sky-500 animate-spin mx-auto" />
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
-              Loading Company Roster...
+            <p className="text-xs font-semibold text-slate-500">
+              Loading company roster...
             </p>
           </div>
         </div>
       ) : companies.length === 0 ? (
-        <div className="py-20 text-center bg-slate-900/60 border border-slate-800 rounded-3xl p-8 space-y-3">
-          <div className="w-12 h-12 rounded-2xl bg-slate-800 text-slate-400 flex items-center justify-center mx-auto">
+        <div className="py-20 text-center bg-white border border-slate-200 rounded-3xl p-8 space-y-3 shadow-xs">
+          <div className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
             <Building2 className="w-6 h-6" />
           </div>
-          <h3 className="text-sm font-bold text-white">No employer organizations found</h3>
-          <p className="text-xs text-slate-400 max-w-sm mx-auto">
+          <h3 className="text-sm font-semibold text-slate-900">No employer organizations found</h3>
+          <p className="text-xs text-slate-500 max-w-sm mx-auto">
             No company profiles match your current search or status filter.
           </p>
         </div>
@@ -242,12 +242,12 @@ export default function AdminCompaniesPage() {
             return (
               <div
                 key={c.id}
-                className="bg-slate-900/90 border border-slate-800/80 rounded-3xl p-6 flex flex-col justify-between space-y-5 hover:border-slate-700 transition-all shadow-xs"
+                className="bg-white border border-slate-200/80 rounded-3xl p-6 flex flex-col justify-between space-y-5 hover:border-slate-300 hover:shadow-md transition-all shadow-xs"
               >
                 <div>
                   {/* Top Header: Logo + Verification Status */}
                   <div className="flex items-start justify-between gap-3 mb-4">
-                    <div className="w-14 h-14 rounded-2xl bg-slate-950 border border-slate-800 flex items-center justify-center overflow-hidden shrink-0 shadow-inner">
+                    <div className="w-14 h-14 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-center overflow-hidden shrink-0">
                       {c.companyLogoUrl ? (
                         <img
                           src={c.companyLogoUrl}
@@ -258,7 +258,7 @@ export default function AdminCompaniesPage() {
                           }}
                         />
                       ) : (
-                        <div className="w-full h-full bg-linear-to-br from-[#0A54B1] to-indigo-700 text-white font-black text-lg flex items-center justify-center">
+                        <div className="w-full h-full bg-linear-to-br from-[#0A54B1] to-indigo-700 text-white font-bold text-lg flex items-center justify-center">
                           {logoLetter}
                         </div>
                       )}
@@ -266,19 +266,19 @@ export default function AdminCompaniesPage() {
 
                     <div className="flex flex-col items-end gap-1.5">
                       {c.isVerifiedCompany ? (
-                        <span className="px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center gap-1.5 shadow-xs">
-                          <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-                          Verified
+                        <span className="px-3 py-1 rounded-xl text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1.5">
+                          <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                          <span>Verified</span>
                         </span>
                       ) : (
-                        <span className="px-3 py-1 rounded-xl text-[10px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30 flex items-center gap-1.5">
-                          <ShieldAlert className="w-3.5 h-3.5 text-amber-400" />
-                          Pending Review
+                        <span className="px-3 py-1 rounded-xl text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200 flex items-center gap-1.5">
+                          <ShieldAlert className="w-3.5 h-3.5 text-amber-600" />
+                          <span>Pending Review</span>
                         </span>
                       )}
 
                       {c.subscription?.plan && (
-                        <span className="text-[10px] font-bold text-sky-400 bg-sky-950/60 border border-sky-900/60 px-2 py-0.5 rounded-md">
+                        <span className="text-[11px] font-medium text-sky-700 bg-sky-50 border border-sky-200/60 px-2 py-0.5 rounded-md">
                           {c.subscription.plan.name}
                         </span>
                       )}
@@ -287,16 +287,16 @@ export default function AdminCompaniesPage() {
 
                   {/* Title & Contact Details */}
                   <div className="space-y-1">
-                    <h3 className="text-base font-bold text-white tracking-tight line-clamp-1">
+                    <h3 className="text-base font-bold text-slate-900 tracking-tight line-clamp-1">
                       {companyDisplayName}
                     </h3>
-                    <p className="text-xs text-slate-400 flex items-center gap-1.5 truncate">
-                      <Mail className="w-3 h-3 text-slate-500 shrink-0" />
+                    <p className="text-xs text-slate-500 flex items-center gap-1.5 truncate">
+                      <Mail className="w-3 h-3 text-slate-400 shrink-0" />
                       <span>{c.email}</span>
                     </p>
                     {c.phone && (
-                      <p className="text-xs text-slate-400 flex items-center gap-1.5 truncate">
-                        <Phone className="w-3 h-3 text-slate-500 shrink-0" />
+                      <p className="text-xs text-slate-500 flex items-center gap-1.5 truncate">
+                        <Phone className="w-3 h-3 text-slate-400 shrink-0" />
                         <span>{c.phone}</span>
                       </p>
                     )}
@@ -309,7 +309,7 @@ export default function AdminCompaniesPage() {
                         href={c.companyWebsite.startsWith("http") ? c.companyWebsite : `https://${c.companyWebsite}`}
                         target="_blank"
                         rel="noreferrer"
-                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-950 border border-slate-800 text-[11px] text-sky-400 hover:text-sky-300 font-semibold transition-colors"
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-200 text-xs text-sky-600 hover:text-sky-700 font-medium transition-colors"
                       >
                         <span className="truncate max-w-35">{c.companyWebsite.replace(/^https?:\/\//, "")}</span>
                         <ExternalLink className="w-3 h-3" />
@@ -320,7 +320,7 @@ export default function AdminCompaniesPage() {
                     <Link
                       href={`/companies/${encodeURIComponent(companyDisplayName)}`}
                       target="_blank"
-                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-950 border border-slate-800 text-[11px] text-slate-300 hover:text-white font-semibold transition-colors"
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-200 text-xs text-slate-700 hover:text-slate-900 font-medium transition-colors"
                     >
                       <Eye className="w-3 h-3 text-slate-400" />
                       <span>Public Profile</span>
@@ -335,10 +335,10 @@ export default function AdminCompaniesPage() {
                             companyName: companyDisplayName,
                           })
                         }
-                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-rose-950/40 border border-rose-900/60 text-[11px] text-rose-300 hover:text-rose-200 font-semibold transition-colors cursor-pointer"
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-rose-50 border border-rose-200 text-xs text-rose-700 hover:text-rose-800 font-medium transition-colors cursor-pointer"
                         title="Watch employer culture reel"
                       >
-                        <Play className="w-3 h-3 fill-current text-rose-400" />
+                        <Play className="w-3 h-3 fill-current text-rose-600" />
                         <span>Culture Reel</span>
                       </button>
                     )}
@@ -346,18 +346,18 @@ export default function AdminCompaniesPage() {
 
                   {/* Description Snippet */}
                   {c.companyDescription && (
-                    <p className="text-xs text-slate-400/90 line-clamp-2 mt-3 italic leading-relaxed">
+                    <p className="text-xs text-slate-500 line-clamp-2 mt-3 italic leading-relaxed">
                       &ldquo;{c.companyDescription}&rdquo;
                     </p>
                   )}
 
                   {/* Job Count & Joined Date */}
-                  <div className="mt-4 pt-4 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400 font-medium">
-                    <span className="flex items-center gap-1 text-slate-300 font-bold">
-                      <Briefcase className="w-3.5 h-3.5 text-slate-500" />
+                  <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 font-medium">
+                    <span className="flex items-center gap-1 text-slate-700 font-semibold">
+                      <Briefcase className="w-3.5 h-3.5 text-slate-400" />
                       {c._count?.jobPostings || 0} Job Listings
                     </span>
-                    <span className="flex items-center gap-1 text-slate-500">
+                    <span className="flex items-center gap-1 text-slate-400">
                       <Calendar className="w-3 h-3" />
                       Joined {new Date(c.createdAt).toLocaleDateString()}
                     </span>
@@ -368,10 +368,10 @@ export default function AdminCompaniesPage() {
                 <div className="pt-2">
                   <Button
                     onClick={() => handleToggleVerification(c)}
-                    className={`w-full h-10 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                    className={`w-full h-10 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                       c.isVerifiedCompany
-                        ? "bg-slate-800/80 hover:bg-rose-950/80 text-slate-300 hover:text-rose-200 border border-slate-700/80 hover:border-rose-800"
-                        : "bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-600/20"
+                        ? "bg-white hover:bg-rose-50 text-slate-700 hover:text-rose-700 border border-slate-200 hover:border-rose-200 shadow-xs"
+                        : "bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs"
                     }`}
                   >
                     {c.isVerifiedCompany ? (
@@ -395,22 +395,22 @@ export default function AdminCompaniesPage() {
 
       {/* Video Reel Preview Dialog */}
       {previewVideo && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-          <div className="relative w-full max-w-2xl bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
+          <div className="relative w-full max-w-2xl bg-white border border-slate-200 rounded-3xl p-6 shadow-2xl space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-base font-bold text-white flex items-center gap-2">
-                <Play className="w-4 h-4 text-rose-500 fill-current" />
-                {previewVideo.companyName} — Culture Video
+              <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                <Play className="w-4 h-4 text-rose-600 fill-current" />
+                <span>{previewVideo.companyName} — Culture Video</span>
               </h3>
               <button
                 onClick={() => setPreviewVideo(null)}
-                className="p-1.5 rounded-lg bg-slate-800 text-slate-400 hover:text-white transition-colors cursor-pointer"
+                className="p-1.5 rounded-lg bg-slate-100 text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="relative rounded-2xl overflow-hidden bg-black aspect-video border border-slate-800">
+            <div className="relative rounded-2xl overflow-hidden bg-black aspect-video border border-slate-200">
               <video
                 src={previewVideo.url}
                 controls

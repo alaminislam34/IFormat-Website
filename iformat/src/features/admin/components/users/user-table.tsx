@@ -21,7 +21,7 @@ export function UserTable({
   onRestore,
 }: UserTableProps) {
   return (
-    <div className="bg-slate-900/90 border border-slate-800/80 rounded-3xl overflow-hidden shadow-xl">
+    <div className="bg-white border border-slate-200/80 rounded-3xl overflow-hidden shadow-xs">
       {loading ? (
         <div className="py-20 flex items-center justify-center">
           <Loader2 className="w-8 h-8 text-sky-500 animate-spin" />
@@ -33,7 +33,7 @@ export function UserTable({
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-slate-950/80 text-slate-400 font-extrabold uppercase text-[10px] tracking-wider border-b border-slate-800">
+            <thead className="bg-slate-50 text-slate-500 font-semibold text-xs border-b border-slate-200/80">
               <tr>
                 <th className="p-4">User</th>
                 <th className="p-4">Role</th>
@@ -43,7 +43,7 @@ export function UserTable({
                 <th className="p-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60">
+            <tbody className="divide-y divide-slate-100">
               {users.map((u) => (
                 <UserRow
                   key={u.id}

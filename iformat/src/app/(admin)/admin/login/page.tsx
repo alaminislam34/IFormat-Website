@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Shield, Lock, Mail, Eye, EyeOff, Loader2, AlertCircle, ArrowLeft } from "lucide-react";
+import { Shield, Lock, Mail, Eye, EyeOff, Loader2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { authService } from "@/services/auth.service";
@@ -60,80 +60,70 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col justify-center items-center px-6 py-12 relative overflow-hidden selection:bg-sky-500 selection:text-white">
+    <div className="min-h-screen bg-slate-50 flex flex-col justify-center items-center px-6 py-12 relative overflow-hidden selection:bg-sky-500 selection:text-white">
       {/* Background Decorative Gradients */}
       <div className="absolute top-1/4 -left-32 w-96 h-96 bg-sky-500/10 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-1/4 -right-32 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
 
-      {/* Back to Public Site */}
-      <div className="absolute top-8 left-8">
-        <Link
-          href="/"
-          className="inline-flex items-center gap-2 text-xs font-semibold text-slate-400 hover:text-white transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" /> Back to iFormat
-        </Link>
-      </div>
-
       <div className="w-full max-w-md relative z-10">
         {/* Shield Branding */}
         <div className="text-center mb-8">
-          <div className="w-16 h-16 rounded-2xl bg-linear-to-tr from-sky-500 to-blue-600 flex items-center justify-center mx-auto mb-4 shadow-xl shadow-sky-500/20 ring-4 ring-sky-500/20">
+          <div className="w-16 h-16 rounded-2xl bg-linear-to-tr from-sky-500 to-blue-600 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-sky-500/20 ring-4 ring-sky-500/10">
             <Shield className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
             Admin Control Center
           </h1>
-          <p className="text-slate-400 text-xs mt-2 uppercase tracking-widest font-semibold">
+          <p className="text-slate-500 text-xs mt-1.5 font-medium">
             Restricted Authorization Required
           </p>
         </div>
 
         {/* Login Card */}
-        <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-8 shadow-2xl backdrop-blur-xl space-y-6">
+        <div className="bg-white border border-slate-200/90 rounded-3xl p-8 shadow-xl shadow-slate-200/50 space-y-6">
           {error && (
-            <div className="p-4 rounded-2xl bg-rose-950/60 border border-rose-800/80 text-rose-300 text-xs font-medium flex items-start gap-3">
-              <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+            <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium flex items-start gap-3">
+              <AlertCircle className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
               <span>{error}</span>
             </div>
           )}
 
           <form onSubmit={handleAdminLogin} className="space-y-4">
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                 Admin Email Address
               </label>
               <div className="relative">
-                <Mail className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <Input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="admin@iformat.com"
                   required
-                  className="pl-10 h-12 bg-slate-950/60 border-slate-800 text-white placeholder:text-slate-600 rounded-xl focus-visible:ring-sky-500"
+                  className="pl-10 h-12 bg-slate-50/60 border-slate-200 text-slate-900 placeholder:text-slate-400 rounded-xl focus-visible:ring-sky-500"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                 Security Password
               </label>
               <div className="relative">
-                <Lock className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <Input
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••••••"
                   required
-                  className="pl-10 pr-10 h-12 bg-slate-950/60 border-slate-800 text-white placeholder:text-slate-600 rounded-xl focus-visible:ring-sky-500"
+                  className="pl-10 pr-10 h-12 bg-slate-50/60 border-slate-200 text-slate-900 placeholder:text-slate-400 rounded-xl focus-visible:ring-sky-500"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -143,12 +133,12 @@ export default function AdminLoginPage() {
             <Button
               type="submit"
               disabled={loading}
-              className="w-full h-12 bg-linear-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-bold text-sm rounded-xl shadow-lg shadow-sky-500/25 transition-all mt-2"
+              className="w-full h-12 bg-linear-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-semibold text-sm rounded-xl shadow-lg shadow-sky-500/20 transition-all mt-2"
             >
               {loading ? (
                 <span className="flex items-center justify-center gap-2">
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  Verifying Security Credentials...
+                  Verifying credentials...
                 </span>
               ) : (
                 "Authenticate & Open Dashboard"
@@ -156,8 +146,8 @@ export default function AdminLoginPage() {
             </Button>
           </form>
 
-          <div className="pt-4 border-t border-slate-800/80 text-center">
-            <p className="text-[11px] text-slate-500">
+          <div className="pt-4 border-t border-slate-100 text-center">
+            <p className="text-[11px] text-slate-400">
               All login attempts are monitored and recorded with IP audit telemetry.
             </p>
           </div>

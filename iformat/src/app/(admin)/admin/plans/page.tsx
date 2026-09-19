@@ -168,43 +168,43 @@ export default function AdminPlansPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
             Membership Plans & Entitlements
           </h1>
-          <p className="text-slate-400 text-xs mt-1">
+          <p className="text-slate-500 text-xs mt-1">
             Configure subscription tiers, feature quotas, active job caps, and pricing.
           </p>
         </div>
 
         <div className="flex items-center gap-3 flex-wrap">
           {/* Audience Toggle */}
-          <div className="flex items-center gap-1 p-1 bg-slate-900 rounded-2xl border border-slate-800">
+          <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-2xl border border-slate-200/60 overflow-x-auto">
             <button
               onClick={() => setAudienceTab("ALL")}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
                 audienceTab === "ALL"
-                  ? "bg-sky-500 text-white shadow-lg shadow-sky-500/20"
-                  : "text-slate-400 hover:text-white"
+                  ? "bg-white text-slate-900 shadow-xs"
+                  : "text-slate-600 hover:text-slate-900"
               }`}
             >
-              All Packages (4)
+              All Packages ({plans.length})
             </button>
             <button
               onClick={() => setAudienceTab("EMPLOYER")}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
                 audienceTab === "EMPLOYER"
-                  ? "bg-sky-500 text-white shadow-lg shadow-sky-500/20"
-                  : "text-slate-400 hover:text-white"
+                  ? "bg-white text-slate-900 shadow-xs"
+                  : "text-slate-600 hover:text-slate-900"
               }`}
             >
               Corporate / Employer
             </button>
             <button
               onClick={() => setAudienceTab("CANDIDATE")}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
                 audienceTab === "CANDIDATE"
-                  ? "bg-sky-500 text-white shadow-lg shadow-sky-500/20"
-                  : "text-slate-400 hover:text-white"
+                  ? "bg-white text-slate-900 shadow-xs"
+                  : "text-slate-600 hover:text-slate-900"
               }`}
             >
               Executive / Candidate
@@ -214,7 +214,7 @@ export default function AdminPlansPage() {
           {/* Create Plan Button */}
           <Button
             onClick={handleOpenCreate}
-            className="bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold rounded-xl h-9 shadow-lg shadow-sky-600/20 cursor-pointer"
+            className="bg-sky-600 hover:bg-sky-700 text-white text-xs font-semibold rounded-xl h-9 shadow-sm shadow-sky-600/20 cursor-pointer"
           >
             <Plus className="w-4 h-4 mr-1.5" /> Create Plan
           </Button>
@@ -223,15 +223,15 @@ export default function AdminPlansPage() {
 
       {/* Plan Cards Grid */}
       {error ? (
-        <div className="bg-slate-900/90 border border-rose-800/80 rounded-3xl p-8 text-center space-y-4 max-w-md mx-auto">
-          <div className="w-12 h-12 rounded-2xl bg-rose-500/20 text-rose-400 flex items-center justify-center mx-auto">
+        <div className="bg-white border border-rose-200 rounded-3xl p-8 text-center space-y-4 max-w-md mx-auto shadow-xs">
+          <div className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center mx-auto">
             <AlertCircle className="w-6 h-6" />
           </div>
-          <h3 className="text-base font-bold text-white">Failed to load membership plans</h3>
-          <p className="text-xs text-rose-300/80 leading-relaxed">{error}</p>
+          <h3 className="text-base font-bold text-slate-900">Failed to load membership plans</h3>
+          <p className="text-xs text-rose-600 leading-relaxed">{error}</p>
           <Button
             onClick={loadPlans}
-            className="bg-rose-600 hover:bg-rose-500 text-white text-xs h-9 px-4 rounded-xl cursor-pointer"
+            className="bg-rose-600 hover:bg-rose-700 text-white text-xs h-9 px-4 rounded-xl cursor-pointer"
           >
             <RefreshCw className="w-3.5 h-3.5 mr-2" /> Retry Fetch
           </Button>

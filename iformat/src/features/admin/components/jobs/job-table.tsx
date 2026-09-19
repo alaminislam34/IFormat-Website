@@ -19,7 +19,7 @@ export function JobTable({
   onRestore,
 }: JobTableProps) {
   return (
-    <div className="bg-slate-900/90 border border-slate-800/80 rounded-3xl overflow-hidden shadow-xl">
+    <div className="bg-white border border-slate-200/80 rounded-3xl overflow-hidden shadow-xs">
       {loading ? (
         <div className="py-20 flex items-center justify-center">
           <Loader2 className="w-8 h-8 text-sky-500 animate-spin" />
@@ -31,7 +31,7 @@ export function JobTable({
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-slate-950/80 text-slate-400 font-extrabold uppercase text-[10px] tracking-wider border-b border-slate-800">
+            <thead className="bg-slate-50 text-slate-500 font-semibold text-xs border-b border-slate-200/80">
               <tr>
                 <th className="p-4">Job Title & Company</th>
                 <th className="p-4">Category & Type</th>
@@ -41,7 +41,7 @@ export function JobTable({
                 <th className="p-4 text-right">Moderation Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60">
+            <tbody className="divide-y divide-slate-100">
               {jobs.map((job) => (
                 <JobRow
                   key={job.id}

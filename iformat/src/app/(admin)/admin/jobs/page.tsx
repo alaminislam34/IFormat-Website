@@ -86,10 +86,10 @@ export default function AdminJobsPage() {
         <Button
           onClick={() => setIncludeDeleted(!includeDeleted)}
           variant="outline"
-          className={`rounded-xl text-xs font-bold h-10 px-4 transition-all ${
+          className={`rounded-xl text-xs font-semibold h-10 px-4 transition-all shadow-xs ${
             includeDeleted
-              ? "bg-rose-500/20 text-rose-300 border-rose-500/40"
-              : "bg-slate-900 border-slate-800 text-slate-400 hover:text-white"
+              ? "bg-rose-50 text-rose-700 border-rose-200"
+              : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-slate-900"
           }`}
         >
           <Trash2 className="w-3.5 h-3.5 mr-2" />

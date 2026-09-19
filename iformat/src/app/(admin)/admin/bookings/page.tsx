@@ -113,10 +113,10 @@ export default function AdminBookingsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
             Service Orders & Client Fulfillment
           </h1>
-          <p className="text-sm text-slate-400 mt-1">
+          <p className="text-sm text-slate-500 mt-1">
             Track client service package purchases, review project briefs, and manage delivery status.
           </p>
         </div>
@@ -124,7 +124,7 @@ export default function AdminBookingsPage() {
         <div className="flex items-center gap-2">
           <Button
             onClick={() => setIsSlotModalOpen(true)}
-            className="bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold rounded-xl h-9 shadow-lg shadow-sky-600/20 cursor-pointer"
+            className="bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-xl h-9 shadow-xs cursor-pointer"
           >
             <Plus className="w-4 h-4 mr-1.5" /> Create Slot
           </Button>
@@ -132,7 +132,7 @@ export default function AdminBookingsPage() {
             variant="outline"
             onClick={loadBookings}
             disabled={loading}
-            className="border-slate-800 bg-slate-900/50 hover:bg-slate-800 text-slate-300 text-xs h-9 rounded-xl cursor-pointer"
+            className="border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs h-9 rounded-xl shadow-xs cursor-pointer"
           >
             <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${loading ? "animate-spin" : ""}`} />
             Refresh

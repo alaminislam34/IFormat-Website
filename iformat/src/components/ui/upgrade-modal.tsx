@@ -66,12 +66,16 @@ export function UpgradeModal({
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+        <div className="fixed inset-0 z-[100005] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+          {/* Backdrop Click-away */}
+          <div className="absolute inset-0" onClick={onClose} />
+
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 15 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 15 }}
-            className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-100 p-6 sm:p-8 space-y-6 text-center"
+            onClick={(e) => e.stopPropagation()}
+            className="relative z-10 w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-100 p-6 sm:p-8 space-y-6 text-center"
           >
             {/* Close Button */}
             <button
