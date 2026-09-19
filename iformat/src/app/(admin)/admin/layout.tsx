@@ -201,7 +201,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </nav>
         </div>
 
-        {/* User Account & Sign Out */}
         <div className="p-4 border-t border-slate-800/80 bg-slate-900/50">
           <div className="flex items-center justify-between gap-3 p-2 rounded-xl bg-slate-950/40 border border-slate-800/50">
             <div className="flex items-center gap-2.5 min-w-0">
@@ -209,8 +208,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 {user?.name?.[0] || "A"}
               </div>
               <div className="min-w-0">
-                <p className="text-xs font-bold text-white truncate">{user?.name || "Administrator"}</p>
-                <p className="text-[10px] text-slate-400 truncate">{user?.email || "admin@iformat.com"}</p>
+                <p className="text-xs font-bold text-white truncate">{user?.name}</p>
+                <p className="text-[10px] text-slate-400 truncate">{user?.email}</p>
               </div>
             </div>
 
