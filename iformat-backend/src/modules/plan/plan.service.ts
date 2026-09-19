@@ -4,7 +4,33 @@ import { CreatePlanDto, UpdatePlanDto, PlanFilterQuery } from "./plan.types.js";
 import { ConflictError, NotFoundError } from "../../errors/index.js";
 import { PlanAudience, PlanBillingInterval, Role } from "@prisma/client";
 
+export const SYSTEM_FREE_PLAN = {
+  code: "FREE_TIER",
+  name: "Free Tier",
+  description: "Standard job search, application tracking, and essential career tools.",
+  priceInCents: 0,
+  currency: "USD",
+  billingInterval: PlanBillingInterval.MONTHLY,
+  targetAudience: PlanAudience.BOTH,
+  isActive: true,
+  stripePriceId: null as string | null,
+  stripeProductId: null as string | null,
+  maxActiveJobs: 0,
+  maxApplicationsPerMonth: 5,
+  aiScreeningEnabled: false,
+  featuredJobPlacement: false,
+  unmaskedApplicantProfiles: false,
+  unlimitedCvTemplates: false,
+  customFeatures: [
+    "Search & browse jobs",
+    "Candidate profile",
+    "Standard applications",
+  ],
+};
+
 export const SYSTEM_DEFAULT_PLANS = [
+  // 0. Free Tier
+  SYSTEM_FREE_PLAN,
   // 1. Starter Plan
   {
     code: "BRANDING_STARTER",
@@ -189,35 +215,26 @@ export class PlanService {
     return { id: `mock-${fallback.code.toLowerCase()}`, ...fallback };
   }
 
-export const SYSTEM_FREE_PLAN = {
-  id: "free-tier-default",
-  code: "FREE_TIER",
-  name: "Free Tier",
-  description: "Standard job search, application tracking, and essential career tools.",
-  priceInCents: 0,
-  currency: "USD",
-  billingInterval: PlanBillingInterval.MONTHLY,
-  targetAudience: PlanAudience.BOTH,
-  isActive: true,
-  stripePriceId: null as string | null,
-  stripeProductId: null as string | null,
-  maxActiveJobs: 0,
-  maxApplicationsPerMonth: 5,
-  aiScreeningEnabled: false,
-  featuredJobPlacement: false,
-  unmaskedApplicantProfiles: false,
-  unlimitedCvTemplates: false,
-  customFeatures: [
-    "Search & browse jobs",
-    "Candidate profile",
-    "Standard applications",
-  ],
-};
 
   /**
-   * Find default fallback plan based on user role
+   * Find default fallback plan based on user role (dynamically configured by Admin in DB)
    */
-  static getDefaultPlanForRole(_role?: Role) {
+  static async getDefaultPlanForRole(_role?: Role) {
+    try {
+      const dbFreePlan = await prisma.plan.findFirst({
+        where: {
+          code: "FREE_TIER",
+          isDeleted: false,
+        },
+      });
+
+      if (dbFreePlan) {
+        return dbFreePlan;
+      }
+    } catch {
+      // fallback
+    }
+
     return SYSTEM_FREE_PLAN;
   }
 
@@ -283,6 +300,14 @@ export const SYSTEM_FREE_PLAN = {
   static async seedDefaultPlans() {
     try {
       for (const p of SYSTEM_DEFAULT_PLANS) {
+        if (p.code === "FREE_TIER") {
+          const exists = await prisma.plan.findUnique({ where: { code: "FREE_TIER" } });
+          if (!exists) {
+            await prisma.plan.create({ data: p });
+          }
+          continue;
+        }
+
         await prisma.plan.upsert({
           where: { code: p.code },
           create: p,

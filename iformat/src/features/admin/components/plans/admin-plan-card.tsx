@@ -25,9 +25,16 @@ export function AdminPlanCard({ plan, onEdit, onToggleActive }: AdminPlanCardPro
       <div>
         {/* Top Bar with Badges & Status */}
         <div className="flex items-center justify-between mb-3">
-          <span className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-sky-50 text-sky-700 border border-sky-200/60">
-            {plan.code}
-          </span>
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-sky-50 text-sky-700 border border-sky-200/60">
+              {plan.code}
+            </span>
+            {plan.code === "FREE_TIER" && (
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
+                ⭐ Default Free Plan
+              </span>
+            )}
+          </div>
           <div className="flex items-center gap-2">
             <span className="text-xs font-semibold text-slate-500 capitalize">
               {plan.billingInterval?.toLowerCase()}

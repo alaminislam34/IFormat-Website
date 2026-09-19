@@ -68,6 +68,18 @@ export function AdminPlanEditorModal({
           </button>
         </div>
 
+        {editingPlan?.code === "FREE_TIER" && (
+          <div className="p-3.5 bg-amber-50/90 border border-amber-200/80 rounded-2xl text-xs text-amber-900 flex items-start gap-3">
+            <span className="text-lg leading-none">⚙️</span>
+            <div>
+              <p className="font-semibold text-amber-950">Default Free Plan Quotas & Entitlements</p>
+              <p className="text-[11px] text-amber-800 mt-0.5 leading-relaxed">
+                Limits and feature toggles saved here directly govern what all unpaid/free candidates and employers are allowed to do across the platform.
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Form */}
         <form onSubmit={onSubmit} className="space-y-5">
           {/* Name & Code */}

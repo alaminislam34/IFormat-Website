@@ -520,7 +520,7 @@ export class PaymentService {
     if (activeSub?.plan) {
       plan = activeSub.plan;
     } else {
-      plan = PlanService.getDefaultPlanForRole(user.role);
+      plan = await PlanService.getDefaultPlanForRole(user.role);
     }
 
     // Retrieve cycle usage
