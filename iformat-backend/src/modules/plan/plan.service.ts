@@ -189,13 +189,36 @@ export class PlanService {
     return { id: `mock-${fallback.code.toLowerCase()}`, ...fallback };
   }
 
+export const SYSTEM_FREE_PLAN = {
+  id: "free-tier-default",
+  code: "FREE_TIER",
+  name: "Free Tier",
+  description: "Standard job search, application tracking, and essential career tools.",
+  priceInCents: 0,
+  currency: "USD",
+  billingInterval: PlanBillingInterval.MONTHLY,
+  targetAudience: PlanAudience.BOTH,
+  isActive: true,
+  stripePriceId: null as string | null,
+  stripeProductId: null as string | null,
+  maxActiveJobs: 0,
+  maxApplicationsPerMonth: 5,
+  aiScreeningEnabled: false,
+  featuredJobPlacement: false,
+  unmaskedApplicantProfiles: false,
+  unlimitedCvTemplates: false,
+  customFeatures: [
+    "Search & browse jobs",
+    "Candidate profile",
+    "Standard applications",
+  ],
+};
+
   /**
    * Find default fallback plan based on user role
    */
   static getDefaultPlanForRole(_role?: Role) {
-    return (
-      SYSTEM_DEFAULT_PLANS.find((p) => p.code === "BRANDING_STARTER") || SYSTEM_DEFAULT_PLANS[0]
-    );
+    return SYSTEM_FREE_PLAN;
   }
 
   /**

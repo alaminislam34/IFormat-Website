@@ -62,11 +62,12 @@ export function ActivePlanCard({
 
           <div>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight bg-linear-to-r from-white via-slate-100 to-sky-200 bg-clip-text text-transparent">
-              {currentPlan?.name || "Candidate Basic"}
+              {isPaidActive ? currentPlan?.name : "Free Forever Tier"}
             </h2>
             <p className="text-slate-300 text-sm sm:text-base mt-2 leading-relaxed">
-              {currentPlan?.description ||
-                "Standard job application access, professional AI templates, and candidate discovery tools."}
+              {isPaidActive
+                ? currentPlan?.description || "Active membership privileges and premium benefits."
+                : "Standard job application access, professional AI templates, and candidate discovery tools."}
             </p>
           </div>
 

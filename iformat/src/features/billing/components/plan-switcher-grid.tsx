@@ -116,7 +116,8 @@ export function PlanSwitcherGrid({
           );
 
           const isCurrent = Boolean(
-            currentPlan &&
+            subscription?.isPaidActive &&
+              currentPlan &&
               (currentPlan.code === pkg.code ||
                 currentPlan.code?.replace("BRANDING_", "") === pkg.code.replace("BRANDING_", "") ||
                 currentPlan.name?.toLowerCase().trim() === pkg.name.toLowerCase().trim() ||
