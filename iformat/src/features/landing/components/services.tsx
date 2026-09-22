@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -9,22 +9,25 @@ import { toast } from "sonner";
 import { ScrollReveal } from "@/components/ui/scroll-reveal";
 import { SectionHeader } from "@/components/ui/section-header";
 import { useAuthStore } from "@/stores/use-auth-store";
+import { useServicesStore } from "@/stores/use-services-store";
 import {
   ProductDetailModal,
   ServiceProduct,
 } from "@/features/services/components/product-detail-modal";
 import { OrderServiceModal } from "@/features/services/components/order-service-modal";
-import { SERVICES_DATA } from "@/features/services/data/services-data";
 
 export function Services() {
   const router = useRouter();
   const { isAuthenticated } = useAuthStore();
+  const services = useServicesStore((state) => state.services);
   const [selectedProduct, setSelectedProduct] = useState<ServiceProduct | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
 
-  // Display top 3 featured services on landing page
-  const featuredServices = SERVICES_DATA.slice(0, 3);
+  // Display top 3 active featured services on landing page
+  const featuredServices = useMemo(() => {
+    return services.filter((s) => s.isActive !== false).slice(0, 3);
+  }, [services]);
 
   const handleOpenDetail = (product: ServiceProduct) => {
     setSelectedProduct(product);

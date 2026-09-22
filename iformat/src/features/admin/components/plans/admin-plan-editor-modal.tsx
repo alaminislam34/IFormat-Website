@@ -166,7 +166,9 @@ export function AdminPlanEditorModal({
               <div className="flex items-center justify-between mb-1.5">
                 <label className="block text-xs font-semibold text-slate-700">Price ($ USD)</label>
                 {editingPlan && (
-                  <span className="text-[9px] font-medium text-amber-600">Stripe Managed</span>
+                  <span className="text-[9px] font-medium text-amber-600">
+                    {editingPlan.code?.toUpperCase().includes("ENTERPRISE") ? "Custom Quoted" : "Stripe Managed"}
+                  </span>
                 )}
               </div>
               <input

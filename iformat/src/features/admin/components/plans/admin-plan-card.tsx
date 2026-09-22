@@ -12,7 +12,10 @@ interface AdminPlanCardProps {
 }
 
 export function AdminPlanCard({ plan, onEdit, onToggleActive }: AdminPlanCardProps) {
-  const isFree = plan.priceInCents === 0;
+  const isEnterprise =
+    plan.code?.toUpperCase().includes("ENTERPRISE") ||
+    plan.name?.toLowerCase().includes("enterprise");
+  const isFree = plan.priceInCents === 0 && !isEnterprise;
 
   return (
     <div
@@ -32,6 +35,11 @@ export function AdminPlanCard({ plan, onEdit, onToggleActive }: AdminPlanCardPro
             {plan.code === "FREE_TIER" && (
               <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
                 ⭐ Default Free Plan
+              </span>
+            )}
+            {isEnterprise && (
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                🏢 Enterprise Tier
               </span>
             )}
           </div>
@@ -59,11 +67,20 @@ export function AdminPlanCard({ plan, onEdit, onToggleActive }: AdminPlanCardPro
         <div className="my-5">
           <div className="flex items-baseline gap-1">
             <span className="text-3xl font-bold text-slate-900">
-              {isFree ? "Free" : `$${(plan.priceInCents / 100).toFixed(0)}`}
+              {isEnterprise
+                ? "Custom Quote"
+                : isFree
+                ? "Free"
+                : `$${(plan.priceInCents / 100).toFixed(0)}`}
             </span>
-            {!isFree && (
+            {!isFree && !isEnterprise && (
               <span className="text-xs text-slate-500 font-medium">
                 /{plan.billingInterval === "YEARLY" ? "yr" : "mo"}
+              </span>
+            )}
+            {isEnterprise && (
+              <span className="text-xs text-slate-500 font-medium ml-1">
+                (Contact Sales)
               </span>
             )}
           </div>

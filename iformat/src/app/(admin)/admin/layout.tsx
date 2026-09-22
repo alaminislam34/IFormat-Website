@@ -20,6 +20,7 @@ import {
   Menu,
   X,
   Activity,
+  ShoppingBag,
 } from "lucide-react";
 import { useAuthStore } from "@/stores/use-auth-store";
 import { BrandLogo } from "@/components/ui/brand-logo";
@@ -133,6 +134,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     {
       group: "Platform & Services",
       items: [
+        { label: "Service Products", href: "/admin/services", icon: ShoppingBag },
         { label: "Consultation Bookings", href: "/admin/bookings", icon: Calendar },
         { label: "Audit Activity Logs", href: "/admin/audit-logs", icon: History },
         { label: "System Settings", href: "/admin/settings", icon: Settings },

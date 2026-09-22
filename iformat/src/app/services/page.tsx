@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useAuthStore } from "@/stores/use-auth-store";
+import { useServicesStore } from "@/stores/use-services-store";
 import {
   Brain,
   Layout,
@@ -25,11 +26,13 @@ import {
   ServiceProduct,
 } from "@/features/services/components/product-detail-modal";
 
-import { SERVICES_DATA } from "@/features/services/data/services-data";
-
 export default function ServicesPage() {
   const router = useRouter();
   const { isAuthenticated } = useAuthStore();
+  const services = useServicesStore((state) => state.services);
+  const activeServices = useMemo(() => {
+    return services.filter((s) => s.isActive !== false);
+  }, [services]);
   const [selectedProduct, setSelectedProduct] = useState<ServiceProduct | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
@@ -110,7 +113,7 @@ export default function ServicesPage() {
           </ScrollReveal>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {SERVICES_DATA.map((service, idx) => (
+            {activeServices.map((service, idx) => (
             <ScrollReveal key={service.id} yOffset={30} delay={idx * 0.05}>
               <div
                 onClick={() => handleOpenDetail(service)}
