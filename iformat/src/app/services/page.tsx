@@ -7,20 +7,16 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useAuthStore } from "@/stores/use-auth-store";
 import {
-  Calendar,
   Brain,
   Layout,
   FileText,
-  Move,
   TrendingUp,
   Sparkles,
   ArrowRight,
-  UserCheck,
   ShoppingBag,
   Eye,
   CheckCircle2,
   Clock,
-  ShieldCheck,
 } from "lucide-react";
 import { Footer } from "@/components/layout/footer";
 import { ScrollReveal } from "@/components/ui/scroll-reveal";
@@ -54,33 +50,33 @@ export default function ServicesPage() {
   const features = [
     {
       title: "Psycholinguistics & NLP",
-      desc: "We deploy psycholinguistic techniques to establish an authoritative writing methodology along with Neuro-Linguistic Programming to stimulate recruiter curiosity.",
+      desc: "We have used psycholinguistic techniques to establish a writing methodology along with Neuro-Linguistic Programming.",
       icon: <Brain className="w-5 h-5 text-white" />,
     },
     {
-      title: "ATS Precision Engineering",
-      desc: "Creating the most ATS-compliant profiles that navigate to the top of recruiter searches with 98%+ verified parsing rates.",
+      title: "ATS – Applicant Tracking Software",
+      desc: "Creating the most ATS Compliant profiles navigating to the top of recruitment and expert searches.",
       icon: <FileText className="w-5 h-5 text-white" />,
     },
     {
-      title: "Personal Brand Architecture",
-      desc: "Highlighting unique executive strengths to build an authentic, memorable presence that commands higher market value.",
-      icon: <Layout className="w-5 h-5 text-white" />,
-    },
-    {
-      title: "Elevated Career Transitions",
-      desc: "Crafting narratives that bridge experience across industries, helping professionals pivot seamlessly into higher-tier roles.",
-      icon: <Move className="w-5 h-5 text-white" />,
-    },
-    {
-      title: "Executive Thought Leadership",
-      desc: "Positioning founders and executives with speaking topics, publications, and LinkedIn strategies that attract capital and opportunities.",
+      title: "ROI – Return On Investment",
+      desc: "Show the experts how you have positively impacted your role, the department, a business or a country.",
       icon: <TrendingUp className="w-5 h-5 text-white" />,
     },
     {
-      title: "Live 1-on-1 Expert Calibration",
-      desc: "Direct advisory sessions with seasoned talent partners to refine your pitch, interview technique, and compensation leverage.",
-      icon: <UserCheck className="w-5 h-5 text-white" />,
+      title: "Concise Writing",
+      desc: "Wordy writing dilutes the impact of your message, concise writing, instead, helps grab and hold your reader’s attention, it is one of the most desirable leadership characteristics.",
+      icon: <Sparkles className="w-5 h-5 text-white" />,
+    },
+    {
+      title: "Easy Eye Movement",
+      desc: "Our job is to place information in such a way it is easily found by rapid eye movements through the use of saccades and maximizing saccades, a type of eye movement.",
+      icon: <Eye className="w-5 h-5 text-white" />,
+    },
+    {
+      title: "Layout Elegance",
+      desc: "Elegant, clean, and unobstructed layout focusing only on what we believe to be the most important thing, your legacy, history and content.",
+      icon: <Layout className="w-5 h-5 text-white" />,
     },
   ];
 
@@ -227,14 +223,14 @@ export default function ServicesPage() {
         <div className="max-w-7xl mx-auto px-6 md:px-8">
           <ScrollReveal>
             <div className="text-center max-w-3xl mx-auto mb-16">
-              <span className="text-xs font-extrabold uppercase tracking-wider text-[#0A54B1] bg-blue-50 px-3 py-1 rounded-full border border-blue-100">
+              <span className="text-xs font-extrabold uppercase tracking-wider text-[#0A54B1] bg-blue-50 px-3.5 py-1.5 rounded-full border border-blue-100 mb-4 inline-block">
                 Proprietary Approach
               </span>
-              <h2 className="text-3xl md:text-4xl font-black mt-3 mb-6 text-slate-900 tracking-tight">
-                What Makes <span className="text-[#0A54B1]">iFormat</span> Branding Unique
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-black mt-3 mb-6 text-slate-900 tracking-tight">
+                What makes <span className="text-[#0A54B1]">iFormat</span> Branding unique
               </h2>
               <p className="text-slate-600 leading-relaxed text-sm md:text-base">
-                We have developed a signature methodology that generic AI tools cannot replicate. By integrating psycholinguistics, cognitive perception mapping, and ATS software reverse-engineering, we establish lasting authority for your personal brand.
+                We have developed a unique writing methodology that modern AI tools cannot replicate. This is because we have integrated a psycholinguistic technique into our writing, which effectively stimulates interest and shapes perceptions, creating a compelling personal brand, this is done through;
               </p>
             </div>
           </ScrollReveal>
@@ -242,11 +238,13 @@ export default function ServicesPage() {
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {features.map((feature, idx) => (
               <ScrollReveal key={idx} yOffset={30} delay={idx * 0.08}>
-                <div className="bg-[#f0f7fa] rounded-3xl p-8 text-center h-full hover:shadow-lg transition-all border border-blue-50">
-                  <div className="w-12 h-12 bg-[#0A54B1] rounded-2xl flex items-center justify-center mb-6 mx-auto shadow-md shadow-blue-500/20">
+                <div className="group bg-[#f0f7fa] hover:bg-white rounded-3xl p-8 text-center h-full hover:shadow-xl hover:shadow-blue-500/5 hover:-translate-y-1 transition-all duration-300 border border-blue-50 hover:border-blue-200 relative flex flex-col items-center">
+                  <div className="w-12 h-12 bg-linear-to-br from-[#52CEDE] to-[#0A54B1] rounded-2xl flex items-center justify-center mb-6 mx-auto shadow-md shadow-blue-500/20 group-hover:scale-110 transition-transform duration-300">
                     {feature.icon}
                   </div>
-                  <h3 className="text-lg font-bold text-slate-900 mb-3">{feature.title}</h3>
+                  <h3 className="text-lg font-bold text-slate-900 group-hover:text-[#0A54B1] transition-colors mb-3">
+                    {feature.title}
+                  </h3>
                   <p className="text-slate-600 text-xs sm:text-sm leading-relaxed">
                     {feature.desc}
                   </p>
