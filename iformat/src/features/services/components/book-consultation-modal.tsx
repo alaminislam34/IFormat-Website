@@ -116,7 +116,7 @@ export function BookConsultationModal({
           >
             <div className="flex items-start justify-between mb-6">
               <div>
-                <span className="text-xs font-bold uppercase tracking-wider text-[#0A54B1]">
+                <span className="text-xs font-bold uppercase tracking-wider text-[#004AAD]">
                   Expert Consultation
                 </span>
                 <h3 className="text-xl font-bold text-slate-900 mt-1">{serviceTitle}</h3>
@@ -146,7 +146,7 @@ export function BookConsultationModal({
                 {/* Available Slots Selector */}
                 <div className="space-y-2">
                   <label className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-                    <Calendar className="w-4 h-4 text-[#0A54B1]" /> Select Time Slot
+                    <Calendar className="w-4 h-4 text-[#004AAD]" /> Select Time Slot
                   </label>
 
                   {loadingSlots ? (
@@ -177,12 +177,12 @@ export function BookConsultationModal({
                             onClick={() => setSelectedSlotId(slot.id)}
                             className={`p-3 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${
                               isSelected
-                                ? "bg-blue-50/80 border-[#0A54B1] text-[#0A54B1] shadow-xs"
+                                ? "bg-blue-50/80 border-[#004AAD] text-[#004AAD] shadow-xs"
                                 : "bg-slate-50 border-slate-200/80 hover:bg-slate-100 text-slate-700"
                             }`}
                           >
                             <div className="flex items-center gap-2.5">
-                              <Clock className="w-4 h-4 text-[#0A54B1] shrink-0" />
+                              <Clock className="w-4 h-4 text-[#004AAD] shrink-0" />
                               <div>
                                 <div className="text-xs font-bold text-slate-900">{slot.title || "Consultation Session"}</div>
                                 <div className="text-[11px] text-slate-500 font-medium">
@@ -211,7 +211,7 @@ export function BookConsultationModal({
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
                     placeholder="e.g. CV review for Senior Product Manager, salary negotiation strategies, executive presence..."
-                    className="w-full text-xs p-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0A54B1]/20 focus:border-[#0A54B1] transition-all resize-none"
+                    className="w-full text-xs p-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#004AAD]/20 focus:border-[#004AAD] transition-all resize-none"
                   />
                 </div>
 
@@ -220,7 +220,7 @@ export function BookConsultationModal({
                   <button
                     type="submit"
                     disabled={bookSlotMutation.isPending}
-                    className="w-full h-11 rounded-xl bg-linear-to-r from-[#52CEDE] to-[#0A54B1] hover:opacity-95 text-white font-extrabold text-xs shadow-md shadow-blue-500/20 active:scale-98 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
+                    className="w-full h-11 rounded-xl bg-linear-to-r from-[#5DE0E6] to-[#004AAD] hover:opacity-95 text-white font-extrabold text-xs shadow-md shadow-blue-500/20 active:scale-98 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
                   >
                     {bookSlotMutation.isPending ? (
                       <>

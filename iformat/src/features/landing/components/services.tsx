@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { ShoppingCart, Eye, Clock, CheckCircle2, Calendar, ShoppingBag, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 import { ScrollReveal } from "@/components/ui/scroll-reveal";
+import { SectionHeader } from "@/components/ui/section-header";
 import { useAuthStore } from "@/stores/use-auth-store";
 import {
   ProductDetailModal,
@@ -54,14 +55,13 @@ export function Services() {
         service={selectedProduct}
       />
 
-      <div className="max-w-7xl mx-auto px-8">
+      <div className="max-w-360 mx-auto w-11/12">
         <ScrollReveal yOffset={40}>
-          <div className="text-center max-w-2xl mx-auto mb-16">
-            <h2 className="text-4xl font-bold mb-4 text-slate-900">Individual Services</h2>
-            <p className="text-slate-600">
-              A la carte options to boost your professional toolkit.
-            </p>
-          </div>
+          <SectionHeader
+            title="Individual Services"
+            description="A la carte options to boost your professional toolkit."
+            maxWidth="max-w-2xl"
+          />
         </ScrollReveal>
 
         <div className="grid md:grid-cols-3 gap-8 mb-12">

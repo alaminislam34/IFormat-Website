@@ -110,8 +110,8 @@ export function OrderServiceModal({
             className="relative w-full max-w-xl bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-100 z-10 my-8 max-h-[90vh] flex flex-col"
           >
             {/* Header */}
-            <div className="p-6 bg-linear-to-r from-slate-900 via-[#0A54B1] to-slate-900 text-white shrink-0 relative overflow-hidden">
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(82,206,222,0.25),transparent_70%)]" />
+            <div className="p-6 bg-linear-to-r from-slate-900 via-[#004AAD] to-slate-900 text-white shrink-0 relative overflow-hidden">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(93,224,230,0.25),transparent_70%)]" />
               <div className="relative z-10 flex items-start justify-between gap-4">
                 <div>
                   <div className="flex items-center gap-2 mb-2">
@@ -147,7 +147,7 @@ export function OrderServiceModal({
               {isAuthenticated && user ? (
                 <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200/70 flex items-center justify-between text-xs">
                   <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-full bg-blue-100 text-[#0A54B1] flex items-center justify-center font-black text-xs shrink-0">
+                    <div className="w-8 h-8 rounded-full bg-blue-100 text-[#004AAD] flex items-center justify-center font-black text-xs shrink-0">
                       {user.name ? user.name[0].toUpperCase() : "U"}
                     </div>
                     <div>
@@ -182,7 +182,7 @@ export function OrderServiceModal({
               {/* Client Contact Phone */}
               <div>
                 <label className="block text-xs font-bold text-slate-800 mb-1.5 items-center gap-1.5">
-                  <Phone className="w-3.5 h-3.5 text-[#0A54B1]" /> Contact Phone Number
+                  <Phone className="w-3.5 h-3.5 text-[#004AAD]" /> Contact Phone Number
                   <span className="text-slate-400 font-normal text-[11px]">(Optional for direct updates)</span>
                 </label>
                 <input
@@ -190,7 +190,7 @@ export function OrderServiceModal({
                   value={clientPhone}
                   onChange={(e) => setClientPhone(e.target.value)}
                   placeholder="+1 (555) 000-0000"
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#0A54B1] text-xs text-slate-800 placeholder:text-slate-400"
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#004AAD] text-xs text-slate-800 placeholder:text-slate-400"
                 />
               </div>
 
@@ -198,7 +198,7 @@ export function OrderServiceModal({
               <div>
                 <div className="flex items-center justify-between mb-1.5">
                   <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                    <FileText className="w-3.5 h-3.5 text-[#0A54B1]" /> Project Brief & Target Roles
+                    <FileText className="w-3.5 h-3.5 text-[#004AAD]" /> Project Brief & Target Roles
                     <span className="text-rose-500 font-bold">*</span>
                   </label>
                   <span className="text-[10px] text-slate-400 font-medium">Min 10 characters</span>
@@ -209,7 +209,7 @@ export function OrderServiceModal({
                   value={requirements}
                   onChange={(e) => setRequirements(e.target.value)}
                   placeholder="E.g., Target industry: Fintech / AI Product Lead. Current resume link: linkedin.com/in/..., specific executive goals, or career transition timeline..."
-                  className="w-full p-3.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#0A54B1] text-xs text-slate-800 placeholder:text-slate-400 leading-relaxed resize-none"
+                  className="w-full p-3.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#004AAD] text-xs text-slate-800 placeholder:text-slate-400 leading-relaxed resize-none"
                 />
               </div>
 
@@ -224,13 +224,13 @@ export function OrderServiceModal({
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="Google Drive, Dropbox, or any specific constraints..."
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#0A54B1] text-xs text-slate-800 placeholder:text-slate-400"
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#004AAD] text-xs text-slate-800 placeholder:text-slate-400"
                 />
               </div>
 
               {/* Guarantee & Deliverables Preview */}
               <div className="p-3.5 rounded-2xl bg-cyan-50/50 border border-cyan-100 text-xs text-cyan-950 space-y-1.5">
-                <div className="flex items-center gap-2 font-bold text-[#0A54B1]">
+                <div className="flex items-center gap-2 font-bold text-[#004AAD]">
                   <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
                   <span>100% Satisfaction & ATS Compatibility Guarantee</span>
                 </div>
@@ -249,7 +249,7 @@ export function OrderServiceModal({
                 <button
                   type="submit"
                   disabled={checkoutMutation.isPending}
-                  className="w-full sm:w-auto px-6 py-3 rounded-xl bg-linear-to-r from-[#52CEDE] to-[#0A54B1] hover:opacity-95 text-white font-extrabold text-xs shadow-lg shadow-blue-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                  className="w-full sm:w-auto px-6 py-3 rounded-xl bg-linear-to-r from-[#5DE0E6] to-[#004AAD] hover:opacity-95 text-white font-extrabold text-xs shadow-lg shadow-blue-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                 >
                   {checkoutMutation.isPending ? (
                     <>

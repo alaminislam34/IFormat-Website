@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { MapPin, MessageSquare, Mail, Send, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollReveal } from "@/components/ui/scroll-reveal";
+import { SectionHeader } from "@/components/ui/section-header";
 import { contactFormSchema, ContactFormData } from "@/lib/validations";
 
 export function Contact() {
@@ -16,31 +17,25 @@ export function Contact() {
     formState: { errors, isSubmitting },
   } = useForm<ContactFormData>({
     resolver: zodResolver(contactFormSchema),
-    defaultValues: {
-      fullName: "",
-      email: "",
-      phone: "",
-      message: "",
-    },
   });
 
   const onSubmit = async (data: ContactFormData) => {
-    // Simulate contact submission
-    await new Promise((resolve) => setTimeout(resolve, 800));
+    // Simulate submission delay
+    await new Promise((resolve) => setTimeout(resolve, 1000));
     toast.success(`Thank you, ${data.fullName}! Your message has been sent.`);
     reset();
   };
 
   return (
     <section className="bg-[#0f172a] text-white py-24 overflow-hidden" id="contact">
-      <div className="max-w-7xl mx-auto px-8">
+      <div className="max-w-360 mx-auto w-11/12">
         <ScrollReveal yOffset={40}>
-          <div className="text-center max-w-2xl mx-auto mb-16">
-            <h2 className="text-4xl font-bold mb-4">Contact Us</h2>
-            <p className="text-slate-400">
-              Ready to elevate your professional brand? Get in touch for a free consultation.
-            </p>
-          </div>
+          <SectionHeader
+            theme="dark"
+            title="Contact Us"
+            description="Ready to elevate your professional brand? Get in touch for a free consultation."
+            maxWidth="max-w-2xl"
+          />
         </ScrollReveal>
 
         <div className="grid md:grid-cols-2 gap-16 lg:gap-24">
@@ -52,7 +47,7 @@ export function Contact() {
               <div className="space-y-8">
                 <div className="flex items-start gap-4">
                   <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center shrink-0">
-                    <MapPin className="w-5 h-5 text-[#22d3ee]" />
+                    <MapPin className="w-5 h-5 text-brand-cyan" />
                   </div>
                   <div>
                     <h4 className="font-bold mb-1">Our Location</h4>
@@ -62,7 +57,7 @@ export function Contact() {
                 
                 <div className="flex items-start gap-4">
                   <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center shrink-0">
-                    <MessageSquare className="w-5 h-5 text-[#22d3ee]" />
+                    <MessageSquare className="w-5 h-5 text-brand-cyan" />
                   </div>
                   <div>
                     <h4 className="font-bold mb-1">Message Us On WhatsApp</h4>
@@ -72,7 +67,7 @@ export function Contact() {
                 
                 <div className="flex items-start gap-4">
                   <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center shrink-0">
-                    <Mail className="w-5 h-5 text-[#22d3ee]" />
+                    <Mail className="w-5 h-5 text-brand-cyan" />
                   </div>
                   <div>
                     <h4 className="font-bold mb-1">Send Your Message</h4>

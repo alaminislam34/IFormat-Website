@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { motion } from "framer-motion";
+import { SectionHeader } from "@/components/ui/section-header";
 
 export function Leaders() {
   const leaders = [
@@ -29,18 +30,17 @@ export function Leaders() {
 
   return (
     <section className="py-24 bg-white overflow-hidden" id="leaders">
-      <div className="max-w-7xl mx-auto px-8">
+      <div className="max-w-360 mx-auto w-11/12">
         <motion.div 
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="text-center max-w-3xl mx-auto mb-16"
         >
-          <h2 className="text-4xl font-bold mb-4 text-slate-900">Meet the Leaders</h2>
-          <p className="text-slate-600 text-lg">
-            Work with industry veterans who understand the nuances of modern hiring and personal branding.
-          </p>
+          <SectionHeader
+            title="Meet the Leaders"
+            description="Work with industry veterans who understand the nuances of modern hiring and personal branding."
+          />
         </motion.div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">

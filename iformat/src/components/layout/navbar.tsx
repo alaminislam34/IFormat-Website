@@ -12,10 +12,10 @@ import { useAuthStore } from "@/stores/use-auth-store";
 import { useScrollDirection } from "@/hooks/use-scroll-direction";
 
 export function Navbar() {
+  const pathname = usePathname();
   const { user, isAuthenticated } = useAuthStore();
   const isEmployer = isAuthenticated && (user?.role === "employer" || user?.role === "EMPLOYER");
-  const { scrollDirection, isAtTop } = useScrollDirection(8);
-  const pathname = usePathname();
+  const { scrollDirection, isAtTop } = useScrollDirection(8, pathname);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isConsultModalOpen, setIsConsultModalOpen] = useState(false);
   const isHomePage = pathname === "/";
@@ -40,11 +40,11 @@ export function Navbar() {
           isScrolled
             ? "bg-white/95 backdrop-blur-md border-b border-slate-200/90 shadow-md shadow-slate-900/5 py-4"
             : isHomePage
-            ? "bg-transparent py-6"
+            ? "bg-transparent border-b border-white/0 py-6"
             : "bg-white border-b border-slate-100 py-5"
         }`}
       >
-        <div className="max-w-350 mx-auto px-8 md:px-12 lg:px-16 flex items-center justify-between w-full">
+        <div className="max-w-360 mx-auto w-11/12 flex items-center justify-between">
           <BrandLogo variant={!isScrolled && isHomePage ? "dark" : "light"} />
           
           <div
@@ -54,8 +54,8 @@ export function Navbar() {
                 : "text-slate-600"
             }`}
           >
-            <Link href="/#about" className="hover:text-[#0A54B1] transition-colors">
-              About
+            <Link href="/" className="hover:text-[#0A54B1] transition-colors">
+              Home
             </Link>
             <Link href="/services" className="hover:text-[#0A54B1] transition-colors">
               Solutions

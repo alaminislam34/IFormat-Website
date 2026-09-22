@@ -2,12 +2,21 @@
 
 import { useState, useEffect, useRef } from "react";
 
-export function useScrollDirection(threshold = 8) {
+export function useScrollDirection(threshold = 8, resetTrigger?: unknown) {
   const [scrollDirection, setScrollDirection] = useState<"up" | "down" | null>(null);
   const [isAtTop, setIsAtTop] = useState(true);
   const [scrollY, setScrollY] = useState(0);
 
   const lastScrollY = useRef(0);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setIsAtTop(window.scrollY < 40);
+      setScrollY(window.scrollY);
+      lastScrollY.current = window.scrollY;
+      setScrollDirection(null);
+    }
+  }, [resetTrigger]);
 
   useEffect(() => {
     let ticking = false;

@@ -32,20 +32,15 @@ export function Hero() {
 
   return (
     <section
-      className="relative min-h-screen flex flex-col justify-center"
-      style={{
-        background:
-          "linear-gradient(135deg, #0A54B1 0%, #52CEDE 50%, #FFFFFF 100%)",
-      }}
+      className="relative min-h-screen flex flex-col justify-center bg-linear-to-b from-[#0A54B1] via-[#52CEDE] to-[#FFFFFF]  "
+     
     >
-      {/* Consultation Modal */}
       <BookConsultationModal
         isOpen={isConsultModalOpen}
         onClose={() => setIsConsultModalOpen(false)}
         serviceTitle="Free 1-on-1 Career Brand Strategy Consultation"
       />
 
-      {/* Decorative Background Graphics (Contained to avoid clipping dropdowns) */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
         <motion.div 
           initial={{ opacity: 0, scale: 1.1, x: 50 }}
@@ -80,13 +75,13 @@ export function Hero() {
         <div className="absolute bottom-0 left-0 right-0 h-[35vh] bg-linear-to-t from-white via-white/80 to-transparent pointer-events-none z-2" />
       </div>
 
-      <div className="relative z-10 max-w-350 mx-auto px-8 md:px-12 lg:px-16 pt-32 pb-32 md:pb-40 w-full">
+      <div className="relative z-10 max-w-360 mx-auto pt-32 pb-32 md:pb-40 w-11/12">
         <div className="max-w-200">
           <motion.h1 
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.4 }}
-            className="font-extrabold text-white leading-[1.1] tracking-tight mb-6 text-5xl md:text-6xl lg:text-[4.5rem]"
+            className="font-bold drop-shadow text-white leading-[1.1] tracking-tight mb-6 text-5xl md:text-6xl lg:text-[4.5rem]"
           >
             Building Brand <span className="text-[#0A54B1]">Equity</span>
             <br />
@@ -125,7 +120,6 @@ export function Hero() {
             </Link>
           </motion.div>
 
-          {/* Job Search */}
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -153,7 +147,6 @@ export function Hero() {
                 <AnimatePresence>
                   {isDropdownOpen && (
                     <>
-                      {/* Click outside backdrop */}
                       <div 
                         className="fixed inset-0 z-40" 
                         onClick={() => setIsDropdownOpen(false)} 

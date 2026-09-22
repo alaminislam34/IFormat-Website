@@ -1,4 +1,5 @@
 import { ScrollReveal } from "@/components/ui/scroll-reveal";
+import { SectionHeader } from "@/components/ui/section-header";
 
 export function Process() {
   const steps = [
@@ -26,14 +27,16 @@ export function Process() {
 
   return (
     <section className="py-24 bg-[#0a4da6] text-white overflow-hidden relative" id="process">
-      <div className="max-w-7xl mx-auto px-8 relative z-10">
+      <div className="max-w-360 mx-auto w-11/12 relative z-10">
         <ScrollReveal yOffset={40}>
-          <div className="text-center max-w-2xl mx-auto mb-20">
-            <h2 className="text-4xl font-bold mb-4">Our Process</h2>
-            <p className="text-white/80 text-lg">
-              A streamlined, transparent journey from initial contact to final delivery.
-            </p>
-          </div>
+          <SectionHeader
+            theme="dark"
+            title="Our Process"
+            description="A streamlined, transparent journey from initial contact to final delivery."
+            descriptionClassName="text-white/80 text-lg"
+            maxWidth="max-w-2xl"
+            className="mb-20"
+          />
         </ScrollReveal>
 
         <div className="relative">
