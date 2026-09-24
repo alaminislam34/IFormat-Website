@@ -19,7 +19,7 @@ import {
 import { useAuthStore } from "@/stores/use-auth-store";
 import { toast } from "sonner";
 import { apiClient } from "@/lib/api/api-client";
-import Link from "next/link";
+import { AuthPromptModal } from "@/components/auth/auth-prompt-modal";
 
 interface BookConsultationModalProps {
   isOpen: boolean;
@@ -86,6 +86,11 @@ export function BookConsultationModal({
       return;
     }
 
+    if (!isAuthenticated) {
+      toast.error("You must be logged in to book a consultation");
+      return;
+    }
+
     try {
       setIsSubmitting(true);
       await apiClient.post("/bookings/free-consult", {
@@ -118,6 +123,30 @@ export function BookConsultationModal({
   };
 
   if (!mounted) return null;
+
+  if (!isAuthenticated) {
+    const returnUrl =
+      typeof window !== "undefined"
+        ? window.location.search.includes("consult=open")
+          ? `${window.location.pathname}${window.location.search}`
+          : `${window.location.pathname}${window.location.search ? `${window.location.search}&` : "?"}consult=open`
+        : "/?consult=open";
+
+    return (
+      <AuthPromptModal
+        isOpen={isOpen}
+        onClose={onClose}
+        title="Sign In to Book a Free Consult"
+        description="You must be logged in to book a free consultation session. Please sign in or register to proceed."
+        redirectUrl={returnUrl}
+        perks={[
+          "1-on-1 personalized career strategy advice",
+          "Comprehensive resume & portfolio evaluation",
+          "Targeted roadmap for executive & tech opportunities",
+        ]}
+      />
+    );
+  }
 
   const modalContent = (
     <AnimatePresence mode="wait">
@@ -159,17 +188,15 @@ export function BookConsultationModal({
               </button>
             </div>
 
-            {/* Prompt for unauthenticated guests */}
-            {!isAuthenticated && !isSuccess && (
-              <div className="mb-4 p-3 bg-blue-50/80 rounded-2xl border border-blue-100 flex items-center justify-between text-xs">
-                <span className="text-slate-600 font-medium">Already have an account?</span>
-                <Link
-                  href="/login?redirect=/?consult=open"
-                  onClick={onClose}
-                  className="font-bold text-[#0A54B1] hover:underline flex items-center gap-1 cursor-pointer"
-                >
-                  <LogIn className="w-3.5 h-3.5" /> Sign In First
-                </Link>
+            {/* Authenticated user banner */}
+            {!isSuccess && (
+              <div className="mb-4 p-3 bg-slate-50 rounded-2xl border border-slate-100 flex items-center justify-between text-xs">
+                <span className="text-slate-600 font-medium">
+                  Signed in as <strong className="text-slate-900">{user?.name || user?.email}</strong>
+                </span>
+                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
+                  <CheckCircle2 className="w-3 h-3" /> Logged In
+                </span>
               </div>
             )}
 

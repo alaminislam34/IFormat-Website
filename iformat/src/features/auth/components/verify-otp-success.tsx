@@ -5,8 +5,20 @@ import { motion } from "framer-motion";
 import { CheckCircle2, ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 
-export function VerifyOtpSuccess() {
+interface VerifyOtpSuccessProps {
+  redirectUrl?: string;
+}
+
+export function VerifyOtpSuccess({ redirectUrl }: VerifyOtpSuccessProps) {
   const router = useRouter();
+
+  const handleNext = () => {
+    if (redirectUrl && redirectUrl.startsWith("/")) {
+      router.push(`/account-type?redirect=${encodeURIComponent(redirectUrl)}`);
+    } else {
+      router.push("/account-type");
+    }
+  };
 
   return (
     <motion.div
@@ -25,7 +37,7 @@ export function VerifyOtpSuccess() {
       </div>
       <div className="w-full pt-2">
         <button
-          onClick={() => router.push("/account-type")}
+          onClick={handleNext}
           className="w-full h-12 bg-[#0A54B1] hover:bg-[#08428c] text-white text-sm font-bold rounded-xl flex items-center justify-center gap-2 shadow-md shadow-blue-500/20 hover:opacity-95 transition-all active:scale-[0.98] cursor-pointer"
         >
           <span>Choose Account Type</span>

@@ -37,7 +37,7 @@ export class BookingController {
 
   static async requestFreeConsult(req: Request, res: Response) {
     const booking = await BookingService.requestFreeConsultation(
-      req.user ? req.user.id : null,
+      req.user!.id,
       req.body
     );
     return ApiResponse.success(res, "Free consultation request submitted successfully", booking, 201);

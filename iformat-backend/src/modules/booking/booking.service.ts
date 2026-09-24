@@ -1,6 +1,6 @@
 import { prisma } from "../../lib/prisma.js";
 import { BookingStatus, Role } from "@prisma/client";
-import { NotFoundError, ConflictError, ForbiddenError } from "../../errors/index.js";
+import { NotFoundError, ConflictError, ForbiddenError, AuthError } from "../../errors/index.js";
 import { sendEmail } from "../../lib/mailer.js";
 import { env, getFrontendUrl } from "../../config/env.js";
 import { stripe } from "../../lib/stripe.js";
@@ -484,10 +484,10 @@ export class BookingService {
   }
 
   /**
-   * Free 1-on-1 Career Strategy Consultation Request
+   * Free 1-on-1 Career Strategy Consultation Request (Strictly requires authenticated user)
    */
   static async requestFreeConsultation(
-    userId: string | null,
+    userId: string,
     input: {
       name: string;
       email: string;
@@ -496,40 +496,23 @@ export class BookingService {
       description: string;
     }
   ) {
-    let targetUserId = userId;
-
-    if (!targetUserId) {
-      const existingUser = await prisma.user.findUnique({
-        where: { email: input.email.toLowerCase() },
-      });
-      if (existingUser) {
-        targetUserId = existingUser.id;
-      } else {
-        const newUser = await prisma.user.create({
-          data: {
-            email: input.email.toLowerCase(),
-            name: input.name,
-            phone: input.phone,
-            role: Role.CANDIDATE,
-            passwordHash: "lead-account-placeholder",
-          },
-        });
-        targetUserId = newUser.id;
-      }
-    } else {
-      await prisma.user
-        .update({
-          where: { id: targetUserId },
-          data: {
-            phone: input.phone || undefined,
-          },
-        })
-        .catch(() => {});
+    if (!userId) {
+      throw new AuthError("Authentication required to book a consultation");
     }
+
+    // Update user's phone or name if needed
+    await prisma.user
+      .update({
+        where: { id: userId },
+        data: {
+          phone: input.phone || undefined,
+        },
+      })
+      .catch(() => {});
 
     const booking = await prisma.booking.create({
       data: {
-        userId: targetUserId,
+        userId,
         serviceTitle: "Free 1-on-1 Career Strategy Consultation",
         priceInCents: 0,
         clientPhone: input.phone,

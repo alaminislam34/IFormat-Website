@@ -18,10 +18,10 @@ const router = Router();
 // Publicly viewable available slots
 router.get("/slots", catchAsync(BookingController.listAvailableSlots));
 
-// Request a Free 1-on-1 Consultation
+// Request a Free 1-on-1 Consultation (Strictly requires authenticated user)
 router.post(
   "/free-consult",
-  optionalAuth,
+  requireAuth,
   validate({ body: freeConsultSchema }),
   catchAsync(BookingController.requestFreeConsult)
 );
