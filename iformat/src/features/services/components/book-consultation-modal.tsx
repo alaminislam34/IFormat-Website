@@ -183,17 +183,6 @@ export function BookConsultationModal({
               </button>
             </div>
 
-            {/* Authenticated user banner */}
-            {!isSuccess && (
-              <div className="mb-4 p-3 bg-slate-50 rounded-2xl border border-slate-100 flex items-center justify-between text-xs">
-                <span className="text-slate-600 font-medium">
-                  Signed in as <strong className="text-slate-900">{user?.name || user?.email}</strong>
-                </span>
-                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
-                  <CheckCircle2 className="w-3 h-3" /> Logged In
-                </span>
-              </div>
-            )}
 
             {isSuccess ? (
               <div className="text-center py-8 space-y-4">

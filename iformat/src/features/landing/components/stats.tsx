@@ -49,15 +49,8 @@ export function Stats() {
   return (
     <div className="bg-slate-50 overflow-hidden">
       <section className="relative w-full h-[65vh] min-h-115 max-h-180 bg-[#070b14] flex items-center justify-center overflow-hidden group select-none">
-        <video
-          key={`ambient-${activeVideo.videoUrl}`}
-          src={activeVideo.videoUrl}
-          className="absolute inset-0 w-full h-full object-cover blur-2xl opacity-25 pointer-events-none scale-110"
-          muted
-          loop
-          autoPlay
-          playsInline
-        />
+        {/* Lightweight ambient glow (replaces heavy second video instance) */}
+        <div className="absolute inset-0 bg-radial from-cyan-500/15 via-transparent to-transparent pointer-events-none" />
 
         <video
           ref={videoRef}
@@ -67,6 +60,7 @@ export function Stats() {
           playsInline
           loop
           autoPlay
+          preload="metadata"
           muted={isMuted}
           onPlay={() => setIsPlaying(true)}
           onPause={() => setIsPlaying(false)}
