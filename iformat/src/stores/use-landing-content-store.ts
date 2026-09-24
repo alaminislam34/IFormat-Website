@@ -9,6 +9,16 @@ export interface LeaderMember {
   image: string;
 }
 
+export interface PartnerMember {
+  id: string;
+  name: string;
+  position: string;
+  company?: string;
+  image: string;
+  link?: string;
+  bio?: string;
+}
+
 export interface VideoSettings {
   videoUrl: string;
   title: string;
@@ -19,6 +29,12 @@ export interface LeadersSettings {
   sectionTitle: string;
   sectionDescription: string;
   members: LeaderMember[];
+}
+
+export interface PartnersSettings {
+  sectionTitle: string;
+  sectionDescription: string;
+  members: PartnerMember[];
 }
 
 export const DEFAULT_VIDEO_SETTINGS: VideoSettings = {
@@ -66,9 +82,58 @@ export const DEFAULT_LEADERS_SETTINGS: LeadersSettings = {
   ],
 };
 
+export const DEFAULT_PARTNERS_SETTINGS: PartnersSettings = {
+  sectionTitle: "Strategic Partners",
+  sectionDescription:
+    "Collaborating with elite global talent networks, venture builders, and executive organizations.",
+  members: [
+    {
+      id: "partner-1",
+      name: "Marcus Sterling",
+      position: "Managing Partner",
+      company: "Apex Talent Ventures",
+      image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=800",
+      link: "https://linkedin.com",
+    },
+    {
+      id: "partner-2",
+      name: "Sophia Chen",
+      position: "Head of Global Placement",
+      company: "Silicon Talent Guild",
+      image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&q=80&w=800",
+      link: "https://linkedin.com",
+    },
+    {
+      id: "partner-3",
+      name: "David Montgomery",
+      position: "Principal Career Architect",
+      company: "Vanguard Executive",
+      image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=800",
+      link: "https://linkedin.com",
+    },
+    {
+      id: "partner-4",
+      name: "Elena Rostova",
+      position: "Advisory Board Director",
+      company: "Global Career Alliance",
+      image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=800",
+      link: "https://linkedin.com",
+    },
+    {
+      id: "partner-5",
+      name: "Kavita Rao",
+      position: "Strategic Brand Consultant",
+      company: "Aura Leadership Network",
+      image: "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?auto=format&fit=crop&q=80&w=800",
+      link: "https://linkedin.com",
+    },
+  ],
+};
+
 interface LandingContentState {
   videoSettings: VideoSettings;
   leadersSettings: LeadersSettings;
+  partnersSettings: PartnersSettings;
   isHydrated: boolean;
   isSaving: boolean;
 
@@ -76,11 +141,16 @@ interface LandingContentState {
   setHydrated: (val: boolean) => void;
   updateVideoSettings: (settings: Partial<VideoSettings>) => void;
   updateLeadersSettings: (settings: Partial<LeadersSettings>) => void;
+  updatePartnersSettings: (settings: Partial<PartnersSettings>) => void;
   addLeader: (member: Omit<LeaderMember, "id"> & { id?: string }) => void;
   updateLeader: (id: string, member: Partial<LeaderMember>) => void;
   deleteLeader: (id: string) => void;
+  addPartner: (partner: Omit<PartnerMember, "id"> & { id?: string }) => void;
+  updatePartner: (id: string, partner: Partial<PartnerMember>) => void;
+  deletePartner: (id: string) => void;
   resetVideoToDefault: () => void;
   resetLeadersToDefault: () => void;
+  resetPartnersToDefault: () => void;
   syncWithBackend: () => Promise<void>;
   saveToBackend: () => Promise<void>;
 }
@@ -90,6 +160,7 @@ export const useLandingContentStore = create<LandingContentState>()(
     (set, get) => ({
       videoSettings: DEFAULT_VIDEO_SETTINGS,
       leadersSettings: DEFAULT_LEADERS_SETTINGS,
+      partnersSettings: DEFAULT_PARTNERS_SETTINGS,
       isHydrated: false,
       isSaving: false,
 
@@ -108,6 +179,15 @@ export const useLandingContentStore = create<LandingContentState>()(
         set((state) => ({
           leadersSettings: {
             ...state.leadersSettings,
+            ...settings,
+          },
+        }));
+      },
+
+      updatePartnersSettings: (settings) => {
+        set((state) => ({
+          partnersSettings: {
+            ...state.partnersSettings,
             ...settings,
           },
         }));
@@ -151,12 +231,57 @@ export const useLandingContentStore = create<LandingContentState>()(
         }));
       },
 
+      addPartner: (partner) => {
+        const id = partner.id?.trim() || `partner-${Date.now()}`;
+        set((state) => ({
+          partnersSettings: {
+            ...state.partnersSettings,
+            members: [
+              ...state.partnersSettings.members,
+              {
+                id,
+                name: partner.name,
+                position: partner.position,
+                company: partner.company,
+                image: partner.image,
+                link: partner.link,
+                bio: partner.bio,
+              },
+            ],
+          },
+        }));
+      },
+
+      updatePartner: (id, partner) => {
+        set((state) => ({
+          partnersSettings: {
+            ...state.partnersSettings,
+            members: state.partnersSettings.members.map((p) =>
+              p.id === id ? { ...p, ...partner } : p
+            ),
+          },
+        }));
+      },
+
+      deletePartner: (id) => {
+        set((state) => ({
+          partnersSettings: {
+            ...state.partnersSettings,
+            members: state.partnersSettings.members.filter((p) => p.id !== id),
+          },
+        }));
+      },
+
       resetVideoToDefault: () => {
         set({ videoSettings: DEFAULT_VIDEO_SETTINGS });
       },
 
       resetLeadersToDefault: () => {
         set({ leadersSettings: DEFAULT_LEADERS_SETTINGS });
+      },
+
+      resetPartnersToDefault: () => {
+        set({ partnersSettings: DEFAULT_PARTNERS_SETTINGS });
       },
 
       syncWithBackend: async () => {
@@ -178,6 +303,13 @@ export const useLandingContentStore = create<LandingContentState>()(
                   : data.homepage_leaders;
               set({ leadersSettings: leaders });
             }
+            if (data.homepage_partners) {
+              const partners =
+                typeof data.homepage_partners === "string"
+                  ? JSON.parse(data.homepage_partners)
+                  : data.homepage_partners;
+              set({ partnersSettings: partners });
+            }
           }
         } catch {
           // Fallback to localStorage gracefully
@@ -187,10 +319,11 @@ export const useLandingContentStore = create<LandingContentState>()(
       saveToBackend: async () => {
         set({ isSaving: true });
         try {
-          const { videoSettings, leadersSettings } = get();
+          const { videoSettings, leadersSettings, partnersSettings } = get();
           await apiClient.patch("/settings", {
             homepage_video: JSON.stringify(videoSettings),
             homepage_leaders: JSON.stringify(leadersSettings),
+            homepage_partners: JSON.stringify(partnersSettings),
           });
         } catch {
           // Saved to localStorage regardless

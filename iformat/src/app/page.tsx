@@ -6,6 +6,7 @@ import { JobAssistantSection } from "@/features/landing/components/job-assistant
 import { Methodology } from "@/features/landing/components/methodology";
 import { Process } from "@/features/landing/components/process";
 import { Leaders } from "@/features/landing/components/leaders";
+import { Partners } from "@/features/landing/components/partners";
 import { Stats } from "@/features/landing/components/stats";
 import { Contact } from "@/features/landing/components/contact";
 import { Footer } from "@/components/layout/footer";
@@ -21,6 +22,7 @@ export default function Home() {
       <Methodology />
       <Process />
       <Leaders />
+      <Partners />
       <Stats />
       <Contact />
       <Footer />

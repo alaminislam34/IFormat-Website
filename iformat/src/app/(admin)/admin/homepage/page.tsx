@@ -6,6 +6,7 @@ import Link from "next/link";
 import {
   Film,
   Users,
+  Handshake,
   Upload,
   Plus,
   Trash2,
@@ -22,14 +23,18 @@ import {
   Loader2,
   FileVideo,
   ImageIcon,
+  Building2,
+  Globe,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AdminPageHeader } from "@/features/admin/components/shared/admin-page-header";
 import {
   useLandingContentStore,
   LeaderMember,
+  PartnerMember,
   DEFAULT_VIDEO_SETTINGS,
   DEFAULT_LEADERS_SETTINGS,
+  DEFAULT_PARTNERS_SETTINGS,
 } from "@/stores/use-landing-content-store";
 import { apiClient } from "@/lib/api/api-client";
 import { toast } from "sonner";
@@ -38,20 +43,26 @@ export default function AdminHomepageContentPage() {
   const {
     videoSettings,
     leadersSettings,
+    partnersSettings,
     updateVideoSettings,
     updateLeadersSettings,
+    updatePartnersSettings,
     addLeader,
     updateLeader,
     deleteLeader,
+    addPartner,
+    updatePartner,
+    deletePartner,
     resetVideoToDefault,
     resetLeadersToDefault,
+    resetPartnersToDefault,
     syncWithBackend,
     saveToBackend,
     isSaving,
     isHydrated,
   } = useLandingContentStore();
 
-  const [activeTab, setActiveTab] = useState<"video" | "leaders">("video");
+  const [activeTab, setActiveTab] = useState<"video" | "leaders" | "partners">("video");
 
   // Local Form States for Video
   const [videoUrl, setVideoUrl] = useState(videoSettings.videoUrl);
@@ -61,8 +72,8 @@ export default function AdminHomepageContentPage() {
   const videoInputRef = useRef<HTMLInputElement>(null);
 
   // Local Form States for Leaders Section
-  const [sectionTitle, setSectionTitle] = useState(leadersSettings.sectionTitle);
-  const [sectionDescription, setSectionDescription] = useState(leadersSettings.sectionDescription);
+  const [leadersSectionTitle, setLeadersSectionTitle] = useState(leadersSettings.sectionTitle);
+  const [leadersSectionDescription, setLeadersSectionDescription] = useState(leadersSettings.sectionDescription);
   const [editingLeader, setEditingLeader] = useState<LeaderMember | null>(null);
   const [isAddingLeader, setIsAddingLeader] = useState(false);
   const [isUploadingLeaderImage, setIsUploadingLeaderImage] = useState(false);
@@ -72,6 +83,22 @@ export default function AdminHomepageContentPage() {
     image: "",
   });
   const leaderImageInputRef = useRef<HTMLInputElement>(null);
+
+  // Local Form States for Partners Section
+  const [partnersSectionTitle, setPartnersSectionTitle] = useState(partnersSettings.sectionTitle);
+  const [partnersSectionDescription, setPartnersSectionDescription] = useState(partnersSettings.sectionDescription);
+  const [editingPartner, setEditingPartner] = useState<PartnerMember | null>(null);
+  const [isAddingPartner, setIsAddingPartner] = useState(false);
+  const [isUploadingPartnerImage, setIsUploadingPartnerImage] = useState(false);
+  const [partnerFormData, setPartnerFormData] = useState({
+    name: "",
+    position: "",
+    company: "",
+    image: "",
+    link: "",
+    bio: "",
+  });
+  const partnerImageInputRef = useRef<HTMLInputElement>(null);
 
   // Sync on initial mount
   useEffect(() => {
@@ -84,10 +111,14 @@ export default function AdminHomepageContentPage() {
       setVideoUrl(videoSettings.videoUrl);
       setVideoTitle(videoSettings.title);
       setVideoDescription(videoSettings.description);
-      setSectionTitle(leadersSettings.sectionTitle);
-      setSectionDescription(leadersSettings.sectionDescription);
+
+      setLeadersSectionTitle(leadersSettings.sectionTitle);
+      setLeadersSectionDescription(leadersSettings.sectionDescription);
+
+      setPartnersSectionTitle(partnersSettings.sectionTitle);
+      setPartnersSectionDescription(partnersSettings.sectionDescription);
     }
-  }, [isHydrated, videoSettings, leadersSettings]);
+  }, [isHydrated, videoSettings, leadersSettings, partnersSettings]);
 
   // Handle Video File Upload
   const handleVideoFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -109,20 +140,14 @@ export default function AdminHomepageContentPage() {
       const formData = new FormData();
       formData.append("file", file);
 
-      const res = await apiClient.post<any>("/upload/media", formData, {
-        headers: {
-          // fetch automatically sets multipart boundary
-        },
-      });
-
+      const res = await apiClient.post<any>("/upload/media", formData);
       const uploadedUrl = res?.data?.url || res?.url;
       if (uploadedUrl) {
         setVideoUrl(uploadedUrl);
         updateVideoSettings({ videoUrl: uploadedUrl });
         toast.success("New promotional video uploaded successfully!");
       }
-    } catch (err: any) {
-      // Fallback: If backend is offline, create object URL for local preview
+    } catch {
       const localPreviewUrl = URL.createObjectURL(file);
       setVideoUrl(localPreviewUrl);
       updateVideoSettings({ videoUrl: localPreviewUrl });
@@ -175,7 +200,6 @@ export default function AdminHomepageContentPage() {
         toast.success("Leader image uploaded!");
       }
     } catch {
-      // Fallback object URL
       const localPreview = URL.createObjectURL(file);
       setLeaderFormData((prev) => ({ ...prev, image: localPreview }));
       toast.info("Image preview updated.");
@@ -218,8 +242,8 @@ export default function AdminHomepageContentPage() {
   const handleSaveLeadersSection = async (e: React.FormEvent) => {
     e.preventDefault();
     updateLeadersSettings({
-      sectionTitle: sectionTitle.trim(),
-      sectionDescription: sectionDescription.trim(),
+      sectionTitle: leadersSectionTitle.trim(),
+      sectionDescription: leadersSectionDescription.trim(),
     });
     await saveToBackend();
     toast.success("Leadership section text updated successfully!");
@@ -228,9 +252,94 @@ export default function AdminHomepageContentPage() {
   // Handle Reset Leaders
   const handleResetLeaders = () => {
     resetLeadersToDefault();
-    setSectionTitle(DEFAULT_LEADERS_SETTINGS.sectionTitle);
-    setSectionDescription(DEFAULT_LEADERS_SETTINGS.sectionDescription);
+    setLeadersSectionTitle(DEFAULT_LEADERS_SETTINGS.sectionTitle);
+    setLeadersSectionDescription(DEFAULT_LEADERS_SETTINGS.sectionDescription);
     toast.info("Leadership team reset to default.");
+  };
+
+  // Handle Partner Image Upload
+  const handlePartnerImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please upload a valid image file (PNG, JPG, WebP).");
+      return;
+    }
+
+    try {
+      setIsUploadingPartnerImage(true);
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await apiClient.post<any>("/upload/media", formData);
+      const uploadedUrl = res?.data?.url || res?.url;
+      if (uploadedUrl) {
+        setPartnerFormData((prev) => ({ ...prev, image: uploadedUrl }));
+        toast.success("Partner image uploaded!");
+      }
+    } catch {
+      const localPreview = URL.createObjectURL(file);
+      setPartnerFormData((prev) => ({ ...prev, image: localPreview }));
+      toast.info("Partner image preview updated.");
+    } finally {
+      setIsUploadingPartnerImage(false);
+    }
+  };
+
+  // Handle Save Partner (Create or Update)
+  const handleSavePartnerModal = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!partnerFormData.name.trim() || !partnerFormData.position.trim()) {
+      toast.error("Please provide both a name and position for the partner.");
+      return;
+    }
+
+    if (editingPartner) {
+      updatePartner(editingPartner.id, {
+        name: partnerFormData.name.trim(),
+        position: partnerFormData.position.trim(),
+        company: partnerFormData.company.trim(),
+        image: partnerFormData.image.trim() || DEFAULT_PARTNERS_SETTINGS.members[0].image,
+        link: partnerFormData.link.trim(),
+        bio: partnerFormData.bio.trim(),
+      });
+      toast.success("Partner updated successfully!");
+    } else {
+      addPartner({
+        name: partnerFormData.name.trim(),
+        position: partnerFormData.position.trim(),
+        company: partnerFormData.company.trim(),
+        image: partnerFormData.image.trim() || DEFAULT_PARTNERS_SETTINGS.members[0].image,
+        link: partnerFormData.link.trim(),
+        bio: partnerFormData.bio.trim(),
+      });
+      toast.success("New partner added!");
+    }
+
+    setEditingPartner(null);
+    setIsAddingPartner(false);
+    setPartnerFormData({ name: "", position: "", company: "", image: "", link: "", bio: "" });
+    saveToBackend();
+  };
+
+  // Handle Save Partners Section Headers
+  const handleSavePartnersSection = async (e: React.FormEvent) => {
+    e.preventDefault();
+    updatePartnersSettings({
+      sectionTitle: partnersSectionTitle.trim(),
+      sectionDescription: partnersSectionDescription.trim(),
+    });
+    await saveToBackend();
+    toast.success("Partners section text updated successfully!");
+  };
+
+  // Handle Reset Partners
+  const handleResetPartners = () => {
+    resetPartnersToDefault();
+    setPartnersSectionTitle(DEFAULT_PARTNERS_SETTINGS.sectionTitle);
+    setPartnersSectionDescription(DEFAULT_PARTNERS_SETTINGS.sectionDescription);
+    toast.info("Partners section reset to default.");
   };
 
   return (
@@ -238,7 +347,7 @@ export default function AdminHomepageContentPage() {
       {/* Header */}
       <AdminPageHeader
         title="Homepage Content & Media"
-        description="Edit the landing page promotional vision video, headlines, and leadership team profiles in real time."
+        description="Edit the landing page promotional vision video, headlines, leadership team profiles, and strategic partners in real time."
       >
         <div className="flex items-center gap-2">
           <Link
@@ -253,10 +362,10 @@ export default function AdminHomepageContentPage() {
       </AdminPageHeader>
 
       {/* Navigation Tabs */}
-      <div className="flex items-center gap-2 border-b border-slate-200/80 pb-2">
+      <div className="flex items-center gap-2 border-b border-slate-200/80 pb-2 overflow-x-auto">
         <button
           onClick={() => setActiveTab("video")}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
             activeTab === "video"
               ? "bg-[#0A54B1] text-white shadow-xs"
               : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
@@ -268,7 +377,7 @@ export default function AdminHomepageContentPage() {
 
         <button
           onClick={() => setActiveTab("leaders")}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
             activeTab === "leaders"
               ? "bg-[#0A54B1] text-white shadow-xs"
               : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
@@ -276,6 +385,18 @@ export default function AdminHomepageContentPage() {
         >
           <Users className="w-4 h-4" />
           <span>Executive Leadership Team ({leadersSettings.members.length})</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab("partners")}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
+            activeTab === "partners"
+              ? "bg-[#0A54B1] text-white shadow-xs"
+              : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+          }`}
+        >
+          <Handshake className="w-4 h-4" />
+          <span>Strategic Partners ({partnersSettings.members.length})</span>
         </button>
       </div>
 
@@ -482,8 +603,8 @@ export default function AdminHomepageContentPage() {
                 <input
                   type="text"
                   required
-                  value={sectionTitle}
-                  onChange={(e) => setSectionTitle(e.target.value)}
+                  value={leadersSectionTitle}
+                  onChange={(e) => setLeadersSectionTitle(e.target.value)}
                   placeholder="Meet the Leaders"
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-colors"
                 />
@@ -496,8 +617,8 @@ export default function AdminHomepageContentPage() {
                 <input
                   type="text"
                   required
-                  value={sectionDescription}
-                  onChange={(e) => setSectionDescription(e.target.value)}
+                  value={leadersSectionDescription}
+                  onChange={(e) => setLeadersSectionDescription(e.target.value)}
                   placeholder="Work with industry veterans who understand modern hiring..."
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-colors"
                 />
@@ -629,6 +750,225 @@ export default function AdminHomepageContentPage() {
                           deleteLeader(leader.id);
                           saveToBackend();
                           toast.success(`${leader.name} removed.`);
+                        }
+                      }}
+                      className="text-xs font-semibold text-rose-500 hover:text-rose-700 cursor-pointer"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 3: PARTNERS MANAGEMENT */}
+      {activeTab === "partners" && (
+        <div className="space-y-8">
+          {/* Section Headers Configuration */}
+          <div className="bg-white border border-slate-200/80 rounded-3xl p-6 sm:p-8 shadow-xs space-y-6">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+              <div>
+                <h3 className="text-base font-bold text-slate-900">
+                  Strategic Partners Section Titles
+                </h3>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Configure the section heading and descriptive text displayed above the partner cards on the landing page.
+                </p>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleResetPartners}
+                className="text-xs text-slate-600 rounded-xl cursor-pointer"
+              >
+                <RotateCcw className="w-3.5 h-3.5 mr-1.5" />
+                Reset Defaults
+              </Button>
+            </div>
+
+            <form onSubmit={handleSavePartnersSection} className="grid md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                  Section Title
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={partnersSectionTitle}
+                  onChange={(e) => setPartnersSectionTitle(e.target.value)}
+                  placeholder="Strategic Partners"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-colors"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                  Section Description
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={partnersSectionDescription}
+                  onChange={(e) => setPartnersSectionDescription(e.target.value)}
+                  placeholder="Collaborating with elite global talent networks..."
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-colors"
+                />
+              </div>
+
+              <div className="md:col-span-2 flex justify-end pt-1">
+                <Button
+                  type="submit"
+                  size="sm"
+                  disabled={isSaving}
+                  className="bg-[#0A54B1] hover:bg-[#08438e] text-white rounded-xl text-xs font-semibold px-5 cursor-pointer"
+                >
+                  Save Section Header
+                </Button>
+              </div>
+            </form>
+          </div>
+
+          {/* Partners List & Cards */}
+          <div className="bg-white border border-slate-200/80 rounded-3xl p-6 sm:p-8 shadow-xs space-y-6">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+              <div>
+                <h3 className="text-base font-bold text-slate-900">
+                  Partner Profiles ({partnersSettings.members.length})
+                </h3>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Manage photos, names, positions, company associations, and website links for each strategic partner.
+                </p>
+              </div>
+              <Button
+                type="button"
+                onClick={() => {
+                  setEditingPartner(null);
+                  setPartnerFormData({ name: "", position: "", company: "", image: "", link: "", bio: "" });
+                  setIsAddingPartner(true);
+                }}
+                className="bg-[#0A54B1] hover:bg-[#08438e] text-white rounded-xl text-xs font-bold px-4 py-2 flex items-center gap-1.5 cursor-pointer shadow-xs"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Add Partner</span>
+              </Button>
+            </div>
+
+            {/* Grid of Partners */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-5">
+              {partnersSettings.members.map((partner) => (
+                <div
+                  key={partner.id}
+                  className="group relative bg-slate-50 rounded-3xl overflow-hidden border border-slate-200/80 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between"
+                >
+                  {/* Image Container */}
+                  <div className="relative aspect-3/4 w-full bg-slate-200 overflow-hidden">
+                    {partner.image ? (
+                      <Image
+                        src={partner.image}
+                        alt={partner.name}
+                        fill
+                        className="object-cover object-top group-hover:scale-105 transition-transform duration-500"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-slate-400 bg-slate-100">
+                        <Handshake className="w-10 h-10" />
+                      </div>
+                    )}
+                    <div className="absolute inset-0 bg-linear-to-t from-slate-950/90 via-black/30 to-transparent" />
+
+                    {/* Quick Action Badges */}
+                    <div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                      <button
+                        onClick={() => {
+                          setEditingPartner(partner);
+                          setPartnerFormData({
+                            name: partner.name,
+                            position: partner.position,
+                            company: partner.company || "",
+                            image: partner.image,
+                            link: partner.link || "",
+                            bio: partner.bio || "",
+                          });
+                          setIsAddingPartner(true);
+                        }}
+                        className="p-1.5 rounded-lg bg-black/60 hover:bg-black text-white transition-colors cursor-pointer"
+                        title="Edit Partner"
+                      >
+                        <Edit2 className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (confirm(`Remove ${partner.name} from partners?`)) {
+                            deletePartner(partner.id);
+                            saveToBackend();
+                            toast.success(`${partner.name} removed.`);
+                          }
+                        }}
+                        className="p-1.5 rounded-lg bg-rose-600/80 hover:bg-rose-600 text-white transition-colors cursor-pointer"
+                        title="Delete Partner"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+
+                    {/* Details on Photo */}
+                    <div className="absolute bottom-0 left-0 right-0 p-3.5 text-white">
+                      {partner.company && (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-cyan-300 bg-cyan-950/70 border border-cyan-500/20 px-2 py-0.5 rounded-md backdrop-blur-xs mb-1 truncate max-w-full">
+                          <Building2 className="w-2.5 h-2.5 shrink-0" />
+                          <span className="truncate">{partner.company}</span>
+                        </span>
+                      )}
+                      <h4 className="font-bold text-sm leading-tight drop-shadow-xs truncate">
+                        {partner.name}
+                      </h4>
+                      <p className="text-[11px] font-semibold text-cyan-300 drop-shadow-xs truncate mt-0.5">
+                        {partner.position}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Bottom Footer Actions */}
+                  <div className="p-2.5 bg-white border-t border-slate-100 flex items-center justify-between text-xs">
+                    <button
+                      onClick={() => {
+                        setEditingPartner(partner);
+                        setPartnerFormData({
+                          name: partner.name,
+                          position: partner.position,
+                          company: partner.company || "",
+                          image: partner.image,
+                          link: partner.link || "",
+                          bio: partner.bio || "",
+                        });
+                        setIsAddingPartner(true);
+                      }}
+                      className="text-xs font-semibold text-sky-600 hover:text-sky-800 cursor-pointer"
+                    >
+                      Edit
+                    </button>
+
+                    {partner.link && (
+                      <Link
+                        href={partner.link}
+                        target="_blank"
+                        className="text-xs font-medium text-slate-500 hover:text-sky-600 inline-flex items-center gap-1"
+                      >
+                        <span>Link</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </Link>
+                    )}
+
+                    <button
+                      onClick={() => {
+                        if (confirm(`Remove ${partner.name}?`)) {
+                          deletePartner(partner.id);
+                          saveToBackend();
+                          toast.success(`${partner.name} removed.`);
                         }
                       }}
                       className="text-xs font-semibold text-rose-500 hover:text-rose-700 cursor-pointer"
@@ -798,6 +1138,200 @@ export default function AdminHomepageContentPage() {
                   className="bg-[#0A54B1] hover:bg-[#08438e] text-white rounded-xl text-xs font-semibold px-5 cursor-pointer"
                 >
                   {editingLeader ? "Save Changes" : "Add Leader"}
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Add / Edit Partner Modal */}
+      {isAddingPartner && (
+        <div className="fixed inset-0 z-100000 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs animate-in fade-in duration-200">
+          <div
+            className="absolute inset-0 cursor-pointer"
+            onClick={() => {
+              setIsAddingPartner(false);
+              setEditingPartner(null);
+            }}
+          />
+
+          <div className="relative z-10 w-full max-w-md bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden animate-in zoom-in-95 duration-200 p-6 sm:p-7 space-y-5">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div>
+                <h3 className="text-base font-bold text-slate-900">
+                  {editingPartner ? "Edit Partner Profile" : "Add Strategic Partner"}
+                </h3>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Configure photo, executive position, company, and links.
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  setIsAddingPartner(false);
+                  setEditingPartner(null);
+                }}
+                className="p-1.5 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-700 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSavePartnerModal} className="space-y-4">
+              {/* Photo Preview & Upload */}
+              <div className="flex items-center gap-4">
+                <div className="relative w-20 h-24 rounded-2xl bg-slate-100 border border-slate-200 overflow-hidden shrink-0">
+                  {partnerFormData.image ? (
+                    <Image
+                      src={partnerFormData.image}
+                      alt="Partner Preview"
+                      fill
+                      className="object-cover object-top"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-slate-400">
+                      <Handshake className="w-8 h-8" />
+                    </div>
+                  )}
+                </div>
+
+                <div className="space-y-2 flex-1">
+                  <input
+                    type="file"
+                    ref={partnerImageInputRef}
+                    onChange={handlePartnerImageUpload}
+                    accept="image/*"
+                    className="hidden"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => partnerImageInputRef.current?.click()}
+                    disabled={isUploadingPartnerImage}
+                    className="w-full text-xs font-semibold rounded-xl cursor-pointer"
+                  >
+                    {isUploadingPartnerImage ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                        Uploading...
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="w-3.5 h-3.5 mr-1.5" />
+                        Upload Partner Photo
+                      </>
+                    )}
+                  </Button>
+                  <p className="text-[11px] text-slate-400 leading-tight">
+                    Recommended: 3:4 portrait photo (JPG, PNG, WebP).
+                  </p>
+                </div>
+              </div>
+
+              {/* Photo URL */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Photo Path or URL
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={partnerFormData.image}
+                  onChange={(e) =>
+                    setPartnerFormData((prev) => ({ ...prev, image: e.target.value }))
+                  }
+                  placeholder="https://... or /leaders/..."
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 font-mono focus:outline-none focus:border-sky-500 transition-colors"
+                />
+              </div>
+
+              {/* Full Name */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Partner Name
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={partnerFormData.name}
+                  onChange={(e) =>
+                    setPartnerFormData((prev) => ({ ...prev, name: e.target.value }))
+                  }
+                  placeholder="e.g. Marcus Sterling"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-sky-500 transition-colors"
+                />
+              </div>
+
+              {/* Position */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Position / Title
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={partnerFormData.position}
+                  onChange={(e) =>
+                    setPartnerFormData((prev) => ({ ...prev, position: e.target.value }))
+                  }
+                  placeholder="e.g. Managing Partner"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-sky-500 transition-colors"
+                />
+              </div>
+
+              {/* Company / Organization (optional) */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Company / Organization <span className="text-slate-400 font-normal">(Optional)</span>
+                </label>
+                <input
+                  type="text"
+                  value={partnerFormData.company}
+                  onChange={(e) =>
+                    setPartnerFormData((prev) => ({ ...prev, company: e.target.value }))
+                  }
+                  placeholder="e.g. Apex Talent Ventures"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-sky-500 transition-colors"
+                />
+              </div>
+
+              {/* Website / LinkedIn Link (optional) */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Website / Profile Link <span className="text-slate-400 font-normal">(Optional)</span>
+                </label>
+                <input
+                  type="url"
+                  value={partnerFormData.link}
+                  onChange={(e) =>
+                    setPartnerFormData((prev) => ({ ...prev, link: e.target.value }))
+                  }
+                  placeholder="https://linkedin.com/in/..."
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-sky-500 transition-colors"
+                />
+              </div>
+
+              {/* Actions */}
+              <div className="pt-2 flex items-center justify-end gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setIsAddingPartner(false);
+                    setEditingPartner(null);
+                  }}
+                  className="rounded-xl cursor-pointer"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  size="sm"
+                  className="bg-[#0A54B1] hover:bg-[#08438e] text-white rounded-xl text-xs font-semibold px-5 cursor-pointer"
+                >
+                  {editingPartner ? "Save Changes" : "Add Partner"}
                 </Button>
               </div>
             </form>
