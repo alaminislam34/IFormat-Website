@@ -6,10 +6,11 @@ import { CreateCheckoutSessionDto, CreateCustomerPortalDto, CancelSubscriptionDt
 
 export class PaymentController {
   static async createCheckout(req: Request, res: Response) {
-    const { planId, successUrl, cancelUrl }: CreateCheckoutSessionDto = req.body;
+    const { planId, phone, successUrl, cancelUrl }: CreateCheckoutSessionDto = req.body;
     const result = await PaymentService.createCheckoutSession(
       req.user!.id,
       planId,
+      phone,
       successUrl,
       cancelUrl
     );

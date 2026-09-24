@@ -2,7 +2,7 @@ import { prisma } from "../../lib/prisma.js";
 import { stripe } from "../../lib/stripe.js";
 import { env, getFrontendUrl } from "../../config/env.js";
 import { logger } from "../../utils/logger.js";
-import { ConflictError, NotFoundError, ValidationError, ForbiddenError } from "../../errors/index.js";
+import { ConflictError, NotFoundError, ValidationError, ForbiddenError, BadRequestError } from "../../errors/index.js";
 import { PlanService } from "../plan/plan.service.js";
 import { UserSubscriptionDetails } from "./payment.types.js";
 import { Role, SubscriptionStatus, PlanAudience, PlanBillingInterval } from "@prisma/client";
@@ -25,6 +25,7 @@ export class PaymentService {
   static async createCheckoutSession(
     userId: string,
     planIdOrCode: string,
+    phoneInput?: string,
     successUrlOverride?: string,
     cancelUrlOverride?: string
   ) {
@@ -35,6 +36,21 @@ export class PaymentService {
 
     if (!user) {
       throw new NotFoundError("User", userId);
+    }
+
+    // Require contact phone number at subscription time
+    const effectivePhone = phoneInput?.trim() || user.phone?.trim();
+    if (!effectivePhone) {
+      throw new BadRequestError("A valid contact phone number is required to subscribe.");
+    }
+
+    // Persist phone number to user profile if provided/updated
+    if (phoneInput?.trim() && phoneInput.trim() !== user.phone) {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { phone: phoneInput.trim() },
+      });
+      user.phone = phoneInput.trim();
     }
 
     const targetPlan = await PlanService.getPlanByIdOrCode(planIdOrCode);
@@ -143,6 +159,9 @@ export class PaymentService {
       customer: customerId,
       client_reference_id: user.id,
       line_items: lineItems,
+      phone_number_collection: {
+        enabled: true,
+      },
       success_url: successUrl,
       cancel_url: cancelUrl,
       metadata: {
@@ -610,6 +629,16 @@ export class PaymentService {
         if (!userId) {
           logger.warn(`⚠️ [Webhook] checkout.session.completed missing userId`);
           break;
+        }
+
+        const collectedPhone = (session as any).customer_details?.phone;
+        if (collectedPhone) {
+          await prisma.user.update({
+            where: { id: userId },
+            data: { phone: collectedPhone },
+          }).catch((err) => {
+            logger.warn(`⚠️ [Webhook] Failed to update phone for user ${userId}: ${err.message}`);
+          });
         }
 
         const plan = planCode

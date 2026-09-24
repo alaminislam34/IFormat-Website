@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import { User, Briefcase, Mail, Phone, MapPin, Globe, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
@@ -39,7 +38,6 @@ export function StepPersonalInfo({ data, errors = {}, onChange, onNext }: StepPe
       key="step1"
       className="space-y-7"
     >
-      {/* Step Header */}
       <div className="flex items-center gap-3.5 pb-2 border-b border-slate-100">
         <div className="w-11 h-11 bg-sky-50 text-[#0A54B1] rounded-2xl border border-sky-100 flex items-center justify-center shrink-0">
           <User className="w-5 h-5 text-[#0A54B1]" />
@@ -55,7 +53,6 @@ export function StepPersonalInfo({ data, errors = {}, onChange, onNext }: StepPe
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        {/* Full Name */}
         <div className="space-y-1.5">
           <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
             Full Name <span className="text-rose-500">*</span>
@@ -81,7 +78,6 @@ export function StepPersonalInfo({ data, errors = {}, onChange, onNext }: StepPe
           )}
         </div>
 
-        {/* Job Title */}
         <div className="space-y-1.5">
           <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
             Target Job Title <span className="text-rose-500">*</span>
@@ -107,7 +103,6 @@ export function StepPersonalInfo({ data, errors = {}, onChange, onNext }: StepPe
           )}
         </div>
 
-        {/* Email Address */}
         <div className="space-y-1.5">
           <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
             Email Address <span className="text-rose-500">*</span>
@@ -133,7 +128,6 @@ export function StepPersonalInfo({ data, errors = {}, onChange, onNext }: StepPe
           )}
         </div>
 
-        {/* Phone Number */}
         <div className="space-y-1.5">
           <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
             Phone Number <span className="text-rose-500">*</span>
@@ -159,7 +153,6 @@ export function StepPersonalInfo({ data, errors = {}, onChange, onNext }: StepPe
           )}
         </div>
 
-        {/* Location */}
         <div className="space-y-1.5">
           <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
             Location / City
@@ -178,7 +171,6 @@ export function StepPersonalInfo({ data, errors = {}, onChange, onNext }: StepPe
           </div>
         </div>
 
-        {/* LinkedIn URL */}
         <div className="space-y-1.5">
           <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
             LinkedIn Profile
@@ -197,7 +189,6 @@ export function StepPersonalInfo({ data, errors = {}, onChange, onNext }: StepPe
           </div>
         </div>
 
-        {/* Personal Website */}
         <div className="space-y-1.5 md:col-span-2">
           <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
             Portfolio / Website
@@ -217,7 +208,6 @@ export function StepPersonalInfo({ data, errors = {}, onChange, onNext }: StepPe
         </div>
       </div>
 
-      {/* Navigation Footer */}
       <div className="flex justify-end items-center pt-5 border-t border-slate-100">
         <Button
           onClick={onNext}
