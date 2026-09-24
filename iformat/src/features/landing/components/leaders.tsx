@@ -1,37 +1,23 @@
 "use client";
 
+import { useEffect } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { SectionHeader } from "@/components/ui/section-header";
+import {
+  useLandingContentStore,
+  DEFAULT_LEADERS_SETTINGS,
+} from "@/stores/use-landing-content-store";
 
 export function Leaders() {
-  const leaders = [
-    {
-      name: "Jessica",
-      role: "Founder",
-      image: "/leaders/Jessica - Founder.png",
-    },
-    {
-      name: "Maria",
-      role: "CEO",
-      image: "/leaders/Maria - CEO.png",
-    },
-    {
-      name: "Priya",
-      role: "Head of Career Coaching",
-      image: "/leaders/Priya - Head of Career Coaching.png",
-    },
-    {
-      name: "Ian Francis",
-      role: "Chief Editor",
-      image: "/leaders/Ian - Chief Editor.png",
-    },
-    {
-      name: "Tarryn",
-      role: "Head of Business Branding",
-      image: "/leaders/Tarryn - Head of Business Branding.png",
-    },
-  ];
+  const { leadersSettings, isHydrated, syncWithBackend } = useLandingContentStore();
+
+  useEffect(() => {
+    syncWithBackend();
+  }, [syncWithBackend]);
+
+  const activeSettings = isHydrated ? leadersSettings : DEFAULT_LEADERS_SETTINGS;
+  const { sectionTitle, sectionDescription, members } = activeSettings;
 
   return (
     <section className="py-24 bg-white overflow-hidden" id="leaders">
@@ -43,13 +29,16 @@ export function Leaders() {
           transition={{ duration: 0.6 }}
         >
           <SectionHeader
-            title="Meet the Leaders"
-            description="Work with industry veterans who understand the nuances of modern hiring and personal branding."
+            title={sectionTitle || "Meet the Leaders"}
+            description={
+              sectionDescription ||
+              "Work with industry veterans who understand the nuances of modern hiring and personal branding."
+            }
           />
         </motion.div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-5">
-          {leaders.map((leader, idx) => (
+          {members.map((leader, idx) => (
             <motion.div 
               initial={{ opacity: 0, x: -30 }}
               whileInView={{ opacity: 1, x: 0 }}

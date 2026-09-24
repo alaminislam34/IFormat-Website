@@ -20,6 +20,7 @@ import {
   X,
   ShoppingBag,
   MessageSquare,
+  Film,
 } from "lucide-react";
 import { useAuthStore } from "@/stores/use-auth-store";
 import { BrandLogo } from "@/components/ui/brand-logo";
@@ -104,6 +105,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     if (path.startsWith("/admin/subscriptions")) return "Subscriptions";
     if (path.startsWith("/admin/bookings")) return "Consultation Bookings";
     if (path.startsWith("/admin/inquiries")) return "Contact Inquiries";
+    if (path.startsWith("/admin/homepage")) return "Homepage & Media";
     if (path.startsWith("/admin/audit-logs")) return "Audit Activity Logs";
     if (path.startsWith("/admin/settings")) return "System Settings";
     return "Admin Dashboard";
@@ -134,6 +136,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     {
       group: "Platform & Services",
       items: [
+        { label: "Homepage & Media", href: "/admin/homepage", icon: Film },
         { label: "Service Products", href: "/admin/services", icon: ShoppingBag },
         { label: "Consultation Bookings", href: "/admin/bookings", icon: Calendar },
         { label: "Contact Inquiries", href: "/admin/inquiries", icon: MessageSquare },

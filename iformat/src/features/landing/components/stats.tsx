@@ -12,11 +12,23 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { TrustedBrands } from "./trusted-brands";
+import {
+  useLandingContentStore,
+  DEFAULT_VIDEO_SETTINGS,
+} from "@/stores/use-landing-content-store";
 
 export function Stats() {
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const progressBarRef = useRef<HTMLDivElement>(null);
+
+  const { videoSettings, isHydrated, syncWithBackend } = useLandingContentStore();
+
+  useEffect(() => {
+    syncWithBackend();
+  }, [syncWithBackend]);
+
+  const activeVideo = isHydrated ? videoSettings : DEFAULT_VIDEO_SETTINGS;
 
   const [isPlaying, setIsPlaying] = useState(false);
   const [hasStarted, setHasStarted] = useState(false);
@@ -143,7 +155,8 @@ export function Stats() {
       >
         {/* Blurred Background Ambiance for ultra-wide displays */}
         <video
-          src="/videos/Event Promotion Video (2).mp4"
+          key={`ambient-${activeVideo.videoUrl}`}
+          src={activeVideo.videoUrl}
           className="absolute inset-0 w-full h-full object-cover blur-2xl opacity-30 pointer-events-none scale-110"
           muted
           loop
@@ -153,7 +166,8 @@ export function Stats() {
         {/* Primary Video Element (Plays right in this section) */}
         <video
           ref={videoRef}
-          src="/videos/Event Promotion Video (2).mp4"
+          key={`main-${activeVideo.videoUrl}`}
+          src={activeVideo.videoUrl}
           className="relative z-10 w-full h-full object-contain cursor-pointer"
           playsInline
           onTimeUpdate={handleTimeUpdate}
@@ -189,10 +203,10 @@ export function Stats() {
 
                 <div>
                   <h3 className="text-white font-black text-2xl sm:text-3xl lg:text-4xl tracking-tight drop-shadow-md">
-                    Experience the iFormat Vision
+                    {activeVideo.title}
                   </h3>
                   <p className="mt-2 text-cyan-200/90 text-sm sm:text-base font-medium drop-shadow-xs max-w-lg mx-auto">
-                    Watch how our technology and psychological branding elevate executive careers & high-growth brands.
+                    {activeVideo.description}
                   </p>
                 </div>
               </div>

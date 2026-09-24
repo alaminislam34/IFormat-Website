@@ -17,6 +17,7 @@ import {
   ExternalLink,
   RefreshCw,
   ArrowRight,
+  Film,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { authService } from "@/services/auth.service";
@@ -246,6 +247,36 @@ export default function AdminSettingsPage() {
           className="h-10 px-5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-semibold inline-flex items-center justify-center gap-2 shrink-0 shadow-xs transition-colors cursor-pointer"
         >
           <span>Open Inquiries Page</span>
+          <ArrowRight className="w-4 h-4" />
+        </Link>
+      </div>
+
+      {/* SECTION 2.5: Homepage Media & Leadership Team Management Quick Card */}
+      <div className="bg-linear-to-r from-blue-50/80 via-white to-sky-50/50 border border-blue-100/90 rounded-3xl p-6 sm:p-7 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-2xl bg-[#0A54B1] text-white flex items-center justify-center shrink-0 shadow-xs">
+            <Film className="w-6 h-6" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h3 className="text-base font-bold text-slate-900">
+                Landing Page Video & Leaders Management
+              </h3>
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-blue-100 text-blue-800">
+                Media Center
+              </span>
+            </div>
+            <p className="text-xs text-slate-500 mt-1 max-w-xl">
+              Upload and update the promotional vision video, headlines, and leadership team executive profiles and images shown on the public homepage.
+            </p>
+          </div>
+        </div>
+
+        <Link
+          href="/admin/homepage"
+          className="h-10 px-5 rounded-xl bg-[#0A54B1] hover:bg-[#08438e] text-white text-xs font-semibold inline-flex items-center justify-center gap-2 shrink-0 shadow-xs transition-colors cursor-pointer"
+        >
+          <span>Manage Homepage Media</span>
           <ArrowRight className="w-4 h-4" />
         </Link>
       </div>
