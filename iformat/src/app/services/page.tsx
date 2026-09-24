@@ -132,7 +132,7 @@ export default function ServicesPage() {
             <ScrollReveal key={service.id} yOffset={30} delay={idx * 0.05}>
               <div
                 onClick={() => handleOpenDetail(service)}
-                className="bg-white rounded-xl border border-slate-200/90 overflow-hidden shadow hover:shadow-sm transition-all group h-full flex flex-col cursor-pointer relative"
+                className="bg-white rounded-xl border border-slate-200/90 overflow-hidden shadow-sm hover:shadow-lg transition-all group h-full flex flex-col cursor-pointer relative"
               >
                 <div className="h-52 overflow-hidden relative bg-slate-900">
                   <Image
