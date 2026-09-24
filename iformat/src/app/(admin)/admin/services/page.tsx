@@ -9,14 +9,20 @@ import {
   EyeOff,
   RotateCcw,
   Layers,
+  Table2,
+  LayoutGrid,
 } from "lucide-react";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 import {
   useServicesStore,
   ServiceProductWithStatus,
 } from "@/stores/use-services-store";
+import { AdminPageHeader } from "@/features/admin/components/shared/admin-page-header";
 import { AdminServiceCard } from "@/features/admin/components/services/admin-service-card";
+import { AdminServiceTable } from "@/features/admin/components/services/admin-service-table";
 import { AdminServiceEditorModal } from "@/features/admin/components/services/admin-service-editor-modal";
+import { Pagination } from "@/components/ui/table";
 
 export default function AdminServicesPage() {
   const {
@@ -31,6 +37,11 @@ export default function AdminServicesPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("ALL");
   const [statusFilter, setStatusFilter] = useState<"ALL" | "ACTIVE" | "INACTIVE">("ALL");
+  const [viewMode, setViewMode] = useState<"table" | "grid">("table");
+
+  // Pagination State
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -61,7 +72,8 @@ export default function AdminServicesPage() {
         service.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         service.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
         service.tagline?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        service.description?.toLowerCase().includes(searchQuery.toLowerCase());
+        service.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        service.price.toLowerCase().includes(searchQuery.toLowerCase());
 
       const matchesCategory =
         selectedCategory === "ALL" || service.category === selectedCategory;
@@ -75,6 +87,12 @@ export default function AdminServicesPage() {
       return matchesSearch && matchesCategory && matchesStatus;
     });
   }, [services, searchQuery, selectedCategory, statusFilter]);
+
+  // Paginated Slice
+  const paginatedServices = useMemo(() => {
+    const start = (page - 1) * pageSize;
+    return filteredServices.slice(start, start + pageSize);
+  }, [filteredServices, page, pageSize]);
 
   const handleOpenCreateModal = () => {
     setEditingService(null);
@@ -106,106 +124,142 @@ export default function AdminServicesPage() {
 
   const handleToggleStatus = (id: string) => {
     const target = services.find((s) => s.id === id);
-    const newStatus = target?.isActive !== false ? "deactivated" : "activated";
+    const newStatus = target?.isActive !== false ? "drafted" : "published";
     toggleServiceStatus(id);
     toast.info(`Service "${target?.title || "Product"}" is now ${newStatus}.`);
   };
 
   const handleResetDefaults = () => {
-    if (window.confirm("Are you sure you want to reset all services to default presets? Any custom additions will be lost.")) {
+    if (
+      window.confirm(
+        "Are you sure you want to reset all services to default presets? Any custom additions will be lost."
+      )
+    ) {
       resetToDefaults();
       toast.success("Services catalog reset to defaults.");
     }
   };
 
   return (
-    <div className=" mx-auto space-y-8">
+    <div className="space-y-6 w-full pb-16">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="p-2 rounded-xl bg-sky-50 text-[#004AAD] border border-sky-100">
-              <ShoppingBag className="w-5 h-5" />
-            </span>
-            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
-              Service Products Management
-            </h1>
-          </div>
-          <p className="text-xs sm:text-sm text-slate-500">
-            Create, update, and manage the career branding products available on the website.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2.5">
-          <button
+      <AdminPageHeader
+        title="Service Products Management"
+        description="Configure career branding services, adjust pricing, manage deliverables, and update visibility."
+      >
+        <div className="flex items-center gap-2">
+          <Button
             type="button"
+            variant="outline"
+            size="sm"
             onClick={handleResetDefaults}
-            className="px-3.5 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-100 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+            className="rounded-xl text-xs font-semibold bg-white border-slate-200 text-slate-700 hover:bg-slate-50 cursor-pointer shadow-xs"
             title="Reset catalog to standard defaults"
           >
-            <RotateCcw className="w-3.5 h-3.5" />
+            <RotateCcw className="w-3.5 h-3.5 mr-1.5" />
             <span className="hidden sm:inline">Reset Defaults</span>
-          </button>
+          </Button>
 
-          <button
+          <Button
             type="button"
+            size="sm"
             onClick={handleOpenCreateModal}
-            className="px-4 py-2.5 rounded-xl bg-linear-to-r from-[#5DE0E6] to-[#004AAD] text-white font-extrabold text-xs shadow-md shadow-blue-500/20 hover:opacity-95 transition-all flex items-center gap-1.5 cursor-pointer"
+            className="rounded-xl text-xs font-semibold bg-[#0A54B1] hover:bg-[#08428C] text-white shadow-xs cursor-pointer"
           >
-            <Plus className="w-4 h-4" /> Add New Service
-          </button>
+            <Plus className="w-3.5 h-3.5 mr-1.5" />
+            <span>Add New Service</span>
+          </Button>
         </div>
-      </div>
+      </AdminPageHeader>
 
       {/* Metrics Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs">
-          <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-            Total Services
-          </span>
-          <p className="text-2xl font-black text-slate-900 mt-1">{metrics.total}</p>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="bg-white p-4.5 rounded-2xl border border-slate-200/80 shadow-xs flex items-center justify-between">
+          <div>
+            <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+              Total Services
+            </p>
+            <h4 className="text-xl sm:text-2xl font-extrabold text-slate-900 mt-1">
+              {metrics.total}
+            </h4>
+          </div>
+          <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
+            <ShoppingBag className="w-5 h-5" />
+          </div>
         </div>
-        <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs">
-          <span className="text-[11px] font-bold text-emerald-600 uppercase tracking-wider flex items-center gap-1">
-            <Eye className="w-3 h-3" /> Published
-          </span>
-          <p className="text-2xl font-black text-emerald-600 mt-1">{metrics.active}</p>
+
+        <div className="bg-white p-4.5 rounded-2xl border border-slate-200/80 shadow-xs flex items-center justify-between">
+          <div>
+            <p className="text-[11px] font-semibold text-emerald-600 uppercase tracking-wider flex items-center gap-1">
+              Published
+            </p>
+            <h4 className="text-xl sm:text-2xl font-extrabold text-emerald-700 mt-1">
+              {metrics.active}
+            </h4>
+          </div>
+          <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+            <Eye className="w-5 h-5" />
+          </div>
         </div>
-        <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs">
-          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
-            <EyeOff className="w-3 h-3" /> Drafts / Hidden
-          </span>
-          <p className="text-2xl font-black text-slate-600 mt-1">{metrics.inactive}</p>
+
+        <div className="bg-white p-4.5 rounded-2xl border border-slate-200/80 shadow-xs flex items-center justify-between">
+          <div>
+            <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-1">
+              Drafts / Hidden
+            </p>
+            <h4 className="text-xl sm:text-2xl font-extrabold text-slate-700 mt-1">
+              {metrics.inactive}
+            </h4>
+          </div>
+          <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-500 flex items-center justify-center shrink-0">
+            <EyeOff className="w-5 h-5" />
+          </div>
         </div>
-        <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs">
-          <span className="text-[11px] font-bold text-blue-600 uppercase tracking-wider flex items-center gap-1">
-            <Layers className="w-3 h-3" /> Categories
-          </span>
-          <p className="text-2xl font-black text-blue-600 mt-1">{metrics.categoriesCount}</p>
+
+        <div className="bg-white p-4.5 rounded-2xl border border-slate-200/80 shadow-xs flex items-center justify-between">
+          <div>
+            <p className="text-[11px] font-semibold text-sky-600 uppercase tracking-wider flex items-center gap-1">
+              Categories
+            </p>
+            <h4 className="text-xl sm:text-2xl font-extrabold text-sky-700 mt-1">
+              {metrics.categoriesCount}
+            </h4>
+          </div>
+          <div className="w-10 h-10 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center shrink-0">
+            <Layers className="w-5 h-5" />
+          </div>
         </div>
       </div>
 
       {/* Search & Filter Toolbar */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs space-y-3 sm:space-y-0 sm:flex sm:items-center sm:justify-between sm:gap-4">
+      <div className="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+        {/* Search Input */}
         <div className="relative flex-1 max-w-md">
-          <Search className="w-4 h-4 absolute left-3.5 top-3 text-slate-400" />
+          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search services by title, category, or keyword..."
-            className="w-full text-xs font-semibold pl-9.5 pr-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setPage(1);
+            }}
+            placeholder="Search by title, price, category, or keyword..."
+            className="w-full text-xs font-semibold pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-sky-500/20 focus:border-[#0A54B1] transition-all"
           />
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
+        {/* Filters & View Switcher */}
+        <div className="flex flex-wrap items-center gap-2.5">
           {/* Category Filter */}
           <select
             value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-            className="text-xs font-semibold px-3 py-2 rounded-xl border border-slate-200 bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-500/20 cursor-pointer"
+            onChange={(e) => {
+              setSelectedCategory(e.target.value);
+              setPage(1);
+            }}
+            className="text-xs font-semibold px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-700 focus:outline-hidden focus:border-[#0A54B1] cursor-pointer"
           >
-            <option value="ALL">All Categories</option>
+            <option value="ALL">All Categories ({services.length})</option>
             {categories.map((c) => (
               <option key={c} value={c}>
                 {c}
@@ -216,37 +270,87 @@ export default function AdminServicesPage() {
           {/* Status Filter */}
           <div className="flex items-center p-1 bg-slate-100 rounded-xl text-xs font-bold">
             <button
-              onClick={() => setStatusFilter("ALL")}
-              className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${
-                statusFilter === "ALL" ? "bg-white text-slate-900 shadow-xs" : "text-slate-600"
+              onClick={() => {
+                setStatusFilter("ALL");
+                setPage(1);
+              }}
+              className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                statusFilter === "ALL"
+                  ? "bg-white text-slate-900 shadow-xs"
+                  : "text-slate-600 hover:text-slate-900"
               }`}
             >
-              All
+              All ({metrics.total})
             </button>
             <button
-              onClick={() => setStatusFilter("ACTIVE")}
-              className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${
-                statusFilter === "ACTIVE" ? "bg-white text-emerald-600 shadow-xs" : "text-slate-600"
+              onClick={() => {
+                setStatusFilter("ACTIVE");
+                setPage(1);
+              }}
+              className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                statusFilter === "ACTIVE"
+                  ? "bg-white text-emerald-700 shadow-xs"
+                  : "text-slate-600 hover:text-slate-900"
               }`}
             >
-              Published
+              Published ({metrics.active})
             </button>
             <button
-              onClick={() => setStatusFilter("INACTIVE")}
-              className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${
-                statusFilter === "INACTIVE" ? "bg-white text-slate-800 shadow-xs" : "text-slate-600"
+              onClick={() => {
+                setStatusFilter("INACTIVE");
+                setPage(1);
+              }}
+              className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                statusFilter === "INACTIVE"
+                  ? "bg-white text-slate-800 shadow-xs"
+                  : "text-slate-600 hover:text-slate-900"
               }`}
             >
-              Drafts
+              Drafts ({metrics.inactive})
+            </button>
+          </div>
+
+          {/* View Mode Switcher */}
+          <div className="flex items-center p-1 bg-slate-100 rounded-xl border border-slate-200/50">
+            <button
+              type="button"
+              onClick={() => setViewMode("table")}
+              className={`p-1.5 rounded-lg transition-all cursor-pointer ${
+                viewMode === "table"
+                  ? "bg-white text-[#0A54B1] shadow-xs"
+                  : "text-slate-500 hover:text-slate-800"
+              }`}
+              title="Table View"
+            >
+              <Table2 className="w-4 h-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode("grid")}
+              className={`p-1.5 rounded-lg transition-all cursor-pointer ${
+                viewMode === "grid"
+                  ? "bg-white text-[#0A54B1] shadow-xs"
+                  : "text-slate-500 hover:text-slate-800"
+              }`}
+              title="Card Grid View"
+            >
+              <LayoutGrid className="w-4 h-4" />
             </button>
           </div>
         </div>
       </div>
 
-      {/* Services Grid */}
-      {filteredServices.length > 0 ? (
+      {/* Main Content: Table or Grid */}
+      {viewMode === "table" ? (
+        <AdminServiceTable
+          services={paginatedServices}
+          onEdit={handleOpenEditModal}
+          onDelete={handleDeleteService}
+          onToggleStatus={handleToggleStatus}
+        />
+      ) : filteredServices.length > 0 ? (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredServices.map((service) => (
+          {paginatedServices.map((service) => (
             <AdminServiceCard
               key={service.id}
               service={service}
@@ -277,6 +381,7 @@ export default function AdminServicesPage() {
                   setSearchQuery("");
                   setSelectedCategory("ALL");
                   setStatusFilter("ALL");
+                  setPage(1);
                 }}
                 className="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 cursor-pointer"
               >
@@ -286,12 +391,28 @@ export default function AdminServicesPage() {
             <button
               type="button"
               onClick={handleOpenCreateModal}
-              className="px-4 py-2 rounded-xl bg-[#004AAD] text-white text-xs font-bold hover:bg-[#004AAD]/90 cursor-pointer shadow-sm"
+              className="px-4 py-2 rounded-xl bg-[#0A54B1] text-white text-xs font-bold hover:bg-[#08428C] cursor-pointer shadow-sm"
             >
               + Add New Service
             </button>
           </div>
         </div>
+      )}
+
+      {/* Pagination */}
+      {filteredServices.length > 0 && (
+        <Pagination
+          card
+          currentPage={page}
+          pageSize={pageSize}
+          totalCount={filteredServices.length}
+          loading={false}
+          onPageChange={(newPage) => setPage(newPage)}
+          onPageSizeChange={(newSize) => {
+            setPageSize(newSize);
+            setPage(1);
+          }}
+        />
       )}
 
       {/* Editor Modal */}
