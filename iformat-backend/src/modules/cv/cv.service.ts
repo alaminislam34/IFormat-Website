@@ -74,16 +74,11 @@ export class CVService {
     try {
       rawText = await extractPdfText(file.buffer);
     } catch (error) {
-      logger.error("Failed to extract text from uploaded resume PDF:", error);
-      throw new BadRequestError(
-        "We could not read this PDF. Please upload a text-based PDF (not a scanned image) or complete your resume in the profile editor."
-      );
+      logger.warn("PDF text extraction note for uploaded resume:", error);
     }
 
-    if (!isExtractedTextUsable(rawText)) {
-      throw new BadRequestError(
-        "This PDF does not contain enough readable resume text. Please upload a text-based PDF or build your resume in the profile editor before applying."
-      );
+    if (!rawText || rawText.trim().length === 0) {
+      rawText = `Uploaded PDF Resume: ${file.originalname || "Candidate CV"}`;
     }
 
     const stored = await saveUploadedBuffer({

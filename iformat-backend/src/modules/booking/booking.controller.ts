@@ -34,4 +34,12 @@ export class BookingController {
     const updated = await BookingService.updateBookingStatus(id, status, req.user!, reason);
     return ApiResponse.success(res, "Booking status updated successfully", updated);
   }
+
+  static async requestFreeConsult(req: Request, res: Response) {
+    const booking = await BookingService.requestFreeConsultation(
+      req.user ? req.user.id : null,
+      req.body
+    );
+    return ApiResponse.success(res, "Free consultation request submitted successfully", booking, 201);
+  }
 }

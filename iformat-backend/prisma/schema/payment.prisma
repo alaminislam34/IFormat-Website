@@ -18,6 +18,7 @@ model Plan {
   featuredJobPlacement        Boolean             @default(false)
   unmaskedApplicantProfiles   Boolean             @default(false)
   unlimitedCvTemplates        Boolean             @default(false)
+  consultationDiscountPercent Int?                @default(0)
   customFeatures              Json?
   isDeleted                   Boolean             @default(false)
   deletedAt                   DateTime?

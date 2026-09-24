@@ -9,23 +9,28 @@ export function Leaders() {
     {
       name: "Jessica",
       role: "Founder",
-      image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=800",
+      image: "/leaders/Jessica - Founder.png",
     },
     {
       name: "Maria",
       role: "CEO",
-      image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&q=80&w=800",
+      image: "/leaders/Maria - CEO.png",
     },
     {
       name: "Priya",
       role: "Head of Career Coaching",
-      image: "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=800",
+      image: "/leaders/Priya - Head of Career Coaching.png",
     },
     {
       name: "Ian Francis",
       role: "Chief Editor",
-      image: "https://images.unsplash.com/photo-1589571894960-20bbe2828d0a?auto=format&fit=crop&q=80&w=800",
-    }
+      image: "/leaders/Ian - Chief Editor.png",
+    },
+    {
+      name: "Tarryn",
+      role: "Head of Business Branding",
+      image: "/leaders/Tarryn - Head of Business Branding.png",
+    },
   ];
 
   return (
@@ -43,28 +48,28 @@ export function Leaders() {
           />
         </motion.div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-5">
           {leaders.map((leader, idx) => (
             <motion.div 
-              initial={{ opacity: 0, x: -50 }}
+              initial={{ opacity: 0, x: -30 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true, margin: "-50px" }}
-              transition={{ duration: 0.5, delay: idx * 0.15 }}
+              transition={{ duration: 0.5, delay: idx * 0.1 }}
               key={idx} 
-              className="relative rounded-3xl overflow-hidden aspect-3/4 group"
+              className="relative rounded-3xl overflow-hidden aspect-3/4 group shadow-md"
             >
               <Image 
                 src={leader.image} 
                 alt={leader.name}
                 fill
-                className="object-cover group-hover:scale-105 transition-transform duration-700"
+                className="object-cover object-top group-hover:scale-105 transition-transform duration-700"
               />
               {/* Gradient Overlay for text readability */}
-              <div className="absolute inset-0 bg-linear-to-t from-[#0f172a]/90 via-[#0f172a]/20 to-transparent"></div>
+              <div className="absolute inset-0 bg-linear-to-t from-[#0f172a]/95 via-[#0f172a]/30 to-transparent"></div>
               
-              <div className="absolute bottom-0 left-0 right-0 p-6">
-                <h3 className="text-white font-bold text-2xl mb-1">{leader.name}</h3>
-                <p className="text-brand-cyan font-medium text-sm">{leader.role}</p>
+              <div className="absolute bottom-0 left-0 right-0 p-5">
+                <h3 className="text-white font-bold text-xl sm:text-2xl mb-1">{leader.name}</h3>
+                <p className="text-brand-cyan font-medium text-xs sm:text-sm leading-tight">{leader.role}</p>
               </div>
             </motion.div>
           ))}

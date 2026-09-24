@@ -24,8 +24,8 @@ export function JobDetailsHeader({
 }: JobDetailsHeaderProps) {
   const [imgError, setImgError] = React.useState(false);
   const logoUrl = job.companyLogoUrl || job.employer?.companyLogoUrl;
-  const logoLetter = job.logoLetter || job.company?.charAt(0)?.toUpperCase() || "F";
-  const logoBg = job.logoBg || "bg-gradient-to-br from-violet-500 to-purple-700";
+  const logoLetter = job.logoLetter || job.company?.trim().charAt(0)?.toUpperCase() || "I";
+  const logoBg = job.logoBg || "bg-[#0A54B1]";
 
   return (
     <div className="relative shrink-0 border-b border-slate-100 overflow-hidden">

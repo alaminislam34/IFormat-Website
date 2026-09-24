@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, LogIn, UserPlus, X, CheckCircle2, ArrowRight, Play } from "lucide-react";
+import { LogIn, UserPlus, X, CheckCircle2, Play, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface AuthPromptModalProps {
@@ -12,15 +12,17 @@ interface AuthPromptModalProps {
   title?: string;
   description?: string;
   redirectUrl?: string;
+  perks?: string[];
   onContinueGuest?: () => void;
 }
 
 export function AuthPromptModal({
   isOpen,
   onClose,
-  title = "Sign in to Unlock Full AI Features",
-  description = "Create a free account or sign in to auto-save your customized resumes, cover letters, and outreach emails to your cloud dashboard.",
-  redirectUrl = "/job-assistant",
+  title = "Sign In to Your Account",
+  description = "Please sign in to your iFormat account to continue.",
+  redirectUrl = "/",
+  perks,
   onContinueGuest,
 }: AuthPromptModalProps) {
   return (
@@ -47,7 +49,7 @@ export function AuthPromptModal({
 
             {/* Glowing Icon */}
             <div className="w-14 h-14 rounded-2xl bg-blue-50 text-[#0A54B1] flex items-center justify-center mx-auto shadow-sm">
-              <Sparkles className="w-7 h-7" />
+              <Lock className="w-7 h-7" />
             </div>
 
             {/* Content */}
@@ -60,44 +62,40 @@ export function AuthPromptModal({
               </p>
             </div>
 
-            {/* Perks */}
-            <div className="bg-slate-50 rounded-2xl p-4 text-left space-y-2 border border-slate-100">
-              <div className="flex items-center gap-2 text-xs font-semibold text-slate-700">
-                <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-                <span>5 free AI generations every month</span>
+            {/* Optional Custom Perks */}
+            {perks && perks.length > 0 && (
+              <div className="bg-slate-50 rounded-2xl p-4 text-left space-y-2 border border-slate-100">
+                {perks.map((perk, idx) => (
+                  <div key={idx} className="flex items-center gap-2 text-xs font-semibold text-slate-700">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                    <span>{perk}</span>
+                  </div>
+                ))}
               </div>
-              <div className="flex items-center gap-2 text-xs font-semibold text-slate-700">
-                <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-                <span>Auto-save all your tailored CVs and cover letters</span>
-              </div>
-              <div className="flex items-center gap-2 text-xs font-semibold text-slate-700">
-                <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-                <span>Instant ATS keyword optimization & formatting</span>
-              </div>
-            </div>
+            )}
 
-            {/* Action Buttons */}
-            <div className="space-y-2.5 pt-1">
-              <Link
-                href={`/signup?redirect=${encodeURIComponent(redirectUrl)}`}
-                onClick={onClose}
-                className="block w-full"
-              >
-                <Button className="w-full h-11 bg-[#0A54B1] hover:bg-[#08428C] text-white font-extrabold text-xs rounded-xl shadow-lg shadow-blue-500/20 cursor-pointer flex items-center justify-center gap-2">
-                  <UserPlus className="w-4 h-4" /> Create Free Account
-                </Button>
-              </Link>
-              
+            {/* Action Buttons - Prioritizing Sign In First */}
+            <div className="space-y-3 pt-1">
               <Link
                 href={`/login?redirect=${encodeURIComponent(redirectUrl)}`}
                 onClick={onClose}
                 className="block w-full"
               >
+                <Button className="w-full h-11 bg-linear-to-r from-[#52CEDE] to-[#0A54B1] hover:opacity-95 text-white font-extrabold text-xs rounded-xl shadow-lg shadow-blue-500/20 cursor-pointer flex items-center justify-center gap-2 active:scale-98 transition-all">
+                  <LogIn className="w-4 h-4" /> Sign In
+                </Button>
+              </Link>
+
+              <Link
+                href={`/signup?redirect=${encodeURIComponent(redirectUrl)}`}
+                onClick={onClose}
+                className="block w-full"
+              >
                 <Button
                   variant="outline"
-                  className="w-full h-11 border-slate-200 bg-white text-slate-800 hover:bg-slate-100 hover:text-slate-900 text-xs font-bold rounded-xl cursor-pointer flex items-center justify-center gap-2"
+                  className="w-full h-11 border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:text-slate-900 text-xs font-bold rounded-xl cursor-pointer flex items-center justify-center gap-2 active:scale-98 transition-all"
                 >
-                  <LogIn className="w-4 h-4 text-slate-600" /> Sign In
+                  <UserPlus className="w-4 h-4 text-slate-500" /> Create Free Account
                 </Button>
               </Link>
 
@@ -108,7 +106,7 @@ export function AuthPromptModal({
                     onClose();
                     onContinueGuest();
                   }}
-                  className="w-full py-2 text-xs text-slate-500 hover:text-[#0A54B1] font-semibold transition-colors cursor-pointer flex items-center justify-center gap-1.5"
+                  className="w-full py-1.5 text-xs text-slate-500 hover:text-[#0A54B1] font-semibold transition-colors cursor-pointer flex items-center justify-center gap-1.5"
                 >
                   <Play className="w-3 h-3 text-[#0A54B1]" /> Try Demo Preview Without Login
                 </button>

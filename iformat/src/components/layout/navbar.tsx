@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
@@ -19,6 +19,12 @@ export function Navbar() {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isConsultModalOpen, setIsConsultModalOpen] = useState(false);
   const isHomePage = pathname === "/";
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.location.search.includes("consult=open")) {
+      setIsConsultModalOpen(true);
+    }
+  }, []);
 
   const isHidden = !isAtTop && scrollDirection === "down" && !isMobileOpen;
   const isScrolled = !isAtTop;
@@ -54,18 +60,46 @@ export function Navbar() {
                 : "text-slate-600"
             }`}
           >
-            <Link href="/" className="hover:text-[#0A54B1] transition-colors">
+            <Link
+              href="/"
+              className={`transition-all ${
+                !isScrolled && isHomePage
+                  ? "hover:text-[#52CEDE] hover:drop-shadow-[0_0_8px_rgba(82,206,222,0.7)]"
+                  : "hover:text-[#0A54B1]"
+              }`}
+            >
               Home
             </Link>
-            <Link href="/services" className="hover:text-[#0A54B1] transition-colors">
+            <Link
+              href="/services"
+              className={`transition-all ${
+                !isScrolled && isHomePage
+                  ? "hover:text-[#52CEDE] hover:drop-shadow-[0_0_8px_rgba(82,206,222,0.7)]"
+                  : "hover:text-[#0A54B1]"
+              }`}
+            >
               Solutions
             </Link>
             {!isEmployer && (
-              <Link href="/job-assistant" className="hover:text-[#0A54B1] transition-colors">
+              <Link
+                href="/job-assistant"
+                className={`transition-all ${
+                  !isScrolled && isHomePage
+                    ? "hover:text-[#52CEDE] hover:drop-shadow-[0_0_8px_rgba(82,206,222,0.7)]"
+                    : "hover:text-[#0A54B1]"
+                }`}
+              >
                 Job Assistant
               </Link>
-            ) }
-            <Link href="/job-portal" className="hover:text-[#0A54B1] transition-colors">
+            )}
+            <Link
+              href="/job-portal"
+              className={`transition-all ${
+                !isScrolled && isHomePage
+                  ? "hover:text-[#52CEDE] hover:drop-shadow-[0_0_8px_rgba(82,206,222,0.7)]"
+                  : "hover:text-[#0A54B1]"
+              }`}
+            >
               Job Portal
             </Link>
           </div>

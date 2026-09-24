@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -8,8 +9,15 @@ import { Button } from "@/components/ui/button";
 import { ScrollReveal } from "@/components/ui/scroll-reveal";
 import { SectionHeader } from "@/components/ui/section-header";
 import { contactFormSchema, ContactFormData } from "@/lib/validations";
+import { apiClient } from "@/lib/api/api-client";
 
 export function Contact() {
+  const [contactInfo, setContactInfo] = useState({
+    location: "123 Business Pkwy, Suite 400\nNew York, NY 10001",
+    phone: "+1 (555) 123-4567",
+    email: "info@iformatbranding.com",
+  });
+
   const {
     register,
     handleSubmit,
@@ -19,11 +27,30 @@ export function Contact() {
     resolver: zodResolver(contactFormSchema),
   });
 
+  useEffect(() => {
+    apiClient
+      .get<{ location: string; phone: string; email: string }>("/settings/contact")
+      .then((res: any) => {
+        const data = res?.data || res;
+        if (data && (data.location || data.phone || data.email)) {
+          setContactInfo({
+            location: data.location || "123 Business Pkwy, Suite 400\nNew York, NY 10001",
+            phone: data.phone || "+1 (555) 123-4567",
+            email: data.email || "info@iformatbranding.com",
+          });
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   const onSubmit = async (data: ContactFormData) => {
-    // Simulate submission delay
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    toast.success(`Thank you, ${data.fullName}! Your message has been sent.`);
-    reset();
+    try {
+      await apiClient.post("/settings/contact", data);
+      toast.success(`Thank you, ${data.fullName}! Your message has been sent to our team.`);
+      reset();
+    } catch (err: any) {
+      toast.error(err?.message || "Failed to send message. Please try again.");
+    }
   };
 
   return (
@@ -51,7 +78,7 @@ export function Contact() {
                   </div>
                   <div>
                     <h4 className="font-bold mb-1">Our Location</h4>
-                    <p className="text-slate-400 text-sm">123 Business Pkwy, Suite 400<br/>New York, NY 10001</p>
+                    <p className="text-slate-400 text-sm whitespace-pre-line">{contactInfo.location}</p>
                   </div>
                 </div>
                 
@@ -60,8 +87,13 @@ export function Contact() {
                     <MessageSquare className="w-5 h-5 text-brand-cyan" />
                   </div>
                   <div>
-                    <h4 className="font-bold mb-1">Message Us On WhatsApp</h4>
-                    <p className="text-slate-400 text-sm">+1 (555) 123-4567</p>
+                    <h4 className="font-bold mb-1">Message Us On WhatsApp / Phone</h4>
+                    <a
+                      href={`tel:${contactInfo.phone.replace(/[^0-9+]/g, "")}`}
+                      className="text-slate-400 hover:text-white transition-colors text-sm"
+                    >
+                      {contactInfo.phone}
+                    </a>
                   </div>
                 </div>
                 
@@ -71,7 +103,12 @@ export function Contact() {
                   </div>
                   <div>
                     <h4 className="font-bold mb-1">Send Your Message</h4>
-                    <p className="text-slate-400 text-sm">hello@iformat.com</p>
+                    <a
+                      href={`mailto:${contactInfo.email}`}
+                      className="text-slate-400 hover:text-white transition-colors text-sm"
+                    >
+                      {contactInfo.email}
+                    </a>
                   </div>
                 </div>
               </div>

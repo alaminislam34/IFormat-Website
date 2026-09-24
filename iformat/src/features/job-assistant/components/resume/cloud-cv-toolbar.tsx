@@ -69,7 +69,7 @@ export function CloudCvToolbar({
           onClick={onSaveToCloud}
           disabled={isSaving}
           size="sm"
-          className="h-9 px-4 text-xs bg-blue-600 hover:bg-blue-500 text-white font-semibold shadow-md shadow-blue-600/20 cursor-pointer"
+          className="h-9 px-4 text-xs bg-linear-to-r from-[#52CEDE] to-[#0A54B1] hover:opacity-95 text-white font-bold shadow-md shadow-blue-500/20 active:scale-95 transition-all cursor-pointer"
         >
           {isSaving ? (
             <>

@@ -160,6 +160,12 @@ export function ApplyModal({ job, isOpen, onClose, onApplied }: ApplyModalProps)
   };
 
   const onSubmit = async (data: ApplyFormData) => {
+    if (!isAuthenticated) {
+      toast.error("Please sign in or create an account to submit your application.");
+      router.push(`/login?redirect=${encodeURIComponent(`/job-portal?job=${job.id}`)}`);
+      return;
+    }
+
     let finalCvId = selectedCvId;
 
     if (resumeMode === "upload") {

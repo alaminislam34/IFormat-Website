@@ -98,10 +98,18 @@ export function Pricing() {
               p.name.toLowerCase() === defaultPlan.name.toLowerCase()
           );
           if (matched) {
+            const rawFeat = matched.customFeatures as any;
+            const customList = Array.isArray(rawFeat) && rawFeat.length > 0
+              ? rawFeat
+              : Array.isArray(rawFeat?.features) && rawFeat.features.length > 0
+              ? rawFeat.features
+              : null;
+
             return {
               ...defaultPlan,
               id: matched.id,
               price: matched.priceInCents > 0 ? `$${matched.priceInCents / 100}` : defaultPlan.price,
+              features: customList || defaultPlan.features,
             };
           }
           return defaultPlan;

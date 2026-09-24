@@ -351,13 +351,32 @@ export function AdminBookingsTable({
               </div>
             )}
 
-            <div className="pt-2 flex justify-end">
+            <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                {selectedBrief.clientPhone && (
+                  <a
+                    href={`tel:${selectedBrief.clientPhone.replace(/[^0-9+]/g, "")}`}
+                    className="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-xl inline-flex items-center gap-1.5 transition-colors cursor-pointer"
+                  >
+                    <Phone className="w-3.5 h-3.5" /> Call Client
+                  </a>
+                )}
+                {selectedBrief.user?.email && (
+                  <a
+                    href={`mailto:${selectedBrief.user.email}?subject=${encodeURIComponent("Regarding your consultation with iFormat")}`}
+                    className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-xl inline-flex items-center gap-1.5 transition-colors cursor-pointer"
+                  >
+                    <Mail className="w-3.5 h-3.5" /> Email Client
+                  </a>
+                )}
+              </div>
+
               <button
                 type="button"
                 onClick={() => setSelectedBrief(null)}
                 className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition-colors cursor-pointer"
               >
-                Close Brief
+                Close
               </button>
             </div>
           </div>

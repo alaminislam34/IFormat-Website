@@ -482,4 +482,100 @@ export class BookingService {
 
     return { checkoutUrl, booking };
   }
+
+  /**
+   * Free 1-on-1 Career Strategy Consultation Request
+   */
+  static async requestFreeConsultation(
+    userId: string | null,
+    input: {
+      name: string;
+      email: string;
+      phone: string;
+      address: string;
+      description: string;
+    }
+  ) {
+    let targetUserId = userId;
+
+    if (!targetUserId) {
+      const existingUser = await prisma.user.findUnique({
+        where: { email: input.email.toLowerCase() },
+      });
+      if (existingUser) {
+        targetUserId = existingUser.id;
+      } else {
+        const newUser = await prisma.user.create({
+          data: {
+            email: input.email.toLowerCase(),
+            name: input.name,
+            phone: input.phone,
+            role: Role.CANDIDATE,
+            passwordHash: "lead-account-placeholder",
+          },
+        });
+        targetUserId = newUser.id;
+      }
+    } else {
+      await prisma.user
+        .update({
+          where: { id: targetUserId },
+          data: {
+            phone: input.phone || undefined,
+          },
+        })
+        .catch(() => {});
+    }
+
+    const booking = await prisma.booking.create({
+      data: {
+        userId: targetUserId,
+        serviceTitle: "Free 1-on-1 Career Strategy Consultation",
+        priceInCents: 0,
+        clientPhone: input.phone,
+        notes: `Address: ${input.address}`,
+        requirements: input.description,
+        paymentStatus: "FREE_CONSULT",
+        status: BookingStatus.PENDING,
+      },
+      include: {
+        user: true,
+      },
+    });
+
+    try {
+      const admins = await prisma.user.findMany({
+        where: { role: Role.ADMIN, isDeleted: false },
+        select: { id: true, email: true },
+      });
+      for (const admin of admins) {
+        await prisma.notification.create({
+          data: {
+            userId: admin.id,
+            type: "BOOKING",
+            title: "📞 New Free Consult Request",
+            message: `${input.name} (${input.phone}) requested a free consultation. Location: ${input.address}. Notes: ${input.description.slice(0, 100)}`,
+            payload: { actionUrl: "/admin/bookings" },
+          },
+        });
+      }
+
+      sendEmail({
+        to: "info@iformatbranding.com",
+        subject: `[iFormat] New Free Consultation Request: ${input.name}`,
+        template: "booking-confirmation",
+        data: {
+          name: input.name,
+          slotTitle: "Free 1-on-1 Career Strategy Consultation",
+          advisorName: "iFormat Executive Team",
+          sessionTime: `Received: ${new Date().toLocaleString()}`,
+          bookingUrl: `${getFrontendUrl()}/admin/bookings`,
+        },
+      }).catch((e) => console.warn("Email dispatch error:", e.message));
+    } catch (notifErr: any) {
+      console.warn("Failed to notify admins of free consult:", notifErr.message);
+    }
+
+    return booking;
+  }
 }

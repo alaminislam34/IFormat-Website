@@ -5,9 +5,10 @@ import {
   bookSlotSchema,
   updateBookingStatusSchema,
   createServiceOrderSchema,
+  freeConsultSchema,
 } from "./booking.validation.js";
 import { validate } from "../../middlewares/validate.middleware.js";
-import { requireAuth } from "../../middlewares/auth.middleware.js";
+import { requireAuth, optionalAuth } from "../../middlewares/auth.middleware.js";
 import { requireRole } from "../../middlewares/rbac.middleware.js";
 import { Role } from "@prisma/client";
 import { catchAsync } from "../../utils/catchAsync.js";
@@ -16,6 +17,14 @@ const router = Router();
 
 // Publicly viewable available slots
 router.get("/slots", catchAsync(BookingController.listAvailableSlots));
+
+// Request a Free 1-on-1 Consultation
+router.post(
+  "/free-consult",
+  optionalAuth,
+  validate({ body: freeConsultSchema }),
+  catchAsync(BookingController.requestFreeConsult)
+);
 
 // Protected user routes
 router.use(requireAuth);

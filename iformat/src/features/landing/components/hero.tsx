@@ -152,11 +152,11 @@ export function Hero() {
                         onClick={() => setIsDropdownOpen(false)} 
                       />
                       <motion.div
-                        initial={{ opacity: 0, y: -6, scale: 0.98 }}
+                        initial={{ opacity: 0, y: 6, scale: 0.98 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: -6, scale: 0.98 }}
+                        exit={{ opacity: 0, y: 6, scale: 0.98 }}
                         transition={{ duration: 0.15 }}
-                        className="absolute top-[calc(100%+8px)] left-0 w-full bg-white rounded-2xl border border-slate-200 shadow-2xl shadow-blue-900/20 overflow-hidden z-50 py-2 ring-1 ring-slate-900/5"
+                        className="absolute bottom-[calc(100%+8px)] left-0 w-full bg-white rounded-2xl border border-slate-200 shadow-2xl shadow-blue-900/20 overflow-hidden z-50 py-2 ring-1 ring-slate-900/5 max-h-64 overflow-y-auto"
                       >
                         {LOCATION_OPTIONS.map((country) => (
                           <button

@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Briefcase, Check, Bot, Eye, Edit3 } from "lucide-react";
+import { Briefcase, Check, Bot, Eye, Edit3, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PlanDTO } from "@/types/api";
 
@@ -96,60 +96,84 @@ export function AdminPlanCard({ plan, onEdit, onToggleActive }: AdminPlanCardPro
 
         {/* Entitlements & Features Checklist */}
         <div className="space-y-2.5 pt-4 border-t border-slate-100 text-xs">
-          {Array.isArray(plan.customFeatures) && plan.customFeatures.length > 0 ? (
-            plan.customFeatures.map((feat: any, idx: number) => (
-              <div key={idx} className="flex items-center gap-2 text-slate-600">
-                <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                <span className="truncate">{typeof feat === "string" ? feat : String(feat)}</span>
-              </div>
-            ))
-          ) : (
-            <>
-              {plan.maxActiveJobs !== null && plan.maxActiveJobs !== undefined && (
-                <div className="flex items-center gap-2 text-slate-600">
-                  <Briefcase className="w-3.5 h-3.5 text-sky-600 shrink-0" />
-                  <span>
-                    {plan.maxActiveJobs === 0
-                      ? "No job postings"
-                      : `${plan.maxActiveJobs} Active Job Limit`}
-                  </span>
-                </div>
-              )}
+          {(() => {
+            const rawFeat = plan.customFeatures as any;
+            const featuresList = Array.isArray(rawFeat)
+              ? rawFeat
+              : Array.isArray(rawFeat?.features)
+              ? rawFeat.features
+              : [];
+            const maxAi = rawFeat?.maxAiGenerations;
 
-              {plan.maxApplicationsPerMonth !== null && plan.maxApplicationsPerMonth !== undefined && (
-                <div className="flex items-center gap-2 text-slate-600">
-                  <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                  <span>
-                    {plan.maxApplicationsPerMonth === 999999
-                      ? "Unlimited Applications"
-                      : `${plan.maxApplicationsPerMonth} Apps / Month`}
-                  </span>
-                </div>
-              )}
+            return (
+              <>
+                {maxAi !== undefined && (
+                  <div className="flex items-center gap-2 text-slate-700 font-semibold">
+                    <Sparkles className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                    <span>
+                      {maxAi === null
+                        ? "Unlimited AI Generations"
+                        : `${maxAi} AI Generations / mo`}
+                    </span>
+                  </div>
+                )}
+                {featuresList.length > 0 ? (
+                  featuresList.map((feat: any, idx: number) => (
+                    <div key={idx} className="flex items-center gap-2 text-slate-600">
+                      <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                      <span className="truncate">{typeof feat === "string" ? feat : String(feat)}</span>
+                    </div>
+                  ))
+                ) : (
+                  <>
+                    {plan.maxActiveJobs !== null && plan.maxActiveJobs !== undefined && (
+                      <div className="flex items-center gap-2 text-slate-600">
+                        <Briefcase className="w-3.5 h-3.5 text-sky-600 shrink-0" />
+                        <span>
+                          {plan.maxActiveJobs === 0
+                            ? "No job postings"
+                            : `${plan.maxActiveJobs} Active Job Limit`}
+                        </span>
+                      </div>
+                    )}
 
-              <div className="flex items-center gap-2 text-slate-600">
-                <Bot
-                  className={`w-3.5 h-3.5 ${
-                    plan.aiScreeningEnabled ? "text-emerald-600" : "text-slate-400"
-                  }`}
-                />
-                <span className={plan.aiScreeningEnabled ? "font-semibold text-slate-800" : "text-slate-500"}>
-                  AI Screening: {plan.aiScreeningEnabled ? "Enabled" : "Disabled"}
-                </span>
-              </div>
+                    {plan.maxApplicationsPerMonth !== null && plan.maxApplicationsPerMonth !== undefined && (
+                      <div className="flex items-center gap-2 text-slate-600">
+                        <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                        <span>
+                          {plan.maxApplicationsPerMonth === 999999
+                            ? "Unlimited Applications"
+                            : `${plan.maxApplicationsPerMonth} Apps / Month`}
+                        </span>
+                      </div>
+                    )}
 
-              <div className="flex items-center gap-2 text-slate-600">
-                <Eye
-                  className={`w-3.5 h-3.5 ${
-                    plan.unmaskedApplicantProfiles ? "text-emerald-600" : "text-slate-400"
-                  }`}
-                />
-                <span className={plan.unmaskedApplicantProfiles ? "font-semibold text-slate-800" : "text-slate-500"}>
-                  Contact Masking: {plan.unmaskedApplicantProfiles ? "Unmasked" : "Masked"}
-                </span>
-              </div>
-            </>
-          )}
+                    <div className="flex items-center gap-2 text-slate-600">
+                      <Bot
+                        className={`w-3.5 h-3.5 ${
+                          plan.aiScreeningEnabled ? "text-emerald-600" : "text-slate-400"
+                        }`}
+                      />
+                      <span className={plan.aiScreeningEnabled ? "font-semibold text-slate-800" : "text-slate-500"}>
+                        AI Screening: {plan.aiScreeningEnabled ? "Enabled" : "Disabled"}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-2 text-slate-600">
+                      <Eye
+                        className={`w-3.5 h-3.5 ${
+                          plan.unmaskedApplicantProfiles ? "text-emerald-600" : "text-slate-400"
+                        }`}
+                      />
+                      <span className={plan.unmaskedApplicantProfiles ? "font-semibold text-slate-800" : "text-slate-500"}>
+                        Contact Masking: {plan.unmaskedApplicantProfiles ? "Unmasked" : "Masked"}
+                      </span>
+                    </div>
+                  </>
+                )}
+              </>
+            );
+          })()}
         </div>
       </div>
 

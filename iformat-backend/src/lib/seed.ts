@@ -79,24 +79,35 @@ export async function seedDatabase() {
     });
     console.log("✅ Default membership plans seeded successfully and obsolete plans purged.");
 
-    // 2. Ensure the primary Admin user exists (devamin.bd@gmail.com)
-    const adminEmail = "devamin.bd@gmail.com";
-    let adminUser = await prisma.user.findUnique({ where: { email: adminEmail } });
-    if (!adminUser) {
-      const passwordHash = await bcrypt.hash("administrator123!", 10);
-      adminUser = await prisma.user.create({
-        data: {
-          email: adminEmail,
-          name: "iFormat Administrator",
-          passwordHash,
-          role: Role.ADMIN,
-          emailVerified: true,
-          companyName: "iFormat Global",
-        },
-      });
-      console.log(`✅ Default Superadmin created: ${adminEmail} / administrator123!`);
-    } else {
-      console.log(`ℹ️ Admin user already exists (${adminEmail}). Preserving existing password.`);
+    // 2. Ensure primary Admin users exist
+    const adminEmails = ["devamin.bd@gmail.com", "admin@iformatbranding.com"];
+    for (const email of adminEmails) {
+      let existingUser = await prisma.user.findUnique({ where: { email } });
+      if (!existingUser) {
+        const passwordHash = await bcrypt.hash("administrator123!", 10);
+        await prisma.user.create({
+          data: {
+            email,
+            name: email.startsWith("admin") ? "iFormat Executive Admin" : "iFormat Administrator",
+            passwordHash,
+            role: Role.ADMIN,
+            emailVerified: true,
+            companyName: "iFormat Global",
+          },
+        });
+        console.log(`✅ Default Superadmin created: ${email} / administrator123!`);
+      } else {
+        // Ensure role is ADMIN
+        if (existingUser.role !== Role.ADMIN) {
+          await prisma.user.update({
+            where: { id: existingUser.id },
+            data: { role: Role.ADMIN },
+          });
+          console.log(`✅ User ${email} promoted to ADMIN role.`);
+        } else {
+          console.log(`ℹ️ Admin user already exists (${email}).`);
+        }
+      }
     }
 
     console.log("🎉 Database initialization complete!");

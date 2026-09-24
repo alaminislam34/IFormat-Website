@@ -46,12 +46,36 @@ export const requireAiEntitlement = (actionType: string = "AI_GENERATION") => {
         },
       });
 
+      let maxAiLimit: number | null = null;
+
       if (activeSubscription) {
-        // Paid subscriber has full entitlement
+        const customFeat = activeSubscription.plan.customFeatures as any;
+        if (customFeat && typeof customFeat.maxAiGenerations === "number") {
+          maxAiLimit = customFeat.maxAiGenerations;
+        } else if (customFeat && customFeat.maxAiGenerations === null) {
+          maxAiLimit = null; // explicitly unlimited
+        } else {
+          // Default paid subscriber has full unlimited entitlement
+          return next();
+        }
+      } else {
+        // Free tier: check if admin customized quota on FREE_TIER plan in DB
+        const freePlan = await prisma.plan.findUnique({
+          where: { code: "FREE_TIER" },
+        });
+        const customFeat = freePlan?.customFeatures as any;
+        if (customFeat && typeof customFeat.maxAiGenerations === "number") {
+          maxAiLimit = customFeat.maxAiGenerations;
+        } else {
+          maxAiLimit = FREE_TIER_MONTHLY_AI_LIMIT;
+        }
+      }
+
+      if (maxAiLimit === null) {
         return next();
       }
 
-      // 3. Free Tier: Atomic Usage Check & Increment
+      // 3. Usage Check & Increment
       const { periodStart, periodEnd } = getCurrentBillingCycleUtc();
 
       // Find or create monthly cycle record
@@ -77,19 +101,19 @@ export const requireAiEntitlement = (actionType: string = "AI_GENERATION") => {
       }
 
       // Check quota limit
-      if (usage.aiGenerationsCount >= FREE_TIER_MONTHLY_AI_LIMIT) {
+      if (usage.aiGenerationsCount >= maxAiLimit) {
         logger.warn(
-          `🚫 [Entitlement] Free user ${req.user.email} (${userId}) exceeded AI monthly quota (${usage.aiGenerationsCount}/${FREE_TIER_MONTHLY_AI_LIMIT}) on ${actionType}`
+          `🚫 [Entitlement] User ${req.user.email} (${userId}) exceeded AI monthly quota (${usage.aiGenerationsCount}/${maxAiLimit}) on ${actionType}`
         );
 
         return res.status(403).json({
           success: false,
           error: {
             code: "SUBSCRIPTION_REQUIRED",
-            message: `You have reached your free monthly limit of ${FREE_TIER_MONTHLY_AI_LIMIT} AI generations. Upgrade to Pro for unlimited AI cover letters, resume optimization, and career coaching.`,
+            message: `You have reached your limit of ${maxAiLimit} monthly AI generations. Please upgrade your membership for higher or unlimited generations.`,
             upgradeUrl: "/dashboard/billing",
             currentUsage: usage.aiGenerationsCount,
-            maxQuota: FREE_TIER_MONTHLY_AI_LIMIT,
+            maxQuota: maxAiLimit,
             periodEnd,
           },
         });
@@ -104,7 +128,7 @@ export const requireAiEntitlement = (actionType: string = "AI_GENERATION") => {
       });
 
       logger.info(
-        `🤖 [Entitlement] AI tool ${actionType} granted to ${req.user.email}. Usage: ${usage.aiGenerationsCount + 1}/${FREE_TIER_MONTHLY_AI_LIMIT}`
+        `🤖 [Entitlement] AI tool ${actionType} granted to ${req.user.email}. Usage: ${usage.aiGenerationsCount + 1}/${maxAiLimit}`
       );
 
       return next();

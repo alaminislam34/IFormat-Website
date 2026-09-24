@@ -70,3 +70,49 @@ export const requireAuth = async (
     next(error);
   }
 };
+
+export const optionalAuth = async (
+  req: Request,
+  _res: Response,
+  next: NextFunction
+) => {
+  try {
+    let token: string | undefined;
+    if (req.cookies && req.cookies[COOKIE_NAMES.ACCESS_TOKEN]) {
+      token = req.cookies[COOKIE_NAMES.ACCESS_TOKEN];
+    } else if (
+      req.headers.authorization &&
+      req.headers.authorization.startsWith("Bearer ")
+    ) {
+      token = req.headers.authorization.split(" ")[1];
+    }
+
+    if (!token) return next();
+
+    const decoded = verifyAccessToken(token);
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.userId },
+      select: {
+        id: true,
+        email: true,
+        role: true,
+        tokenVersion: true,
+      },
+    });
+
+    if (
+      user &&
+      (decoded.tokenVersion === undefined || user.tokenVersion === decoded.tokenVersion)
+    ) {
+      req.user = {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        tokenVersion: user.tokenVersion,
+      };
+    }
+    return next();
+  } catch {
+    return next();
+  }
+};

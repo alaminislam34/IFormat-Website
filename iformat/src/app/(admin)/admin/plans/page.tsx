@@ -26,11 +26,13 @@ const DEFAULT_FORM: PlanFormData = {
   targetAudience: "EMPLOYER",
   maxActiveJobs: "5",
   maxApplicationsPerMonth: "50",
+  maxAiGenerations: "5",
   aiScreeningEnabled: true,
   featuredJobPlacement: false,
   unmaskedApplicantProfiles: true,
   unlimitedCvTemplates: true,
   isActive: true,
+  customFeaturesList: [],
 };
 
 export default function AdminPlansPage() {
@@ -75,6 +77,17 @@ export default function AdminPlansPage() {
 
   const handleOpenEdit = (plan: PlanDTO) => {
     setEditingPlan(plan);
+    const rawFeat = plan.customFeatures as any;
+    const featList = Array.isArray(rawFeat)
+      ? rawFeat
+      : Array.isArray(rawFeat?.features)
+      ? rawFeat.features
+      : [];
+    const maxAi =
+      rawFeat?.maxAiGenerations !== undefined && rawFeat?.maxAiGenerations !== null
+        ? String(rawFeat.maxAiGenerations)
+        : "";
+
     setFormData({
       name: plan.name,
       code: plan.code,
@@ -87,11 +100,13 @@ export default function AdminPlansPage() {
         plan.maxApplicationsPerMonth !== null && plan.maxApplicationsPerMonth !== undefined
           ? String(plan.maxApplicationsPerMonth)
           : "",
+      maxAiGenerations: maxAi,
       aiScreeningEnabled: plan.aiScreeningEnabled,
       featuredJobPlacement: plan.featuredJobPlacement,
       unmaskedApplicantProfiles: plan.unmaskedApplicantProfiles,
       unlimitedCvTemplates: plan.unlimitedCvTemplates,
       isActive: plan.isActive,
+      customFeaturesList: featList,
     });
     setIsModalOpen(true);
   };
@@ -121,6 +136,11 @@ export default function AdminPlansPage() {
 
     const formattedCode = formData.code.trim().toUpperCase().replace(/[^A-Z0-9_]/g, "_");
 
+    const customFeaturesPayload = {
+      features: (formData.customFeaturesList || []).filter((f) => f.trim() !== ""),
+      maxAiGenerations: formData.maxAiGenerations.trim() !== "" ? Number(formData.maxAiGenerations) : null,
+    };
+
     const payload: CreatePlanDTO = {
       name: formData.name.trim(),
       code: formattedCode,
@@ -135,6 +155,7 @@ export default function AdminPlansPage() {
       featuredJobPlacement: formData.featuredJobPlacement,
       unmaskedApplicantProfiles: formData.unmaskedApplicantProfiles,
       unlimitedCvTemplates: formData.unlimitedCvTemplates,
+      customFeatures: customFeaturesPayload,
     };
 
     try {

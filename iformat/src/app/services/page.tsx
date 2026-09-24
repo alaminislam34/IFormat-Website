@@ -25,6 +25,7 @@ import {
   ProductDetailModal,
   ServiceProduct,
 } from "@/features/services/components/product-detail-modal";
+import { AuthPromptModal } from "@/components/auth/auth-prompt-modal";
 
 export default function ServicesPage() {
   const router = useRouter();
@@ -36,6 +37,7 @@ export default function ServicesPage() {
   const [selectedProduct, setSelectedProduct] = useState<ServiceProduct | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   const handleOpenDetail = (product: ServiceProduct) => {
     setSelectedProduct(product);
@@ -44,6 +46,11 @@ export default function ServicesPage() {
 
   const handleOrderNow = (product: ServiceProduct) => {
     setSelectedProduct(product);
+    if (!isAuthenticated) {
+      setIsDetailModalOpen(false);
+      setIsAuthModalOpen(true);
+      return;
+    }
     setIsOrderModalOpen(true);
     setIsDetailModalOpen(false);
   };
@@ -95,6 +102,14 @@ export default function ServicesPage() {
         isOpen={isOrderModalOpen}
         onClose={() => setIsOrderModalOpen(false)}
         service={selectedProduct}
+      />
+
+      <AuthPromptModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        title="Sign In to Order Package"
+        description={`Sign in or create a free account to order ${selectedProduct?.title || "this career service"}.`}
+        redirectUrl="/services"
       />
 
       <section className="pt-8 pb-20 w-full">
