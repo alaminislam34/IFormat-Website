@@ -169,41 +169,46 @@ alex.morgan@example.com | linkedin.com/in/alexmorgan`;
 
       <div className="grid lg:grid-cols-12 gap-8 items-start">
         {/* Left Side: Inputs */}
-        <div className="lg:col-span-5 bg-white rounded-3xl border border-slate-200/80 p-6 md:p-8 shadow-xl shadow-slate-100/50 space-y-6">
-          <div className="flex items-center gap-3">
+        <div className="lg:col-span-5 bg-white rounded-3xl border border-slate-200/90 p-6 md:p-8 shadow-sm space-y-6">
+          <div className="flex items-center gap-3 pb-2 border-b border-slate-100">
             <div className="w-10 h-10 bg-blue-50 text-[#0A54B1] rounded-xl flex items-center justify-center">
               <FileText className="w-5 h-5" />
             </div>
-            <h2 className="text-lg font-bold text-slate-800">Job Details</h2>
+            <div>
+              <h2 className="text-lg font-bold text-slate-900">Application Details</h2>
+              <p className="text-xs text-slate-500">Specify the target position, company, and preferences.</p>
+            </div>
           </div>
 
           <div className="space-y-4">
             <div className="space-y-1.5">
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                Job Title <span className="text-rose-500">*</span>
+              <label className="text-xs font-bold text-slate-700">
+                Target Role / Title <span className="text-rose-500">*</span>
               </label>
-              <input
-                type="text"
-                value={jobTitle}
-                onChange={(e) => {
-                  setJobTitle(e.target.value);
-                  if (errors.role) setErrors((prev) => { const n = { ...prev }; delete n.role; return n; });
-                }}
-                placeholder="e.g. Senior Product Designer"
-                className={`w-full h-12 px-4 rounded-xl border transition-all text-sm font-medium focus:outline-none focus:ring-2 ${
-                  errors?.role
-                    ? "border-rose-400 bg-rose-50/20 text-rose-900 focus:ring-rose-500/20 focus:border-rose-500"
-                    : "border-slate-200 bg-slate-50/50 text-slate-800 focus:ring-[#0A54B1]/20 focus:border-[#0A54B1] focus:bg-white"
-                }`}
-              />
+              <div className="relative">
+                <input
+                  type="text"
+                  value={jobTitle}
+                  onChange={(e) => {
+                    setJobTitle(e.target.value);
+                    if (errors.role) setErrors((prev) => { const n = { ...prev }; delete n.role; return n; });
+                  }}
+                  placeholder="e.g. Senior Product Designer"
+                  className={`w-full h-11 px-4 rounded-xl border transition-all text-sm font-medium focus:outline-none focus:ring-2 ${
+                    errors?.role
+                      ? "border-rose-400 bg-rose-50/20 text-rose-900 focus:ring-rose-500/20 focus:border-rose-500"
+                      : "border-slate-200 bg-white text-slate-800 placeholder:text-slate-400 focus:ring-[#0A54B1]/20 focus:border-[#0A54B1]"
+                  }`}
+                />
+              </div>
               {errors?.role && (
                 <p className="text-[11px] font-medium text-rose-500">{errors.role}</p>
               )}
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                <label className="text-xs font-bold text-slate-700">
                   Company Name <span className="text-rose-500">*</span>
                 </label>
                 <input
@@ -214,10 +219,10 @@ alex.morgan@example.com | linkedin.com/in/alexmorgan`;
                     if (errors.company) setErrors((prev) => { const n = { ...prev }; delete n.company; return n; });
                   }}
                   placeholder="e.g. Vercel Inc"
-                  className={`w-full h-12 px-4 rounded-xl border transition-all text-sm font-medium focus:outline-none focus:ring-2 ${
+                  className={`w-full h-11 px-4 rounded-xl border transition-all text-sm font-medium focus:outline-none focus:ring-2 ${
                     errors?.company
                       ? "border-rose-400 bg-rose-50/20 text-rose-900 focus:ring-rose-500/20 focus:border-rose-500"
-                      : "border-slate-200 bg-slate-50/50 text-slate-800 focus:ring-[#0A54B1]/20 focus:border-[#0A54B1] focus:bg-white"
+                      : "border-slate-200 bg-white text-slate-800 placeholder:text-slate-400 focus:ring-[#0A54B1]/20 focus:border-[#0A54B1]"
                   }`}
                 />
                 {errors?.company && (
@@ -225,29 +230,32 @@ alex.morgan@example.com | linkedin.com/in/alexmorgan`;
                 )}
               </div>
               <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Recipient (Optional)</label>
+                <label className="text-xs font-bold text-slate-700">Recipient (Optional)</label>
                 <input
                   type="text"
                   value={recipient}
                   onChange={(e) => setRecipient(e.target.value)}
                   placeholder="e.g. Hiring Manager"
-                  className="w-full h-12 px-4 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0A54B1]/20 focus:border-[#0A54B1] focus:bg-white transition-all text-sm font-medium"
+                  className="w-full h-11 px-4 rounded-xl border border-slate-200 bg-white text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0A54B1]/20 focus:border-[#0A54B1] transition-all text-sm font-medium"
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Tone</label>
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-bold text-slate-700">Writing Tone</label>
+                <span className="text-[11px] text-slate-400">Select persona</span>
+              </div>
               <div className="grid grid-cols-2 gap-2">
                 {(["Professional", "Enthusiastic", "Confident", "Concise"] as CoverLetterTone[]).map((t) => (
                   <button
                     key={t}
                     type="button"
                     onClick={() => setTone(t)}
-                    className={`py-2.5 px-3 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
+                    className={`py-2.5 px-3 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
                       tone === t
-                        ? "border-[#0A54B1] bg-blue-50/50 text-[#0A54B1]"
-                        : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
+                        ? "border-[#0A54B1] bg-blue-50 text-[#0A54B1] shadow-xs"
+                        : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50/50"
                     }`}
                   >
                     {t}
@@ -256,26 +264,29 @@ alex.morgan@example.com | linkedin.com/in/alexmorgan`;
               </div>
             </div>
 
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Job Description / Requirements</label>
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-bold text-slate-700">Job Description / Requirements</label>
+                <span className="text-[11px] text-slate-400">Paste job post</span>
+              </div>
               <textarea
                 rows={5}
                 value={jobDesc}
                 onChange={(e) => setJobDesc(e.target.value)}
-                placeholder="Paste the job requirements or role overview here..."
-                className="w-full p-4 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0A54B1]/20 focus:border-[#0A54B1] focus:bg-white transition-all text-sm font-medium resize-none leading-relaxed"
+                placeholder="Paste the job requirements, responsibilities, or role overview here..."
+                className="w-full p-4 rounded-xl border border-slate-200 bg-white text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0A54B1]/20 focus:border-[#0A54B1] transition-all text-sm font-medium resize-none leading-relaxed"
               />
             </div>
 
             <Button
               onClick={handleGenerate}
               disabled={isGenerating}
-              className="w-full h-12 rounded-xl bg-[#0A54B1] hover:bg-[#0A54B1]/90 text-white font-semibold flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20 active:scale-[0.99] transition-all cursor-pointer"
+              className="w-full h-12 rounded-xl bg-[#0A54B1] hover:bg-[#0A54B1]/90 text-white font-bold flex items-center justify-center gap-2 shadow-md shadow-blue-500/20 active:scale-[0.99] transition-all cursor-pointer"
             >
               {isGenerating ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  Generating Cover Letter...
+                  Generating Tailored Letter...
                 </>
               ) : (
                 <>
@@ -288,16 +299,19 @@ alex.morgan@example.com | linkedin.com/in/alexmorgan`;
         </div>
 
         {/* Right Side: Preview */}
-        <div className="lg:col-span-7 bg-white rounded-3xl border border-slate-200/80 p-6 md:p-8 shadow-xl shadow-slate-100/50 space-y-6">
+        <div className="lg:col-span-7 bg-white rounded-3xl border border-slate-200/90 p-6 md:p-8 shadow-sm space-y-6">
           <div className="flex items-center justify-between pb-4 border-b border-slate-100">
-            <h2 className="text-lg font-bold text-slate-800">Generated Cover Letter</h2>
+            <div>
+              <h2 className="text-lg font-bold text-slate-900">Generated Cover Letter</h2>
+              <p className="text-xs text-slate-500">Edit, copy, or export your tailored document.</p>
+            </div>
             {generatedLetter && (
               <div className="flex items-center gap-2">
                 <Button
                   onClick={handleCopy}
                   variant="outline"
                   size="sm"
-                  className="rounded-xl border-slate-200 text-slate-600 hover:text-slate-900 gap-1.5 cursor-pointer text-xs"
+                  className="rounded-xl border-slate-200 text-slate-700 hover:text-slate-900 gap-1.5 cursor-pointer text-xs h-9 px-3"
                 >
                   {copied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
                   {copied ? "Copied" : "Copy"}
@@ -305,27 +319,27 @@ alex.morgan@example.com | linkedin.com/in/alexmorgan`;
                 <Button
                   onClick={handleDownload}
                   size="sm"
-                  className="rounded-xl bg-[#0A54B1] hover:bg-[#0A54B1]/90 text-white gap-1.5 cursor-pointer text-xs"
+                  className="rounded-xl bg-[#0A54B1] hover:bg-[#0A54B1]/90 text-white gap-1.5 cursor-pointer text-xs h-9 px-3.5 shadow-xs"
                 >
                   <Download className="w-3.5 h-3.5" />
-                  Download
+                  Download TXT
                 </Button>
               </div>
             )}
           </div>
 
           {generatedLetter ? (
-            <div className="bg-slate-50/50 rounded-2xl p-6 border border-slate-100 min-h-96 text-sm text-slate-700 whitespace-pre-wrap leading-relaxed font-sans">
+            <div className="bg-slate-50/70 rounded-2xl p-6 sm:p-7 border border-slate-200/80 min-h-96 text-sm text-slate-800 whitespace-pre-wrap leading-relaxed font-sans selection:bg-blue-100">
               {generatedLetter}
             </div>
           ) : (
-            <div className="h-96 rounded-2xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center p-6 text-center space-y-3">
+            <div className="h-96 rounded-2xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center p-6 text-center space-y-3 bg-slate-50/30">
               <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center text-[#0A54B1]">
                 <FileText className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="text-sm font-semibold text-slate-700">No Cover Letter Generated Yet</h3>
-                <p className="text-xs text-slate-400 max-w-xs mt-1">
+                <h3 className="text-sm font-bold text-slate-700">No Cover Letter Generated Yet</h3>
+                <p className="text-xs text-slate-400 max-w-xs mt-1 leading-relaxed">
                   Fill in the job details on the left, then click Generate to craft your customized ATS-tailored cover letter.
                 </p>
               </div>

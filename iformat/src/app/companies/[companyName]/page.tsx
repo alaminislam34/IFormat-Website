@@ -174,108 +174,111 @@ export default function CompanyProfilePage({ params }: PageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50/50 flex flex-col">
-      {/* Top Breadcrumb Bar */}
-      <div className="bg-white border-b border-slate-100 pt-24 sm:pt-28">
-        <div className="max-w-360 w-11/12 mx-auto py-3.5 flex items-center justify-between">
-          <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
-            <Link
-              href="/job-portal"
-              className="flex items-center gap-1 hover:text-[#0A54B1] transition-colors"
-            >
-              <ArrowLeft className="w-3.5 h-3.5" />
-              Back to Job Portal
-            </Link>
-            <span>/</span>
-            <span className="text-slate-400">Companies</span>
-            <span>/</span>
-            <span className="text-slate-900 font-bold">{company.name}</span>
-          </div>
+    <div className="min-h-screen bg-slate-50 flex flex-col">
+      {/* Unified Hero Cover Header */}
+      <div className="relative bg-linear-to-r from-[#061e47] via-[#0A54B1] to-[#0284c7] text-white pt-24 sm:pt-28 pb-20 sm:pb-24 overflow-hidden">
+        {/* Soft Ambient Glow */}
+        <div className="absolute -right-20 -top-20 w-96 h-96 bg-[#52CEDE]/25 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute left-1/3 bottom-0 w-80 h-80 bg-white/10 rounded-full blur-2xl pointer-events-none" />
 
-          <button
-            onClick={handleShare}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600 hover:text-[#0A54B1] hover:border-sky-200 hover:bg-sky-50 transition-all cursor-pointer"
-            title="Share Company Profile"
-          >
-            <Share2 className="w-3.5 h-3.5" />
-            Share Profile
-          </button>
+        <div className="max-w-360 w-11/12 mx-auto relative z-10">
+          {/* Breadcrumb & Actions Bar */}
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-2 text-xs font-semibold text-white/80">
+              <Link
+                href="/job-portal"
+                className="flex items-center gap-1.5 hover:text-white transition-colors"
+              >
+                <ArrowLeft className="w-3.5 h-3.5" />
+                <span>Back to Job Portal</span>
+              </Link>
+              <span className="text-white/40">/</span>
+              <span className="text-white/60">Companies</span>
+              <span className="text-white/40">/</span>
+              <span className="text-white font-bold">{company.name}</span>
+            </div>
+
+            <button
+              onClick={handleShare}
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl border border-white/20 bg-white/10 backdrop-blur-md text-xs font-semibold text-white hover:bg-white/20 transition-all cursor-pointer"
+              title="Share Company Profile"
+            >
+              <Share2 className="w-3.5 h-3.5" />
+              <span>Share Profile</span>
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Hero Header Banner */}
-      <div className="relative bg-white border-b border-slate-100 overflow-hidden">
-        <div className="absolute top-0 left-0 right-0 h-40 bg-linear-to-r from-[#0A54B1]/10 via-indigo-100/40 to-sky-100/30" />
+      {/* Elevated Company Identity Card */}
+      <div className="max-w-360 w-11/12 mx-auto -mt-12 sm:-mt-16 relative z-20">
+        <div className="bg-white rounded-3xl border border-slate-200/90 shadow-xl shadow-slate-200/50 p-6 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
+          {/* Logo & Info */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5">
+            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-white border-2 border-slate-100 shadow-md flex items-center justify-center overflow-hidden shrink-0">
+              {company.logoUrl ? (
+                <img
+                  src={company.logoUrl}
+                  alt={`${company.name} logo`}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.currentTarget.style.display = "none";
+                  }}
+                />
+              ) : (
+                <div className="w-full h-full bg-[#0A54B1] text-white font-black text-3xl flex items-center justify-center">
+                  {logoLetter}
+                </div>
+              )}
+            </div>
 
-        <div className="max-w-360 w-11/12 mx-auto pt-16 pb-8 relative">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-            {/* Logo & Main Identity */}
-            <div className="flex items-start md:items-end gap-5">
-              <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-3xl bg-white border-4 border-white shadow-lg flex items-center justify-center overflow-hidden shrink-0">
-                {company.logoUrl ? (
-                  <img
-                    src={company.logoUrl}
-                    alt={`${company.name} logo`}
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      e.currentTarget.style.display = "none";
-                    }}
-                  />
-                ) : (
-                  <div className="w-full h-full bg-[#0A54B1] text-white font-black text-3xl sm:text-4xl flex items-center justify-center">
-                    {logoLetter}
-                  </div>
+            <div className="space-y-1.5">
+              <div className="flex flex-wrap items-center gap-2.5">
+                <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+                  {company.name}
+                </h1>
+                {company.isVerified && (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                    Verified Partner
+                  </span>
                 )}
               </div>
 
-              <div className="space-y-1.5">
-                <div className="flex flex-wrap items-center gap-2.5">
-                  <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-                    {company.name}
-                  </h1>
-                  {company.isVerified && (
-                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                      Verified Partner
-                    </span>
-                  )}
-                </div>
+              <div className="flex flex-wrap items-center gap-4 text-xs sm:text-sm font-medium text-slate-500">
+                {company.website && (
+                  <a
+                    href={company.website.startsWith("http") ? company.website : `https://${company.website}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1 text-[#0A54B1] hover:underline font-semibold"
+                  >
+                    <Globe className="w-3.5 h-3.5" />
+                    {company.website.replace(/^https?:\/\//, "")}
+                    <ExternalLink className="w-3 h-3 ml-0.5" />
+                  </a>
+                )}
 
-                <div className="flex flex-wrap items-center gap-4 text-xs sm:text-sm font-medium text-slate-500">
-                  {company.website && (
-                    <a
-                      href={company.website.startsWith("http") ? company.website : `https://${company.website}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-1 text-[#0A54B1] hover:underline font-semibold"
-                    >
-                      <Globe className="w-3.5 h-3.5" />
-                      {company.website.replace(/^https?:\/\//, "")}
-                      <ExternalLink className="w-3 h-3 ml-0.5" />
-                    </a>
-                  )}
-
-                  <span className="flex items-center gap-1 text-slate-600">
-                    <Briefcase className="w-3.5 h-3.5 text-slate-400" />
-                    {jobs.length} Active {jobs.length === 1 ? "Opening" : "Openings"}
-                  </span>
-                </div>
+                <span className="flex items-center gap-1 text-slate-600">
+                  <Briefcase className="w-3.5 h-3.5 text-slate-400" />
+                  {jobs.length} Active {jobs.length === 1 ? "Opening" : "Openings"}
+                </span>
               </div>
             </div>
-
-            {/* Quick Action Buttons */}
-            {jobs.length > 0 && (
-              <div className="flex items-center gap-3 shrink-0">
-                <a
-                  href="#open-roles"
-                  className="px-5 py-2.5 rounded-2xl bg-[#0A54B1] hover:bg-[#08448f] text-white text-sm font-bold shadow-sm hover:shadow-md transition-all flex items-center gap-2"
-                >
-                  <span>View {jobs.length} Jobs</span>
-                  <Briefcase className="w-4 h-4" />
-                </a>
-              </div>
-            )}
           </div>
+
+          {/* Quick Action Button */}
+          {jobs.length > 0 && (
+            <div className="flex items-center gap-3 shrink-0">
+              <a
+                href="#open-roles"
+                className="px-6 py-3 rounded-xl bg-linear-to-r from-[#52CEDE] to-[#0A54B1] hover:opacity-95 text-white text-xs sm:text-sm font-bold shadow-md shadow-blue-500/20 transition-all flex items-center gap-2"
+              >
+                <span>View {jobs.length} Open {jobs.length === 1 ? "Job" : "Jobs"}</span>
+                <Briefcase className="w-4 h-4" />
+              </a>
+            </div>
+          )}
         </div>
       </div>
 

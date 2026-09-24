@@ -98,30 +98,55 @@ export function ResumeBuilder() {
 
       {/* Steps Selector & Consult with expert button */}
       {step <= 5 && (
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4 print:hidden no-print">
-          <div className="flex items-center gap-2 overflow-x-auto pb-1">
-            {steps.map((s) => (
-              <button
-                key={s.num}
-                onClick={() => goToStep(s.num)}
-                className={`px-4 py-2 rounded-full text-xs font-bold tracking-wider transition-all cursor-pointer whitespace-nowrap ${
-                  step === s.num
-                    ? "bg-[#0A54B1] text-white shadow-md shadow-blue-500/20"
-                    : "bg-slate-100 text-slate-700 hover:bg-slate-200 hover:text-slate-900 border border-slate-200/80"
-                }`}
-              >
-                {s.label}
-              </button>
-            ))}
+        <div className="bg-white rounded-2xl border border-slate-200/90 p-3.5 sm:p-4 mb-6 shadow-xs flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-4 print:hidden no-print">
+          {/* Stepper progress track */}
+          <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto scrollbar-none pb-1 xl:pb-0">
+            {steps.map((s) => {
+              const isCurrent = step === s.num;
+              const isCompleted = step > s.num;
+              return (
+                <button
+                  key={s.num}
+                  type="button"
+                  onClick={() => goToStep(s.num)}
+                  className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
+                    isCurrent
+                      ? "bg-[#0A54B1] text-white shadow-md shadow-blue-500/20"
+                      : isCompleted
+                      ? "bg-sky-50 text-[#0A54B1] hover:bg-sky-100/70 border border-sky-100"
+                      : "bg-slate-50 text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200/60"
+                  }`}
+                >
+                  <span
+                    className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black ${
+                      isCurrent
+                        ? "bg-white text-[#0A54B1]"
+                        : isCompleted
+                        ? "bg-emerald-500 text-white"
+                        : "bg-slate-200 text-slate-600"
+                    }`}
+                  >
+                    {isCompleted ? "✓" : s.num}
+                  </span>
+                  <span>{s.label.replace(/^\d+\.\s*/, "")}</span>
+                </button>
+              );
+            })}
           </div>
 
-          <button
-            onClick={() => setIsConsultModalOpen(true)}
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-linear-to-r from-[#52CEDE] to-[#0A54B1] text-white rounded-xl text-xs font-bold shadow-md shadow-blue-500/15 hover:opacity-90 hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer"
-          >
-            <Sparkles className="w-3.5 h-3.5" />
-            Consult with expert
-          </button>
+          <div className="flex items-center justify-between xl:justify-end gap-3 pt-2 xl:pt-0 border-t xl:border-t-0 border-slate-100 shrink-0">
+            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+              Step {step} of 5
+            </span>
+            <button
+              type="button"
+              onClick={() => setIsConsultModalOpen(true)}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-linear-to-r from-[#52CEDE] to-[#0A54B1] hover:opacity-95 text-white rounded-xl text-xs font-extrabold shadow-sm active:scale-95 transition-all cursor-pointer"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Consult Expert</span>
+            </button>
+          </div>
         </div>
       )}
 

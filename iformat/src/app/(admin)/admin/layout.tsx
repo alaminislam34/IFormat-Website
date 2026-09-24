@@ -14,12 +14,10 @@ import {
   History,
   Settings,
   LogOut,
-  Shield,
   ExternalLink,
   Loader2,
   Menu,
   X,
-  Activity,
   ShoppingBag,
 } from "lucide-react";
 import { useAuthStore } from "@/stores/use-auth-store";
@@ -177,7 +175,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </button>
           </div>
 
-          {/* Navigation Links */}
           <nav className="p-4 space-y-5 overflow-y-auto flex-1 min-h-0">
             {navItems.map((group, gIdx) => (
               <div key={gIdx} className="space-y-1">
@@ -193,10 +190,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                       key={iIdx}
                       href={item.href}
                       onClick={() => setSidebarOpen(false)}
-                      className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all ${
+                      className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all border ${
                         isActive
-                          ? "bg-sky-50 text-sky-600 font-bold shadow-xs border border-sky-100"
-                          : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+                          ? "bg-sky-50 text-sky-600 font-bold shadow-xs  border-sky-100"
+                          : "text-slate-600 border-transparent hover:text-slate-900 hover:bg-slate-50"
                       }`}
                     >
                       <Icon className={`w-4 h-4 ${isActive ? "text-sky-600" : "text-slate-400"}`} />
@@ -208,7 +205,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             ))}
           </nav>
 
-          {/* Sidebar Footer / Sign Out */}
           <div className="p-4 border-t border-slate-100 bg-white shrink-0">
             <button
               onClick={handleLogout}
@@ -221,11 +217,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
       </aside>
 
-      {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 h-dvh overflow-hidden bg-slate-50">
-        {/* Navbar */}
         <header className="h-16 px-6 bg-white/95 border-b border-slate-200/80 backdrop-blur-md flex items-center justify-between shrink-0 z-30">
-          {/* Navbar Left Side: Active Page Name & Mobile Menu */}
           <div className="flex items-center gap-3">
             <button
               onClick={() => setSidebarOpen(true)}
@@ -242,7 +235,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </div>
           </div>
 
-          {/* Navbar Right Side: Admin Profile Image, Name, Email */}
           <div className="flex items-center gap-3 sm:gap-4">
             <Link
               href="/"
@@ -254,7 +246,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </Link>
 
             <div className="flex items-center gap-2.5 sm:gap-3 pl-2 sm:border-l sm:border-slate-200">
-              {/* Profile Image */}
               {user?.avatarUrl || user?.avatar ? (
                 <img
                   src={user.avatarUrl || user.avatar}
@@ -267,7 +258,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 </div>
               )}
 
-              {/* Name & Email */}
               <div className="flex flex-col min-w-0">
                 <span className="text-xs sm:text-sm font-semibold text-slate-800 truncate leading-tight">
                   {user?.name || "Administrator"}
@@ -280,7 +270,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
         </header>
 
-        {/* Page View Body */}
         <main className="flex-1 overflow-y-auto min-h-0 p-6 sm:p-8 pb-16 w-full min-w-0">
           {children}
         </main>

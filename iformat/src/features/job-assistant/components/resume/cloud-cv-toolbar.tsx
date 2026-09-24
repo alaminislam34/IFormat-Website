@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Cloud, FolderOpen, Save, Loader2 } from "lucide-react";
+import { Cloud, FolderOpen, Save, Loader2, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface CloudCvToolbarProps {
@@ -26,28 +26,33 @@ export function CloudCvToolbar({
   onSaveToCloud,
 }: CloudCvToolbarProps) {
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 mb-6 p-4 bg-slate-900 text-white rounded-2xl border border-slate-800 shadow-md print:hidden no-print">
-      <div className="flex items-center gap-3">
-        <div className="p-2.5 bg-blue-600/20 text-blue-400 rounded-xl border border-blue-500/20">
-          <Cloud className="w-5 h-5" />
+    <div className="flex flex-wrap items-center justify-between gap-4 mb-6 p-4 sm:p-5 bg-white rounded-2xl border border-slate-200/90 shadow-xs print:hidden no-print">
+      <div className="flex items-center gap-3.5">
+        <div className="w-11 h-11 bg-sky-50 text-[#0A54B1] rounded-2xl border border-sky-100 flex items-center justify-center shrink-0">
+          <Cloud className="w-5 h-5 text-[#0A54B1]" />
         </div>
         <div>
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-bold text-white">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-sm font-extrabold text-slate-900">
               {activeCvId ? activeCvTitle : "Unsaved Resume Draft"}
             </span>
-            {activeCvId && (
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+            {activeCvId ? (
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
+                <CheckCircle2 className="w-3 h-3 text-emerald-600" />
                 Version {activeVersionNumber}
+              </span>
+            ) : (
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                Draft
               </span>
             )}
           </div>
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-slate-500 mt-0.5">
             {isAuthenticated
               ? activeCvId
                 ? "Synced to cloud. Every save increments your version history."
                 : "Save to your cloud account for instant job applications and versioning."
-              : "Log in to save multiple resume versions to your account."}
+              : "Log in or save to preserve multiple resume versions in your account."}
           </p>
         </div>
       </div>
@@ -58,10 +63,10 @@ export function CloudCvToolbar({
             onClick={onOpenSavedModal}
             variant="outline"
             size="sm"
-            className="h-9 px-3.5 text-xs bg-slate-800 border-slate-700 text-slate-200 font-medium cursor-pointer"
+            className="h-9 px-3.5 text-xs bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-700 font-bold rounded-xl cursor-pointer transition-all"
           >
-            <FolderOpen className="w-4 h-4 mr-1.5 text-blue-400" />
-            My Cloud Resumes {totalCVsCount > 0 ? `(${totalCVsCount})` : ""}
+            <FolderOpen className="w-4 h-4 mr-1.5 text-[#0A54B1]" />
+            My Resumes {totalCVsCount > 0 ? `(${totalCVsCount})` : ""}
           </Button>
         )}
 
@@ -69,7 +74,7 @@ export function CloudCvToolbar({
           onClick={onSaveToCloud}
           disabled={isSaving}
           size="sm"
-          className="h-9 px-4 text-xs bg-linear-to-r from-[#52CEDE] to-[#0A54B1] hover:opacity-95 text-white font-bold shadow-md shadow-blue-500/20 active:scale-95 transition-all cursor-pointer"
+          className="h-9 px-4 text-xs bg-linear-to-r from-[#52CEDE] to-[#0A54B1] hover:opacity-95 text-white font-extrabold shadow-sm active:scale-95 transition-all rounded-xl cursor-pointer disabled:opacity-60"
         >
           {isSaving ? (
             <>
