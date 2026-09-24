@@ -60,14 +60,13 @@ export function Navbar() {
       <AuthPromptModal
         isOpen={isAuthPromptOpen}
         onClose={() => setIsAuthPromptOpen(false)}
+        onSuccess={() => {
+          setIsAuthPromptOpen(false);
+          setIsConsultModalOpen(true);
+        }}
         title="Sign In to Book a Free Consult"
         description="Please sign in or create an account to book your free career consultation session."
         redirectUrl={consultRedirectUrl}
-        perks={[
-          "1-on-1 personalized career strategy advice",
-          "Comprehensive resume & portfolio evaluation",
-          "Targeted roadmap for executive & tech opportunities",
-        ]}
       />
 
       <header

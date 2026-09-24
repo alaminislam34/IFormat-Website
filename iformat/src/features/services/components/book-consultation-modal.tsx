@@ -137,13 +137,8 @@ export function BookConsultationModal({
         isOpen={isOpen}
         onClose={onClose}
         title="Sign In to Book a Free Consult"
-        description="You must be logged in to book a free consultation session. Please sign in or register to proceed."
+        description="Please sign in or create an account to book your free career consultation session."
         redirectUrl={returnUrl}
-        perks={[
-          "1-on-1 personalized career strategy advice",
-          "Comprehensive resume & portfolio evaluation",
-          "Targeted roadmap for executive & tech opportunities",
-        ]}
       />
     );
   }
