@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { Play, Pause, Volume2, VolumeX } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { TrustedBrands } from "./trusted-brands";
 import {
   useLandingContentStore,
@@ -23,7 +23,6 @@ export function Stats() {
   const [isPlaying, setIsPlaying] = useState(true);
   const [isMuted, setIsMuted] = useState(true);
 
-  // Play / Pause toggle
   const togglePlay = () => {
     if (!videoRef.current) return;
     if (videoRef.current.paused) {
@@ -35,14 +34,12 @@ export function Stats() {
     }
   };
 
-  // Mute / Unmute toggle
   const toggleMute = () => {
     if (!videoRef.current) return;
     const nextMuted = !isMuted;
     videoRef.current.muted = nextMuted;
     setIsMuted(nextMuted);
 
-    // If unmuting while paused, resume playback
     if (!nextMuted && videoRef.current.paused) {
       videoRef.current.play().catch(() => {});
       setIsPlaying(true);
@@ -51,9 +48,7 @@ export function Stats() {
 
   return (
     <div className="bg-slate-50 overflow-hidden">
-      {/* Branding Video Section - Pure In-Section Branding Showcase */}
-      <section className="relative w-full h-[65vh] min-h-[460px] max-h-[720px] bg-[#070b14] flex items-center justify-center overflow-hidden group select-none">
-        {/* Background Blurred Ambient Glow */}
+      <section className="relative w-full h-[65vh] min-h-115 max-h-180 bg-[#070b14] flex items-center justify-center overflow-hidden group select-none">
         <video
           key={`ambient-${activeVideo.videoUrl}`}
           src={activeVideo.videoUrl}
@@ -64,7 +59,6 @@ export function Stats() {
           playsInline
         />
 
-        {/* Main Branding Video Element */}
         <video
           ref={videoRef}
           key={`main-${activeVideo.videoUrl}`}
@@ -79,13 +73,10 @@ export function Stats() {
           onClick={togglePlay}
         />
 
-        {/* Cinematic Branding Overlay (Always on the video for high-end agency look) */}
         <div className="absolute inset-0 z-20 bg-linear-to-t from-[#070b14]/90 via-[#070b14]/50 to-[#070b14]/65 pointer-events-none transition-opacity duration-300" />
 
-        {/* Ambient Radial Vignette */}
         <div className="absolute inset-0 z-20 bg-radial from-transparent via-[#070b14]/30 to-[#070b14]/80 pointer-events-none" />
 
-        {/* Center Content: Title, Description & Action Button */}
         <div className="absolute inset-0 z-30 flex items-center justify-center pointer-events-none px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -94,7 +85,6 @@ export function Stats() {
             transition={{ duration: 0.6 }}
             className="text-center flex flex-col items-center gap-6 max-w-3xl"
           >
-            {/* Center Play/Pause Indicator Button */}
             <button
               type="button"
               onClick={togglePlay}
@@ -112,7 +102,6 @@ export function Stats() {
               )}
             </button>
 
-            {/* Branding Typography */}
             <div className="space-y-2.5">
               <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-extrabold uppercase tracking-widest bg-cyan-500/15 border border-cyan-400/30 text-cyan-300 backdrop-blur-md">
                 <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
@@ -130,9 +119,7 @@ export function Stats() {
           </motion.div>
         </div>
 
-        {/* Minimalist Floating Controls: ONLY Play/Pause and Mute/Unmute */}
         <div className="absolute bottom-6 right-6 z-40 flex items-center gap-2 pointer-events-auto">
-          {/* Play / Pause Toggle Button */}
           <button
             type="button"
             onClick={togglePlay}
@@ -142,17 +129,14 @@ export function Stats() {
             {isPlaying ? (
               <>
                 <Pause className="w-4 h-4 fill-current" />
-                <span className="hidden sm:inline">Pause</span>
               </>
             ) : (
               <>
                 <Play className="w-4 h-4 fill-current ml-0.5" />
-                <span className="hidden sm:inline">Play</span>
               </>
             )}
           </button>
 
-          {/* Mute / Unmute Toggle Button */}
           <button
             type="button"
             onClick={toggleMute}
@@ -166,12 +150,10 @@ export function Stats() {
             {isMuted ? (
               <>
                 <VolumeX className="w-4 h-4 text-rose-400" />
-                <span>Muted</span>
               </>
             ) : (
               <>
                 <Volume2 className="w-4 h-4" />
-                <span>Sound On</span>
               </>
             )}
           </button>
