@@ -132,7 +132,7 @@ export default function ServicesPage() {
             <ScrollReveal key={service.id} yOffset={30} delay={idx * 0.05}>
               <div
                 onClick={() => handleOpenDetail(service)}
-                className="bg-white rounded-3xl border border-slate-200/90 overflow-hidden shadow-sm hover:shadow-xl hover:border-blue-300 transition-all group h-full flex flex-col cursor-pointer relative"
+                className="bg-white rounded-xl border border-slate-200/90 overflow-hidden shadow hover:shadow-sm transition-all group h-full flex flex-col cursor-pointer relative"
               >
                 <div className="h-52 overflow-hidden relative bg-slate-900">
                   <Image
@@ -154,7 +154,6 @@ export default function ServicesPage() {
                     )}
                   </div>
 
-                  {/* View Details pill on hover */}
                   <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-slate-950/40 backdrop-blur-xs">
                     <span className="px-4 py-2 rounded-xl bg-white text-slate-900 font-extrabold text-xs shadow-lg flex items-center gap-1.5">
                       <Eye className="w-3.5 h-3.5 text-[#004AAD]" /> View Full Details & Specs
