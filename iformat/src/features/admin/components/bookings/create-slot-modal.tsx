@@ -37,8 +37,9 @@ export function CreateSlotModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in-0 duration-150">
-      <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 w-full max-w-lg space-y-6 shadow-2xl">
-        <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+      <div className="relative bg-white border border-slate-200 rounded-3xl w-full max-w-lg max-h-[90vh] shadow-2xl flex flex-col overflow-hidden">
+        {/* Header: Fixed at top */}
+        <div className="p-5 sm:p-6 border-b border-slate-100 flex items-center justify-between bg-white shrink-0 z-10">
           <div>
             <h3 className="text-lg font-bold text-slate-900">Create Consultation Slot</h3>
             <p className="text-xs text-slate-500 mt-0.5">
@@ -46,6 +47,7 @@ export function CreateSlotModal({
             </p>
           </div>
           <button
+            type="button"
             onClick={onClose}
             className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
           >
@@ -53,80 +55,84 @@ export function CreateSlotModal({
           </button>
         </div>
 
-        <form onSubmit={onSubmit} className="space-y-4">
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-              Session Topic / Title <span className="text-rose-500">*</span>
-            </label>
-            <input
-              type="text"
-              required
-              value={slotTitle}
-              onChange={(e) => setSlotTitle(e.target.value)}
-              placeholder="e.g. 1-on-1 Executive Career & CV Strategy"
-              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 placeholder:text-slate-400 text-xs focus:outline-hidden focus:border-blue-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-              Start Date & Time <span className="text-rose-500">*</span>
-            </label>
-            <input
-              type="datetime-local"
-              required
-              value={startDateTime}
-              onChange={(e) => setStartDateTime(e.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs focus:outline-hidden focus:border-blue-500"
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
+        <form onSubmit={onSubmit} className="flex-1 flex flex-col min-h-0 overflow-hidden">
+          {/* Scrollable Form Body */}
+          <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-4 scrollbar-thin">
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                Duration
+                Session Topic / Title <span className="text-rose-500">*</span>
               </label>
-              <select
-                value={durationMinutes}
-                onChange={(e) => setDurationMinutes(Number(e.target.value))}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs focus:outline-hidden focus:border-blue-500"
-              >
-                <option value={30}>30 Minutes</option>
-                <option value={45}>45 Minutes</option>
-                <option value={60}>60 Minutes</option>
-                <option value={90}>90 Minutes</option>
-              </select>
+              <input
+                type="text"
+                required
+                value={slotTitle}
+                onChange={(e) => setSlotTitle(e.target.value)}
+                placeholder="e.g. 1-on-1 Executive Career & CV Strategy"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 placeholder:text-slate-400 text-xs focus:outline-hidden focus:border-blue-500"
+              />
             </div>
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                Price ($ USD)
+                Start Date & Time <span className="text-rose-500">*</span>
               </label>
               <input
-                type="number"
-                min={0}
-                step={1}
-                value={priceInDollars}
-                onChange={(e) => setPriceInDollars(Number(e.target.value))}
+                type="datetime-local"
+                required
+                value={startDateTime}
+                onChange={(e) => setStartDateTime(e.target.value)}
                 className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs focus:outline-hidden focus:border-blue-500"
               />
             </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                  Duration
+                </label>
+                <select
+                  value={durationMinutes}
+                  onChange={(e) => setDurationMinutes(Number(e.target.value))}
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs focus:outline-hidden focus:border-blue-500"
+                >
+                  <option value={30}>30 Minutes</option>
+                  <option value={45}>45 Minutes</option>
+                  <option value={60}>60 Minutes</option>
+                  <option value={90}>90 Minutes</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                  Price ($ USD)
+                </label>
+                <input
+                  type="number"
+                  min={0}
+                  step={1}
+                  value={priceInDollars}
+                  onChange={(e) => setPriceInDollars(Number(e.target.value))}
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs focus:outline-hidden focus:border-blue-500"
+                />
+              </div>
+            </div>
           </div>
 
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+          {/* Fixed Footer: Always visible, never scrolls away */}
+          <div className="p-4 sm:p-5 border-t border-slate-100 bg-slate-50/90 backdrop-blur-xs flex items-center justify-end gap-3 shrink-0 z-10">
             <Button
               type="button"
               variant="ghost"
               disabled={isSubmitting}
               onClick={onClose}
-              className="text-xs text-slate-600 hover:text-slate-900 cursor-pointer"
+              className="text-xs text-slate-600 hover:text-slate-900 cursor-pointer h-9 px-4 rounded-xl"
             >
               Cancel
             </Button>
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold px-5 h-9 rounded-xl shadow-xs cursor-pointer"
+              className="bg-[#0A54B1] hover:bg-[#08448f] text-white text-xs font-semibold px-5 h-9 rounded-xl shadow-xs cursor-pointer"
             >
               {isSubmitting ? (
                 <>

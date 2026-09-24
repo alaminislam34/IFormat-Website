@@ -54,7 +54,7 @@ export function AdminPlanEditorModal({
     if (!newFeatureText.trim()) return;
     setFormData({
       ...formData,
-      customFeaturesList: [...(formData.customFeaturesList || []), newFeatureText.trim()],
+      customFeaturesList: [newFeatureText.trim(), ...(formData.customFeaturesList || [])],
     });
     setNewFeatureText("");
   };
@@ -79,9 +79,9 @@ export function AdminPlanEditorModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in-0 duration-150">
-      <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 w-full max-w-xl max-h-[90vh] overflow-y-auto space-y-6 shadow-2xl">
-        {/* Modal Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+      <div className="relative bg-white border border-slate-200 rounded-3xl w-full max-w-xl max-h-[90vh] shadow-2xl flex flex-col overflow-hidden">
+        {/* Modal Header: Fixed at top (not scrollable) */}
+        <div className="p-5 sm:p-6 border-b border-slate-100 flex items-center justify-between bg-white shrink-0 z-10">
           <div>
             <h3 className="text-lg font-bold text-slate-900">
               {editingPlan ? `Edit Plan: ${editingPlan.name}` : "Create New Membership Plan"}
@@ -91,6 +91,7 @@ export function AdminPlanEditorModal({
             </p>
           </div>
           <button
+            type="button"
             onClick={onClose}
             className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
           >
@@ -98,20 +99,21 @@ export function AdminPlanEditorModal({
           </button>
         </div>
 
-        {editingPlan?.code === "FREE_TIER" && (
-          <div className="p-3.5 bg-amber-50/90 border border-amber-200/80 rounded-2xl text-xs text-amber-900 flex items-start gap-3">
-            <span className="text-lg leading-none">⚙️</span>
-            <div>
-              <p className="font-semibold text-amber-950">Default Free Plan Quotas & Entitlements</p>
-              <p className="text-[11px] text-amber-800 mt-0.5 leading-relaxed">
-                Limits and feature toggles saved here directly govern what all unpaid/free candidates and employers are allowed to do across the platform.
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* Form */}
-        <form onSubmit={onSubmit} className="space-y-5">
+        {/* Form Container with scrollable content and fixed footer */}
+        <form onSubmit={onSubmit} className="flex-1 flex flex-col min-h-0 overflow-hidden">
+          {/* Scrollable Form Body */}
+          <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-5 scrollbar-thin">
+            {editingPlan?.code === "FREE_TIER" && (
+              <div className="p-3.5 bg-amber-50/90 border border-amber-200/80 rounded-2xl text-xs text-amber-900 flex items-start gap-3">
+                <span className="text-lg leading-none">⚙️</span>
+                <div>
+                  <p className="font-semibold text-amber-950">Default Free Plan Quotas & Entitlements</p>
+                  <p className="text-[11px] text-amber-800 mt-0.5 leading-relaxed">
+                    Limits and feature toggles saved here directly govern what all unpaid/free candidates and employers are allowed to do across the platform.
+                  </p>
+                </div>
+              </div>
+            )}
           {/* Name & Code */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
@@ -393,15 +395,16 @@ export function AdminPlanEditorModal({
               </label>
             </div>
           )}
+          </div>
 
-          {/* Submit / Cancel Buttons */}
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+          {/* Fixed Footer: Always visible, never scrolls away */}
+          <div className="p-4 sm:p-5 border-t border-slate-100 bg-slate-50/90 backdrop-blur-xs flex items-center justify-end gap-3 shrink-0 z-10">
             <Button
               type="button"
               variant="ghost"
               disabled={isSubmitting}
               onClick={onClose}
-              className="text-xs text-slate-600 hover:text-slate-900 cursor-pointer"
+              className="text-xs text-slate-600 hover:text-slate-900 cursor-pointer h-9 px-4 rounded-xl"
             >
               Cancel
             </Button>

@@ -141,9 +141,11 @@ export function OrderServiceModal({
               </div>
             </div>
 
-            {/* Scrollable Form Body */}
-            <form onSubmit={handleSubmit} className="p-6 overflow-y-auto space-y-5 flex-1">
-              {/* Authenticated Client Info Summary */}
+            {/* Form Container with scrollable content and fixed footer */}
+            <form onSubmit={handleSubmit} className="flex-1 flex flex-col min-h-0 overflow-hidden">
+              {/* Scrollable Form Body */}
+              <div className="p-6 overflow-y-auto space-y-5 flex-1 scrollbar-thin">
+                {/* Authenticated Client Info Summary */}
               {isAuthenticated && user ? (
                 <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200/70 flex items-center justify-between text-xs">
                   <div className="flex items-center gap-2.5">
@@ -238,9 +240,10 @@ export function OrderServiceModal({
                   Our career specialists directly handle your order. You can track deliverables and status from your client dashboard at any time.
                 </p>
               </div>
+              </div>
 
-              {/* Modal Footer */}
-              <div className="pt-3 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
+              {/* Fixed Modal Footer */}
+              <div className="p-4 sm:p-5 border-t border-slate-100 bg-slate-50/90 backdrop-blur-xs flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0 z-10">
                 <div className="flex items-center gap-1.5 text-[11px] text-slate-500">
                   <Lock className="w-3.5 h-3.5 text-emerald-600" />
                   <span>256-Bit Encrypted Stripe Payment</span>

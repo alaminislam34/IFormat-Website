@@ -46,8 +46,9 @@ export class SettingController {
     const page = Number(req.query.page) || 1;
     const limit = Number(req.query.limit) || 20;
     const status = req.query.status as string | undefined;
+    const search = req.query.search as string | undefined;
 
-    const data = await SettingService.getContactInquiries(page, limit, status);
+    const data = await SettingService.getContactInquiries(page, limit, status, search);
     return ApiResponse.success(res, "Contact inquiries retrieved successfully", data);
   }
 
@@ -59,5 +60,11 @@ export class SettingController {
     }
     const updated = await SettingService.updateContactInquiryStatus(id, status);
     return ApiResponse.success(res, "Inquiry status updated", updated);
+  }
+
+  static async deleteContactInquiry(req: Request, res: Response) {
+    const { id } = req.params;
+    await SettingService.deleteContactInquiry(id);
+    return ApiResponse.success(res, "Contact inquiry deleted successfully");
   }
 }

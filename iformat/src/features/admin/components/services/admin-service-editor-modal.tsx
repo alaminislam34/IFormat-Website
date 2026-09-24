@@ -154,7 +154,7 @@ export function AdminServiceEditorModal({
   };
 
   const handleAddDeliverable = () => {
-    setDeliverables([...deliverables, ""]);
+    setDeliverables(["", ...deliverables]);
   };
 
   const handleRemoveDeliverable = (index: number) => {
@@ -207,9 +207,9 @@ export function AdminServiceEditorModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in-0 duration-150">
-      <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 w-full max-w-2xl max-h-[92vh] overflow-y-auto space-y-6 shadow-2xl">
-        {/* Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+      <div className="relative bg-white border border-slate-200 rounded-3xl w-full max-w-2xl max-h-[90vh] shadow-2xl flex flex-col overflow-hidden">
+        {/* Header: Fixed at top (not scrollable) */}
+        <div className="p-5 sm:p-6 border-b border-slate-100 flex items-center justify-between bg-white shrink-0 z-10">
           <div>
             <h3 className="text-lg font-bold text-slate-900">
               {editingService ? `Edit Service: ${editingService.title}` : "Add New Service Product"}
@@ -221,6 +221,7 @@ export function AdminServiceEditorModal({
             </p>
           </div>
           <button
+            type="button"
             onClick={onClose}
             className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-full transition-colors cursor-pointer"
           >
@@ -228,9 +229,12 @@ export function AdminServiceEditorModal({
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Active Status Banner */}
-          <div className="flex items-center justify-between p-3.5 bg-slate-50 rounded-2xl border border-slate-200/80">
+        {/* Form Container with scrollable content and fixed footer */}
+        <form onSubmit={handleSubmit} className="flex-1 flex flex-col min-h-0 overflow-hidden">
+          {/* Scrollable Form Body */}
+          <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-6 scrollbar-thin">
+            {/* Active Status Banner */}
+            <div className="flex items-center justify-between p-3.5 bg-slate-50 rounded-2xl border border-slate-200/80">
             <div>
               <p className="text-xs font-bold text-slate-800">Public Visibility</p>
               <p className="text-[11px] text-slate-500">
@@ -510,19 +514,20 @@ export function AdminServiceEditorModal({
               ))}
             </div>
           </div>
+          </div>
 
-          {/* Footer actions */}
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+          {/* Fixed Footer: Always visible, never scrolls away */}
+          <div className="p-4 sm:p-5 border-t border-slate-100 bg-slate-50/90 backdrop-blur-xs flex items-center justify-end gap-3 shrink-0 z-10">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 font-bold text-xs transition-colors cursor-pointer"
+              className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 font-bold text-xs transition-colors cursor-pointer h-9"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-5 py-2 rounded-xl bg-linear-to-r from-[#5DE0E6] to-[#004AAD] text-white font-extrabold text-xs shadow-md shadow-blue-500/15 hover:opacity-95 transition-all cursor-pointer"
+              className="px-5 py-2 rounded-xl bg-linear-to-r from-[#5DE0E6] to-[#004AAD] text-white font-extrabold text-xs shadow-md shadow-blue-500/15 hover:opacity-95 transition-all cursor-pointer h-9"
             >
               {editingService ? "Save Changes" : "Create Service"}
             </button>

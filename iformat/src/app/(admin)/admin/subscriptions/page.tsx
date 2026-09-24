@@ -7,6 +7,7 @@ import {
   CheckCircle2,
   Loader2,
   X,
+  Phone,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -139,7 +140,7 @@ export default function AdminSubscriptionsPage() {
           setPage(1);
         }}
         onSearchSubmit={handleSearchSubmit}
-        searchPlaceholder="Search by user name or email..."
+        searchPlaceholder="Search by user name, email, or contact number..."
       />
 
       {/* Subscribers Table */}
@@ -148,6 +149,7 @@ export default function AdminSubscriptionsPage() {
           <TableHeader>
             <TableRow>
               <TableHead>User / Account</TableHead>
+              <TableHead>Contact Number</TableHead>
               <TableHead>Role</TableHead>
               <TableHead>Assigned Plan</TableHead>
               <TableHead>Subscription Status</TableHead>
@@ -165,6 +167,11 @@ export default function AdminSubscriptionsPage() {
                       <Skeleton className="h-4 w-36" />
                       <Skeleton className="h-3 w-48" />
                     </div>
+                  </TableCell>
+
+                  {/* Contact Number */}
+                  <TableCell>
+                    <Skeleton className="h-4 w-28" />
                   </TableCell>
 
                   {/* Role */}
@@ -193,7 +200,7 @@ export default function AdminSubscriptionsPage() {
             ) : users.length === 0 ? (
               /* Empty State */
               <TableRow className="hover:bg-transparent">
-                <TableCell colSpan={5} className="p-0 border-none">
+                <TableCell colSpan={6} className="p-0 border-none">
                   <div className="py-16 px-6 text-center space-y-3 flex flex-col items-center justify-center">
                     <div className="w-12 h-12 rounded-2xl bg-slate-100 border border-slate-200/60 text-slate-400 flex items-center justify-center shadow-xs">
                       <CreditCard className="w-6 h-6" />
@@ -217,6 +224,21 @@ export default function AdminSubscriptionsPage() {
                     <TableCell>
                       <p className="font-semibold text-slate-900 text-sm">{u.name}</p>
                       <p className="text-slate-500 text-xs">{u.email}</p>
+                    </TableCell>
+
+                    <TableCell>
+                      {u.phone ? (
+                        <a
+                          href={`tel:${u.phone.replace(/[^0-9+]/g, "")}`}
+                          className="inline-flex items-center gap-1.5 font-medium text-xs text-slate-700 hover:text-sky-600 transition-colors"
+                          title="Click to call"
+                        >
+                          <Phone className="w-3.5 h-3.5 text-sky-600 shrink-0" />
+                          <span>{u.phone}</span>
+                        </a>
+                      ) : (
+                        <span className="text-xs text-slate-400 italic">Not provided</span>
+                      )}
                     </TableCell>
 
                     <TableCell>
@@ -303,7 +325,8 @@ export default function AdminSubscriptionsPage() {
             <p className="text-xs text-slate-600 leading-relaxed">
               Granting a plan directly assigns active entitlements to{" "}
               <span className="font-semibold text-slate-900">{overrideModalUser.name}</span> (
-              {overrideModalUser.email}) without charging a credit card.
+              {overrideModalUser.email}
+              {overrideModalUser.phone ? ` • ${overrideModalUser.phone}` : ""}) without charging a credit card.
             </p>
 
             <div className="space-y-3">

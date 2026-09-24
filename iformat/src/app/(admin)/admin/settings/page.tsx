@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import {
   Shield,
   KeyRound,
@@ -15,22 +16,13 @@ import {
   Clock,
   ExternalLink,
   RefreshCw,
+  ArrowRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { authService } from "@/services/auth.service";
 import { useAuthStore } from "@/stores/use-auth-store";
 import { apiClient } from "@/lib/api/api-client";
 import { toast } from "sonner";
-
-interface ContactInquiryItem {
-  id: string;
-  fullName: string;
-  email: string;
-  phone: string | null;
-  message: string;
-  status: string;
-  createdAt: string;
-}
 
 export default function AdminSettingsPage() {
   const { user } = useAuthStore();
@@ -48,16 +40,9 @@ export default function AdminSettingsPage() {
   const [isLoadingContact, setIsLoadingContact] = useState(true);
   const [isSavingContact, setIsSavingContact] = useState(false);
 
-  // Contact Inquiries State
-  const [inquiries, setInquiries] = useState<ContactInquiryItem[]>([]);
-  const [inquiriesLoading, setInquiriesLoading] = useState(true);
-  const [inquiryStatusFilter, setInquiryStatusFilter] = useState("ALL");
-  const [updatingInquiryId, setUpdatingInquiryId] = useState<string | null>(null);
-
-  // Load Contact Info & Inquiries
+  // Load Contact Info
   useEffect(() => {
     loadContactSettings();
-    loadInquiries();
   }, []);
 
   const loadContactSettings = async () => {
@@ -77,23 +62,6 @@ export default function AdminSettingsPage() {
     }
   };
 
-  const loadInquiries = async () => {
-    try {
-      setInquiriesLoading(true);
-      const res = await apiClient.get<any>("/settings/inquiries");
-      const data = res?.data || res;
-      if (data?.inquiries) {
-        setInquiries(data.inquiries);
-      } else if (Array.isArray(data)) {
-        setInquiries(data);
-      }
-    } catch (err: any) {
-      console.warn("Failed to load contact inquiries:", err?.message);
-    } finally {
-      setInquiriesLoading(false);
-    }
-  };
-
   const handleSaveContactInfo = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -108,21 +76,6 @@ export default function AdminSettingsPage() {
       toast.error(err?.message || "Failed to update contact info.");
     } finally {
       setIsSavingContact(false);
-    }
-  };
-
-  const handleUpdateInquiryStatus = async (id: string, newStatus: string) => {
-    try {
-      setUpdatingInquiryId(id);
-      await apiClient.patch(`/settings/inquiries/${id}`, { status: newStatus });
-      setInquiries((prev) =>
-        prev.map((inq) => (inq.id === id ? { ...inq, status: newStatus } : inq))
-      );
-      toast.success(`Inquiry marked as ${newStatus.toLowerCase()}`);
-    } catch (err: any) {
-      toast.error(err?.message || "Failed to update status");
-    } finally {
-      setUpdatingInquiryId(null);
     }
   };
 
@@ -161,11 +114,6 @@ export default function AdminSettingsPage() {
       setIsChangingPassword(false);
     }
   };
-
-  const filteredInquiries = inquiries.filter((inq) => {
-    if (inquiryStatusFilter === "ALL") return true;
-    return inq.status === inquiryStatusFilter;
-  });
 
   return (
     <div className="space-y-8 w-full pb-16">
@@ -272,138 +220,34 @@ export default function AdminSettingsPage() {
         </form>
       </div>
 
-      {/* SECTION 2: Contact Form Inquiries Management */}
-      <div className="bg-white border border-slate-200/80 rounded-3xl p-6 sm:p-8 space-y-6 shadow-xs">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
-              <MessageSquare className="w-5 h-5" />
-            </div>
-            <div>
-              <h3 className="text-base font-bold text-slate-900">Contact Us Inquiries</h3>
-              <p className="text-xs text-slate-500">
-                Messages submitted via the public Contact Us form. Direct copies are also sent to info@iformatbranding.com.
-              </p>
-            </div>
+      {/* SECTION 2: Contact Form Inquiries Management Quick Card */}
+      <div className="bg-linear-to-r from-sky-50/80 via-white to-indigo-50/50 border border-sky-100/90 rounded-3xl p-6 sm:p-7 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-2xl bg-sky-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+            <MessageSquare className="w-6 h-6" />
           </div>
-
-          <div className="flex items-center gap-2">
-            <select
-              value={inquiryStatusFilter}
-              onChange={(e) => setInquiryStatusFilter(e.target.value)}
-              className="px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 text-xs focus:outline-hidden focus:border-indigo-500"
-            >
-              <option value="ALL">All Statuses ({inquiries.length})</option>
-              <option value="UNREAD">Unread</option>
-              <option value="CONTACTED">Contacted</option>
-              <option value="RESOLVED">Resolved</option>
-            </select>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={loadInquiries}
-              disabled={inquiriesLoading}
-              className="text-xs text-slate-600 rounded-xl cursor-pointer"
-            >
-              <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${inquiriesLoading ? "animate-spin" : ""}`} />
-              Refresh
-            </Button>
+          <div>
+            <div className="flex items-center gap-2">
+              <h3 className="text-base font-bold text-slate-900">
+                Contact Us Inquiries Management
+              </h3>
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-sky-100 text-sky-800">
+                Dedicated Page
+              </span>
+            </div>
+            <p className="text-xs text-slate-500 mt-1 max-w-xl">
+              All messages submitted through the public Contact Us form are managed in a dedicated inquiries console with real-time status filtering, quick phone calling, and email replies.
+            </p>
           </div>
         </div>
 
-        {inquiriesLoading ? (
-          <div className="py-12 flex flex-col items-center justify-center text-slate-400">
-            <Loader2 className="w-6 h-6 animate-spin mb-2" />
-            <span className="text-xs">Loading contact inquiries...</span>
-          </div>
-        ) : filteredInquiries.length === 0 ? (
-          <div className="py-12 text-center bg-slate-50 rounded-2xl border border-slate-100">
-            <MessageSquare className="w-8 h-8 text-slate-300 mx-auto mb-2" />
-            <p className="text-sm font-semibold text-slate-700">No inquiries found</p>
-            <p className="text-xs text-slate-400 mt-0.5">
-              Messages submitted through the public website will show here.
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {filteredInquiries.map((inq) => (
-              <div
-                key={inq.id}
-                className={`p-5 rounded-2xl border transition-colors ${
-                  inq.status === "UNREAD"
-                    ? "bg-sky-50/40 border-sky-200/80"
-                    : "bg-slate-50/60 border-slate-200/70"
-                }`}
-              >
-                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-3">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h4 className="font-bold text-sm text-slate-900">{inq.fullName}</h4>
-                      <span
-                        className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                          inq.status === "UNREAD"
-                            ? "bg-amber-100 text-amber-800"
-                            : inq.status === "CONTACTED"
-                            ? "bg-blue-100 text-blue-800"
-                            : "bg-emerald-100 text-emerald-800"
-                        }`}
-                      >
-                        {inq.status}
-                      </span>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-4 text-xs text-slate-500 mt-1">
-                      <a
-                        href={`mailto:${inq.email}`}
-                        className="text-sky-600 hover:underline flex items-center gap-1 font-medium"
-                      >
-                        <Mail className="w-3.5 h-3.5" /> {inq.email}
-                      </a>
-                      {inq.phone && (
-                        <a
-                          href={`tel:${inq.phone.replace(/[^0-9+]/g, "")}`}
-                          className="text-slate-700 hover:underline flex items-center gap-1 font-medium"
-                        >
-                          <Phone className="w-3.5 h-3.5 text-slate-400" /> {inq.phone}
-                        </a>
-                      )}
-                      <span className="flex items-center gap-1 text-slate-400">
-                        <Clock className="w-3.5 h-3.5" />
-                        {new Date(inq.createdAt).toLocaleDateString()} at{" "}
-                        {new Date(inq.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Status Dropdown */}
-                  <div className="flex items-center gap-2 shrink-0">
-                    <select
-                      value={inq.status}
-                      disabled={updatingInquiryId === inq.id}
-                      onChange={(e) => handleUpdateInquiryStatus(inq.id, e.target.value)}
-                      className="px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-slate-700 text-xs font-semibold focus:outline-hidden cursor-pointer"
-                    >
-                      <option value="UNREAD">Mark Unread</option>
-                      <option value="CONTACTED">Mark Contacted</option>
-                      <option value="RESOLVED">Mark Resolved</option>
-                    </select>
-
-                    <a
-                      href={`mailto:${inq.email}?subject=${encodeURIComponent("Regarding your message to iFormat")}`}
-                      className="px-3 py-1 rounded-lg bg-sky-600 hover:bg-sky-700 text-white text-xs font-semibold inline-flex items-center gap-1 cursor-pointer transition-colors"
-                    >
-                      <Mail className="w-3 h-3" /> Reply
-                    </a>
-                  </div>
-                </div>
-
-                <div className="bg-white p-3.5 rounded-xl border border-slate-200/80 text-xs text-slate-800 leading-relaxed whitespace-pre-wrap">
-                  {inq.message}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+        <Link
+          href="/admin/inquiries"
+          className="h-10 px-5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-semibold inline-flex items-center justify-center gap-2 shrink-0 shadow-xs transition-colors cursor-pointer"
+        >
+          <span>Open Inquiries Page</span>
+          <ArrowRight className="w-4 h-4" />
+        </Link>
       </div>
 
       {/* SECTION 3: Administrator Credentials & Password */}

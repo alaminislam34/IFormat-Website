@@ -270,6 +270,63 @@ export class AdminService {
   static async updateSettings(settings: Record<string, any>): Promise<Record<string, any>> {
     return apiClient.patch<Record<string, any>>("/admin/settings", { settings });
   }
+
+  /**
+   * List contact inquiries with optional status, search, and pagination
+   */
+  static async listInquiries(params?: {
+    page?: number;
+    limit?: number;
+    status?: string;
+    search?: string;
+  }): Promise<{ inquiries: ContactInquiryItem[]; total: number; page: number; limit: number; totalPages: number }> {
+    const res = await apiClient.get<any>("/settings/inquiries", { params });
+    const data = res?.data || res;
+    if (data?.inquiries) {
+      return {
+        inquiries: data.inquiries,
+        total: data.total ?? data.inquiries.length,
+        page: data.page ?? 1,
+        limit: data.limit ?? 20,
+        totalPages: data.totalPages ?? 1,
+      };
+    }
+    if (Array.isArray(data)) {
+      return {
+        inquiries: data,
+        total: data.length,
+        page: 1,
+        limit: data.length,
+        totalPages: 1,
+      };
+    }
+    return { inquiries: [], total: 0, page: 1, limit: 20, totalPages: 1 };
+  }
+
+  /**
+   * Update contact inquiry status
+   */
+  static async updateInquiryStatus(id: string, status: string): Promise<any> {
+    return apiClient.patch(`/settings/inquiries/${id}`, { status });
+  }
+
+  /**
+   * Delete contact inquiry
+   */
+  static async deleteInquiry(id: string): Promise<any> {
+    return apiClient.delete(`/settings/inquiries/${id}`);
+  }
+}
+
+export interface ContactInquiryItem {
+  id: string;
+  fullName: string;
+  email: string;
+  phone: string | null;
+  message: string;
+  status: "UNREAD" | "CONTACTED" | "RESOLVED" | string;
+  createdAt: string;
 }
 
 export const adminService = AdminService;
+

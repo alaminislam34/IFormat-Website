@@ -19,5 +19,6 @@ router.patch("/", catchAsync(SettingController.updateSettings));
 router.patch("/contact", catchAsync(SettingController.updateContactInfo));
 router.get("/inquiries", catchAsync(SettingController.getContactInquiries));
 router.patch("/inquiries/:id", catchAsync(SettingController.updateContactInquiryStatus));
+router.delete("/inquiries/:id", catchAsync(SettingController.deleteContactInquiry));
 
 export const settingRouter = router;

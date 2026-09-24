@@ -211,11 +211,19 @@ export class SettingService {
   /**
    * List contact inquiries for Admin Dashboard
    */
-  static async getContactInquiries(page = 1, limit = 20, status?: string) {
+  static async getContactInquiries(page = 1, limit = 20, status?: string, search?: string) {
     const skip = (page - 1) * limit;
     const where: any = {};
     if (status && status !== "ALL") {
       where.status = status;
+    }
+    if (search && search.trim()) {
+      where.OR = [
+        { fullName: { contains: search.trim(), mode: "insensitive" } },
+        { email: { contains: search.trim(), mode: "insensitive" } },
+        { phone: { contains: search.trim(), mode: "insensitive" } },
+        { message: { contains: search.trim(), mode: "insensitive" } },
+      ];
     }
 
     const [inquiries, total] = await Promise.all([
@@ -244,6 +252,15 @@ export class SettingService {
     return prisma.contactInquiry.update({
       where: { id },
       data: { status },
+    });
+  }
+
+  /**
+   * Delete contact inquiry
+   */
+  static async deleteContactInquiry(id: string) {
+    return prisma.contactInquiry.delete({
+      where: { id },
     });
   }
 }

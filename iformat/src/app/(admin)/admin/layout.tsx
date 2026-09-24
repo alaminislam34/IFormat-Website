@@ -19,6 +19,7 @@ import {
   Menu,
   X,
   ShoppingBag,
+  MessageSquare,
 } from "lucide-react";
 import { useAuthStore } from "@/stores/use-auth-store";
 import { BrandLogo } from "@/components/ui/brand-logo";
@@ -102,6 +103,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     if (path.startsWith("/admin/plans")) return "Membership Plans";
     if (path.startsWith("/admin/subscriptions")) return "Subscriptions";
     if (path.startsWith("/admin/bookings")) return "Consultation Bookings";
+    if (path.startsWith("/admin/inquiries")) return "Contact Inquiries";
     if (path.startsWith("/admin/audit-logs")) return "Audit Activity Logs";
     if (path.startsWith("/admin/settings")) return "System Settings";
     return "Admin Dashboard";
@@ -134,6 +136,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       items: [
         { label: "Service Products", href: "/admin/services", icon: ShoppingBag },
         { label: "Consultation Bookings", href: "/admin/bookings", icon: Calendar },
+        { label: "Contact Inquiries", href: "/admin/inquiries", icon: MessageSquare },
         { label: "Audit Activity Logs", href: "/admin/audit-logs", icon: History },
         { label: "System Settings", href: "/admin/settings", icon: Settings },
       ],
