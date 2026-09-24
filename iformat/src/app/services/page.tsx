@@ -154,12 +154,6 @@ export default function ServicesPage() {
                     )}
                   </div>
 
-                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-slate-950/40 backdrop-blur-xs">
-                    <span className="px-4 py-2 rounded-xl bg-white text-slate-900 font-extrabold text-xs shadow-lg flex items-center gap-1.5">
-                      <Eye className="w-3.5 h-3.5 text-[#004AAD]" /> View Full Details & Specs
-                    </span>
-                  </div>
-
                   <div className="absolute bottom-3 left-4 right-4 flex items-center justify-between text-white text-xs">
                     <span className="flex items-center gap-1 text-slate-200 font-semibold text-[11px]">
                       <Clock className="w-3.5 h-3.5 text-cyan-300" /> {service.deliveryTime}
