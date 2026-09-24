@@ -147,7 +147,7 @@ export class AuthService {
     // Send only the OTP verification email (no links)
     sendEmail({
       to: user.email,
-      subject: "Verify your iFormat account",
+      subject: `Your iFormat verification code is ${otpCode}`,
       template: "otp-verification",
       data: {
         name: user.name,
@@ -185,7 +185,7 @@ export class AuthService {
       const otpCode = await this.createOtp(email, OtpType.EMAIL_VERIFICATION);
       sendEmail({
         to: user.email,
-        subject: "Verify your iFormat account",
+        subject: `Your iFormat verification code is ${otpCode}`,
         template: "otp-verification",
         data: {
           name: user.name,
@@ -339,7 +339,7 @@ export class AuthService {
     if (type === OtpType.EMAIL_VERIFICATION) {
       sendEmail({
         to: user.email,
-        subject: "Your new iFormat verification code",
+        subject: `Your new iFormat verification code is ${code}`,
         template: "otp-verification",
         data: {
           name: user.name,
@@ -349,7 +349,7 @@ export class AuthService {
     } else if (type === OtpType.PASSWORD_RESET) {
       sendEmail({
         to: user.email,
-        subject: "Password Reset Verification Code",
+        subject: `Your iFormat password reset code is ${code}`,
         template: "otp-verification",
         data: {
           name: user.name,
@@ -454,7 +454,7 @@ export class AuthService {
 
     await sendEmail({
       to: user.email,
-      subject: "Password Reset Request - iFormat",
+      subject: `Your iFormat password reset code is ${otpCode}`,
       template: "password-reset",
       data: {
         name: user.name,

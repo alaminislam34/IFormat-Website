@@ -62,7 +62,8 @@ const envSchema = z.object({
   SMTP_PORT: z.coerce.number().default(587),
   SMTP_USER: z.string().optional(),
   SMTP_PASS: z.string().optional(),
-  SMTP_FROM: z.string().default("iFormat <devamin.bd@gmail.com>"),
+  SMTP_FROM: z.string().default("iFormat <info@iformatbranding.com>"),
+  SMTP_REPLY_TO: z.string().default("info@iformatbranding.com"),
 
   // Redis
   REDIS_URL: z.string().optional(),

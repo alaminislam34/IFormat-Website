@@ -147,11 +147,9 @@ export default function AdminHomepageContentPage() {
         updateVideoSettings({ videoUrl: uploadedUrl });
         toast.success("New promotional video uploaded successfully!");
       }
-    } catch {
-      const localPreviewUrl = URL.createObjectURL(file);
-      setVideoUrl(localPreviewUrl);
-      updateVideoSettings({ videoUrl: localPreviewUrl });
-      toast.info("Using local preview for video. Ensure video file is deployed to /videos.");
+    } catch (err: any) {
+      console.error("Video upload error:", err);
+      toast.error(err?.message || "Failed to upload video to server. Please check your connection or file size.");
     } finally {
       setIsUploadingVideo(false);
     }
@@ -199,10 +197,9 @@ export default function AdminHomepageContentPage() {
         setLeaderFormData((prev) => ({ ...prev, image: uploadedUrl }));
         toast.success("Leader image uploaded!");
       }
-    } catch {
-      const localPreview = URL.createObjectURL(file);
-      setLeaderFormData((prev) => ({ ...prev, image: localPreview }));
-      toast.info("Image preview updated.");
+    } catch (err: any) {
+      console.error("Leader image upload error:", err);
+      toast.error(err?.message || "Failed to upload leader image to server.");
     } finally {
       setIsUploadingLeaderImage(false);
     }
@@ -278,10 +275,9 @@ export default function AdminHomepageContentPage() {
         setPartnerFormData((prev) => ({ ...prev, image: uploadedUrl }));
         toast.success("Partner image uploaded!");
       }
-    } catch {
-      const localPreview = URL.createObjectURL(file);
-      setPartnerFormData((prev) => ({ ...prev, image: localPreview }));
-      toast.info("Partner image preview updated.");
+    } catch (err: any) {
+      console.error("Partner image upload error:", err);
+      toast.error(err?.message || "Failed to upload partner image to server.");
     } finally {
       setIsUploadingPartnerImage(false);
     }

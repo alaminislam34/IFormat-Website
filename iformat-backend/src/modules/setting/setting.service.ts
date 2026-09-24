@@ -171,12 +171,37 @@ export class SettingService {
           },
         });
 
+        const plainText = [
+          `New Contact Form Message Received`,
+          `================================================`,
+          `Full Name: ${data.fullName}`,
+          `Email: ${data.email}`,
+          `Phone: ${data.phone || "Not provided"}`,
+          ``,
+          `Message:`,
+          `${data.message}`,
+          ``,
+          `------------------------------------------------`,
+          `This message was submitted via the contact form on https://iformatbranding.com`,
+          `Directly reply to this email to contact ${data.fullName} at ${data.email}`,
+        ].join("\n");
+
+        const domain = "iformatbranding.com";
+        const messageId = `<contact.${Date.now()}.${Math.random().toString(36).substring(2, 10)}@${domain}>`;
+
         await transporter.sendMail({
           from: env.SMTP_FROM,
           to: "info@iformatbranding.com",
           replyTo: data.email,
           subject: emailSubject,
+          text: plainText,
           html: emailBody,
+          messageId,
+          headers: {
+            "X-Mailer": "iFormat Mailer 1.0",
+            "X-Priority": "2 (High)",
+            "Importance": "High",
+          },
         });
         logger.info(`📧 Contact notification email successfully dispatched to info@iformatbranding.com`);
       }
