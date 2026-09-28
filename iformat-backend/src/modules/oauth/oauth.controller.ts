@@ -57,14 +57,41 @@ export class OAuthController {
         }
       }
 
+      // Check state for originating frontend URL or deep returnTo path
+      let frontendBase = getFrontendUrl();
+      if (req.query.state && typeof req.query.state === "string") {
+        try {
+          const raw = Buffer.from(req.query.state, "base64").toString("utf-8");
+          const parsedState = JSON.parse(raw);
+          if (parsedState?.origin && typeof parsedState.origin === "string") {
+            const requestedOrigin = new URL(parsedState.origin).origin;
+            const allowed = env.CORS_ORIGIN.split(",").map((o) => o.trim().replace(/\/+$/, ""));
+            if (allowed.includes(requestedOrigin)) {
+              frontendBase = requestedOrigin;
+            }
+          }
+          if (
+            parsedState?.returnTo &&
+            typeof parsedState.returnTo === "string" &&
+            parsedState.returnTo.startsWith("/") &&
+            !parsedState.returnTo.startsWith("//")
+          ) {
+            targetPath = parsedState.returnTo;
+          }
+        } catch {
+          // ignore parsing error and fallback to default frontend base
+        }
+      }
+
       // Secure handover to frontend auth/callback
-      const callbackUrl = new URL(`${getFrontendUrl()}/auth/callback`);
+      const callbackUrl = new URL(`${frontendBase}/auth/callback`);
       callbackUrl.searchParams.set("token", accessToken);
       callbackUrl.searchParams.set("refreshToken", refreshToken);
       callbackUrl.searchParams.set("redirect", targetPath);
 
       return res.redirect(callbackUrl.toString());
-    } catch {
+    } catch (err) {
+      console.error("❌ Google OAuth Callback Error:", err);
       return res.redirect(env.OAUTH_FAILURE_REDIRECT_URL);
     }
   }

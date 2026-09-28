@@ -232,7 +232,7 @@ function LoginContent() {
             >
               Sign in
             </button>
-          <GoogleAuthButton />
+          <GoogleAuthButton label="Sign in with Google" />
 
           </form>
         </div>

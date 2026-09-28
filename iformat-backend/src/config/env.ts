@@ -32,8 +32,8 @@ const envSchema = z.object({
   AI_SERVICE_TIMEOUT_MS: z.coerce.number().default(60000),
 
   // Google OAuth
-  GOOGLE_CLIENT_ID: z.string().optional().default("mock-google-client-id"),
-  GOOGLE_CLIENT_SECRET: z.string().optional().default("mock-google-client-secret"),
+  GOOGLE_CLIENT_ID: z.string().optional(),
+  GOOGLE_CLIENT_SECRET: z.string().optional(),
   GOOGLE_CALLBACK_URL: z.string().default("https://api.iformatbranding.com/api/v1/oauth/google/callback"),
   OAUTH_SUCCESS_REDIRECT_URL: z.string().default("https://iformatbranding.com/account-type"),
   OAUTH_FAILURE_REDIRECT_URL: z.string().default("https://iformatbranding.com/login?error=oauth_failed"),
