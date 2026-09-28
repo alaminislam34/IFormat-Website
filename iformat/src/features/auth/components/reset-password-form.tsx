@@ -197,11 +197,11 @@ export function ResetPasswordForm({
             />
             <span className="text-xs text-slate-600 group-hover:text-slate-800 leading-snug transition-colors">
               I agree to the{" "}
-              <Link href="#" className="text-[#0A54B1] font-semibold hover:underline">
+              <Link href="/terms" className="text-[#0A54B1] font-semibold hover:underline">
                 Terms of Use
               </Link>{" "}
               and{" "}
-              <Link href="#" className="text-[#0A54B1] font-semibold hover:underline">
+              <Link href="/privacy" className="text-[#0A54B1] font-semibold hover:underline">
                 Privacy Policy
               </Link>
               .

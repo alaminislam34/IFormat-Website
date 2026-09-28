@@ -142,11 +142,11 @@ export function SignupFormFields({
             />
             <span className="text-xs text-slate-600 group-hover:text-slate-800 leading-snug transition-colors">
               By signing up, you are creating an iFormat account, and you agree to iFormat&apos;s{" "}
-              <Link href="#" className="text-[#0A54B1] font-semibold hover:underline">
+              <Link href="/terms" className="text-[#0A54B1] font-semibold hover:underline">
                 Terms of Use
               </Link>{" "}
               and{" "}
-              <Link href="#" className="text-[#0A54B1] font-semibold hover:underline">
+              <Link href="/privacy" className="text-[#0A54B1] font-semibold hover:underline">
                 Privacy Policy
               </Link>
               .

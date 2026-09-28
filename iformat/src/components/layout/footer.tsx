@@ -44,15 +44,28 @@ export function Footer() {
             <ul className="space-y-4 text-slate-400 text-sm">
               <li><Link href="/#about" className="hover:text-white transition-colors">About Us</Link></li>
               <li><Link href="/#methodology" className="hover:text-white transition-colors">Our Expertise</Link></li>
-              <li><Link href="/#process" className="hover:text-white transition-colors">Our Process</Link></li>
+              <li><Link href="/terms" className="hover:text-white transition-colors">Terms of Service</Link></li>
+              <li><Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link></li>
               <li><Link href="/contact" className="hover:text-white transition-colors">Contact Support</Link></li>
             </ul>
           </div>
         </div>
         
-        <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-slate-500">
+        <div className="border-t border-white/10 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
           <p>© 2026 iFormat Personal Branding. All rights reserved.</p>
-          <p>Designed with modern precision.</p>
+          <div className="flex items-center gap-6">
+            <Link href="/privacy" className="hover:text-slate-300 transition-colors">
+              Privacy Policy
+            </Link>
+            <span className="text-slate-700">•</span>
+            <Link href="/terms" className="hover:text-slate-300 transition-colors">
+              Terms of Service
+            </Link>
+            <span className="text-slate-700">•</span>
+            <Link href="/contact" className="hover:text-slate-300 transition-colors">
+              Support
+            </Link>
+          </div>
         </div>
       </div>
     </footer>
