@@ -101,7 +101,7 @@ export function ProductDetailModal({
                   {product.category}
                 </span>
                 {product.badge && (
-                  <span className="px-3 py-1 rounded-full text-[11px] font-extrabold uppercase tracking-wider bg-[#0A54B1] text-white shadow-sm">
+                  <span className="px-3 py-1 rounded-full text-[11px] font-extrabold uppercase tracking-wider bg-linear-to-r from-[#5DE0E6] to-[#004AAD] text-white shadow-sm">
                     {product.badge}
                   </span>
                 )}
@@ -129,8 +129,8 @@ export function ProductDetailModal({
             <div className="p-6 sm:p-8 overflow-y-auto space-y-6 flex-1">
               {/* Tagline / Overview */}
               <div>
-                <h4 className="text-xs font-bold uppercase tracking-wider text-[#0A54B1] mb-1.5 flex items-center gap-1">
-                  <Sparkles className="w-3.5 h-3.5" /> Service Overview
+                <h4 className="text-xs font-bold uppercase tracking-wider text-[#004AAD] mb-1.5 flex items-center gap-1">
+                  <Sparkles className="w-3.5 h-3.5 text-[#004AAD]" /> Service Overview
                 </h4>
                 <p className="text-sm font-semibold text-slate-800 leading-relaxed">
                   {product.tagline}
@@ -143,7 +143,7 @@ export function ProductDetailModal({
               {/* Deliverables List */}
               <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100 space-y-3">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-                  <ShieldCheck className="w-4 h-4 text-[#0A54B1]" /> What You Get (Deliverables)
+                  <ShieldCheck className="w-4 h-4 text-[#004AAD]" /> What You Get (Deliverables)
                 </h4>
                 <ul className="grid sm:grid-cols-2 gap-2.5">
                   {product.deliverables.map((item, idx) => (
@@ -158,7 +158,7 @@ export function ProductDetailModal({
               {/* Target Audience & Methodology */}
               <div className="grid sm:grid-cols-2 gap-4">
                 <div className="p-4 rounded-2xl bg-blue-50/50 border border-blue-100/80">
-                  <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#0A54B1]">
+                  <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#004AAD]">
                     Ideal For
                   </span>
                   <p className="text-xs text-slate-700 mt-1 font-medium leading-relaxed">
@@ -189,7 +189,7 @@ export function ProductDetailModal({
                     onOrderNow(product);
                     onClose();
                   }}
-                  className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-linear-to-r from-[#52CEDE] to-[#0A54B1] hover:opacity-95 text-white font-extrabold text-xs shadow-md shadow-blue-500/20 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                  className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-linear-to-r from-[#5DE0E6] to-[#004AAD] hover:opacity-95 text-white font-extrabold text-xs shadow-md shadow-blue-500/20 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <CreditCard className="w-3.5 h-3.5" /> Order Package ({product.price}) <ArrowRight className="w-3.5 h-3.5" />
                 </button>

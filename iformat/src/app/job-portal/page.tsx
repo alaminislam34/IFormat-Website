@@ -232,7 +232,7 @@ function JobPortalContent() {
 
   return (
     <main className="min-h-screen bg-white flex flex-col pt-24 sm:pt-28">
-      <div className="flex-1 max-w-7xl w-full mx-auto px-6 py-10 space-y-10">
+      <div className="flex-1 max-w-360 w-11/12 mx-auto py-10 space-y-10">
         <JobPortalHeader
           searchQuery={searchQuery}
           isEmployerOrAdmin={isEmployerOrAdmin}

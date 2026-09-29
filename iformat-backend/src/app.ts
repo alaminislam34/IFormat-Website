@@ -13,6 +13,7 @@ import { requestId } from "./middlewares/requestId.middleware.js";
 import { NotFoundError } from "./errors/index.js";
 import { passport } from "./lib/passport.js";
 import { swaggerSpec } from "./docs/swagger.js";
+import { logger } from "./utils/logger.js";
 
 const app: Express = express();
 
@@ -41,14 +42,24 @@ app.use(
         .map((o) => o.trim())
         .filter(Boolean);
 
-      // Always include localhost for local dev
-      allowedOrigins.push("http://localhost:3000", "http://127.0.0.1:3000");
+      // Always allow local development and production domains
+      allowedOrigins.push(
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "https://iformatbranding.com",
+        "https://www.iformatbranding.com"
+      );
 
-      if (allowedOrigins.includes(origin)) {
+      // Allow if origin is explicitly in allowed list or is an iformatbranding.com subdomain
+      if (
+        allowedOrigins.includes(origin) ||
+        /^https?:\/\/([a-z0-9-]+\.)?iformatbranding\.com(:\d+)?$/.test(origin)
+      ) {
         return callback(null, true);
       }
 
-      return callback(new Error(`CORS: origin '${origin}' not allowed`));
+      logger.warn(`⚠️ [CORS] Blocked request from unauthorized origin: ${origin}`);
+      return callback(null, false);
     },
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],

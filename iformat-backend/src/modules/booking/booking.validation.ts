@@ -25,3 +25,12 @@ export const createServiceOrderSchema = z.object({
   clientPhone: z.string().optional(),
   notes: z.string().optional(),
 });
+
+export const freeConsultSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters"),
+  email: z.string().email("Valid email address is required"),
+  phone: z.string().min(6, "Contact phone number is required"),
+  address: z.string().min(2, "Address or location is required"),
+  description: z.string().min(10, "Please provide at least 10 characters describing your consultation goals"),
+});
+

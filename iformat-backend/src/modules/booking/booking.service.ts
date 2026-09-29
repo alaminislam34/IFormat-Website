@@ -1,9 +1,10 @@
 import { prisma } from "../../lib/prisma.js";
 import { BookingStatus, Role } from "@prisma/client";
-import { NotFoundError, ConflictError, ForbiddenError } from "../../errors/index.js";
+import { NotFoundError, ConflictError, ForbiddenError, AuthError, BadRequestError } from "../../errors/index.js";
 import { sendEmail } from "../../lib/mailer.js";
 import { env, getFrontendUrl } from "../../config/env.js";
 import { stripe } from "../../lib/stripe.js";
+import { logger } from "../../utils/logger.js";
 
 export class BookingService {
   static async listAvailableSlots() {
@@ -433,7 +434,7 @@ export class BookingService {
       },
     });
 
-    // Send confirmation email
+    // Send confirmation email to client
     sendEmail({
       to: user.email,
       subject: `Order Confirmed: ${input.serviceTitle}`,
@@ -446,6 +447,21 @@ export class BookingService {
         bookingUrl: `${getFrontendUrl()}/dashboard/bookings`,
       },
     });
+
+    // Also dispatch Purchase Order email to info@iformatbranding.com (Item 8)
+    sendEmail({
+      to: "info@iformatbranding.com",
+      subject: `[New Purchase Order] ${input.serviceTitle} - $${(input.priceInCents / 100).toFixed(0)} USD by ${user.name}`,
+      template: "booking-confirmation",
+      data: {
+        name: "iFormat Executive Team",
+        slotTitle: input.serviceTitle,
+        advisorName: `Client: ${user.name} (${user.email} | ${user.phone || "No phone"})`,
+        sessionTime: `Received: ${new Date().toLocaleString()}`,
+        bookingUrl: `${getFrontendUrl()}/admin/bookings`,
+        details: `Client ${user.name} ordered package "${input.serviceTitle}" for $${(input.priceInCents / 100).toFixed(0)} USD. Contact: ${user.phone || "Not provided"}, Email: ${user.email}. Requirements: ${input.requirements || "None"}`,
+      },
+    }).catch((e) => logger.warn(`Failed to dispatch order email to info address: ${e.message}`));
 
     // In-App Notification to Client
     try {
@@ -471,7 +487,7 @@ export class BookingService {
             userId: admin.id,
             type: "BOOKING",
             title: `💼 New Service Order: ${input.serviceTitle}`,
-            message: `${user.name} ordered "${input.serviceTitle}" ($${(input.priceInCents / 100).toFixed(0)} USD). Check admin dashboard for client details.`,
+            message: `${user.name} ordered "${input.serviceTitle}" ($${(input.priceInCents / 100).toFixed(0)} USD). Contact: ${user.phone || "None"}. Check admin dashboard for client details.`,
             payload: { actionUrl: "/admin/bookings" },
           },
         });
@@ -481,5 +497,159 @@ export class BookingService {
     }
 
     return { checkoutUrl, booking };
+  }
+
+  /**
+   * Admin: List all client bookings, orders, and free consultations across platform
+   */
+  static async listAllBookings() {
+    return prisma.booking.findMany({
+      where: { isDeleted: false },
+      include: {
+        slot: {
+          include: {
+            advisor: {
+              select: {
+                id: true,
+                name: true,
+                avatarUrl: true,
+              },
+            },
+          },
+        },
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            phone: true,
+            avatarUrl: true,
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+  }
+
+  /**
+   * Free 1-on-1 Career Strategy Consultation Request
+   * Supports both prospective guest clients and logged-in accounts
+   */
+  static async requestFreeConsultation(
+    userId?: string,
+    input?: {
+      name: string;
+      email: string;
+      phone: string;
+      address: string;
+      description: string;
+    }
+  ) {
+    if (!input) {
+      throw new BadRequestError("Consultation request data is required");
+    }
+
+    let targetUserId = userId;
+
+    if (!targetUserId) {
+      // Find or create candidate lead record
+      const cleanEmail = input.email.toLowerCase().trim();
+      let user = await prisma.user.findUnique({ where: { email: cleanEmail } });
+      if (!user) {
+        user = await prisma.user.create({
+          data: {
+            email: cleanEmail,
+            name: input.name.trim(),
+            phone: input.phone.trim(),
+            role: Role.CANDIDATE,
+            passwordHash: "",
+            emailVerified: false,
+          },
+        });
+      } else if (!user.phone && input.phone) {
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { phone: input.phone.trim() },
+        });
+      }
+      targetUserId = user.id;
+    } else {
+      await prisma.user
+        .update({
+          where: { id: targetUserId },
+          data: {
+            phone: input.phone || undefined,
+          },
+        })
+        .catch(() => {});
+    }
+
+    const booking = await prisma.booking.create({
+      data: {
+        userId: targetUserId,
+        serviceTitle: "Free 1-on-1 Career Strategy Consultation",
+        priceInCents: 0,
+        clientPhone: input.phone,
+        notes: `Address: ${input.address}`,
+        requirements: input.description,
+        paymentStatus: "FREE_CONSULT",
+        status: BookingStatus.PENDING,
+      },
+      include: {
+        user: true,
+      },
+    });
+
+    try {
+      const admins = await prisma.user.findMany({
+        where: { role: Role.ADMIN, isDeleted: false },
+        select: { id: true, email: true },
+      });
+      for (const admin of admins) {
+        await prisma.notification.create({
+          data: {
+            userId: admin.id,
+            type: "BOOKING",
+            title: "📞 New Free Consult Request",
+            message: `${input.name} (${input.phone}) requested a free consultation. Location: ${input.address}. Notes: ${input.description.slice(0, 100)}`,
+            payload: { actionUrl: "/admin/bookings" },
+          },
+        });
+      }
+
+      // Send acknowledgment to client
+      sendEmail({
+        to: input.email,
+        subject: `[iFormat] Free Consultation Request Confirmed: ${input.name}`,
+        template: "booking-confirmation",
+        data: {
+          name: input.name,
+          slotTitle: "Free 1-on-1 Career Strategy Consultation",
+          advisorName: "iFormat Executive Team",
+          sessionTime: "We will contact you within 24 hours to schedule",
+          bookingUrl: `${getFrontendUrl()}/services`,
+          details: `Thank you for requesting a free consultation. Our advisory team will reach out via ${input.phone} or ${input.email} within 24 hours.`,
+        },
+      }).catch((e) => console.warn("Client email dispatch error:", e.message));
+
+      // Dispatch alert to info@iformatbranding.com
+      sendEmail({
+        to: "info@iformatbranding.com",
+        subject: `[iFormat] New Free Consultation Request: ${input.name} (${input.phone})`,
+        template: "booking-confirmation",
+        data: {
+          name: input.name,
+          slotTitle: "Free 1-on-1 Career Strategy Consultation",
+          advisorName: "iFormat Executive Team",
+          sessionTime: `Received: ${new Date().toLocaleString()}`,
+          bookingUrl: `${getFrontendUrl()}/admin/bookings`,
+          details: `Lead: ${input.name} | Phone: ${input.phone} | Email: ${input.email} | Address: ${input.address}. Description: ${input.description}`,
+        },
+      }).catch((e) => console.warn("Email dispatch error:", e.message));
+    } catch (notifErr: any) {
+      console.warn("Failed to notify admins of free consult:", notifErr.message);
+    }
+
+    return booking;
   }
 }

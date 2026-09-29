@@ -14,6 +14,7 @@ import { VerifyOtpSuccess } from "@/features/auth/components/verify-otp-success"
 function VerifyOtpContent() {
   const searchParams = useSearchParams();
   const emailParam = searchParams.get("email") || "";
+  const redirectUrl = searchParams.get("redirect") || "";
 
   const [email, setEmail] = useState(emailParam);
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
@@ -196,7 +197,7 @@ function VerifyOtpContent() {
             onResend={handleResend}
           />
         ) : (
-          <VerifyOtpSuccess />
+          <VerifyOtpSuccess redirectUrl={redirectUrl} />
         )}
       </div>
     </AuthLayout>

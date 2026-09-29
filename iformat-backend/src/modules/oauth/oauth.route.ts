@@ -6,13 +6,18 @@ import { catchAsync } from "../../utils/catchAsync.js";
 const router = Router();
 
 // Trigger Google OAuth handshake
-router.get(
-  "/google",
+router.get("/google", (req, res, next) => {
+  const origin = req.query.origin as string | undefined;
+  const returnTo = req.query.returnTo as string | undefined;
+  const statePayload = { origin, returnTo };
+  const state = Buffer.from(JSON.stringify(statePayload)).toString("base64");
+
   passport.authenticate("google", {
     scope: ["profile", "email"],
     session: false,
-  })
-);
+    state,
+  })(req, res, next);
+});
 
 // Google OAuth callback
 router.get(

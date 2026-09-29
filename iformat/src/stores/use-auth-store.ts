@@ -131,8 +131,6 @@ export const useAuthStore = create<AuthState>()(
             state.refreshToken,
             state.user?.role || state.role
           );
-        } else {
-          syncAuthCookies(null);
         }
       },
     }

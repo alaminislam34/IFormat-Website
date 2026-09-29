@@ -9,13 +9,17 @@ import { toast } from "sonner";
 
 import { AdminBookingsKpiGrid } from "@/features/admin/components/bookings/admin-bookings-kpi-grid";
 import { AdminBookingsTable } from "@/features/admin/components/bookings/admin-bookings-table";
+import { BookingFilterBar } from "@/features/admin/components/bookings/booking-filter-bar";
 import { CreateSlotModal } from "@/features/admin/components/bookings/create-slot-modal";
+import { Pagination } from "@/components/ui/table";
 
 export default function AdminBookingsPage() {
   const [bookings, setBookings] = useState<BookingDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   // Create Slot Modal State
   const [isSlotModalOpen, setIsSlotModalOpen] = useState(false);
@@ -28,7 +32,7 @@ export default function AdminBookingsPage() {
   const loadBookings = async () => {
     try {
       setLoading(true);
-      const data = await bookingService.listMyBookings();
+      const data = await bookingService.listAllBookings();
       setBookings(Array.isArray(data) ? data : []);
     } catch (err: any) {
       toast.error(err?.message || "Failed to load bookings. Please try again.");
@@ -104,6 +108,11 @@ export default function AdminBookingsPage() {
     return matchesStatus && matchesSearch;
   });
 
+  const paginatedBookings = filteredBookings.slice(
+    (page - 1) * pageSize,
+    page * pageSize
+  );
+
   const confirmedCount = bookings.filter((b) => b.status === "CONFIRMED").length;
   const completedCount = bookings.filter((b) => b.status === "COMPLETED").length;
   const cancelledCount = bookings.filter((b) => b.status === "CANCELLED").length;
@@ -113,10 +122,10 @@ export default function AdminBookingsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
             Service Orders & Client Fulfillment
           </h1>
-          <p className="text-sm text-slate-400 mt-1">
+          <p className="text-sm text-slate-500 mt-1">
             Track client service package purchases, review project briefs, and manage delivery status.
           </p>
         </div>
@@ -124,7 +133,7 @@ export default function AdminBookingsPage() {
         <div className="flex items-center gap-2">
           <Button
             onClick={() => setIsSlotModalOpen(true)}
-            className="bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold rounded-xl h-9 shadow-lg shadow-sky-600/20 cursor-pointer"
+            className="bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-xl h-9 shadow-xs cursor-pointer"
           >
             <Plus className="w-4 h-4 mr-1.5" /> Create Slot
           </Button>
@@ -132,7 +141,7 @@ export default function AdminBookingsPage() {
             variant="outline"
             onClick={loadBookings}
             disabled={loading}
-            className="border-slate-800 bg-slate-900/50 hover:bg-slate-800 text-slate-300 text-xs h-9 rounded-xl cursor-pointer"
+            className="border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs h-9 rounded-xl shadow-xs cursor-pointer"
           >
             <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${loading ? "animate-spin" : ""}`} />
             Refresh
@@ -146,17 +155,42 @@ export default function AdminBookingsPage() {
         confirmedCount={confirmedCount}
         completedCount={completedCount}
         cancelledCount={cancelledCount}
+        loading={loading}
       />
 
-      {/* Filters, Search & Bookings Table */}
-      <AdminBookingsTable
-        bookings={filteredBookings}
-        loading={loading}
-        search={search}
-        setSearch={setSearch}
+      {/* Filters & Search */}
+      <BookingFilterBar
         statusFilter={statusFilter}
-        setStatusFilter={setStatusFilter}
+        setStatusFilter={(st) => {
+          setStatusFilter(st);
+          setPage(1);
+        }}
+        search={search}
+        setSearch={(s) => {
+          setSearch(s);
+          setPage(1);
+        }}
+      />
+
+      {/* Bookings Table */}
+      <AdminBookingsTable
+        bookings={paginatedBookings}
+        loading={loading}
         onUpdateStatus={handleUpdateStatus}
+      />
+
+      {/* Pagination */}
+      <Pagination
+        card
+        currentPage={page}
+        pageSize={pageSize}
+        totalCount={filteredBookings.length}
+        loading={loading}
+        onPageChange={(newPage) => setPage(newPage)}
+        onPageSizeChange={(newSize) => {
+          setPageSize(newSize);
+          setPage(1);
+        }}
       />
 
       {/* Create Consultation Slot Modal */}

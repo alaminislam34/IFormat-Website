@@ -30,7 +30,7 @@ export const createPlanSchema = z.object({
   featuredJobPlacement: z.boolean().default(false),
   unmaskedApplicantProfiles: z.boolean().default(false),
   unlimitedCvTemplates: z.boolean().default(false),
-  customFeatures: z.record(z.any()).optional(),
+  customFeatures: z.union([z.array(z.string()), z.record(z.string(), z.any()), z.any()]).optional(),
 });
 
 export const updatePlanSchema = createPlanSchema.partial().extend({

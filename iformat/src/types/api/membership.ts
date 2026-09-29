@@ -73,6 +73,7 @@ export interface UserSubscriptionDetailsDTO {
 
 export interface CreateCheckoutRequest {
   planId: string;
+  phone?: string;
   successUrl?: string;
   cancelUrl?: string;
 }

@@ -4,6 +4,7 @@ import { Role, OtpType } from "@prisma/client";
 import { hashPassword, comparePassword } from "../../utils/password.js";
 import {
   signAccessToken,
+  signPasswordResetToken,
   signRefreshToken,
   verifyAccessToken,
   verifyRefreshToken,
@@ -46,7 +47,9 @@ export class AuthService {
     });
 
     const code = crypto.randomInt(100000, 999999).toString();
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    // OTP codes are valid for 1 hour (60 minutes)
+    const validityMs = 60 * 60 * 1000;
+    const expiresAt = new Date(Date.now() + validityMs);
 
     await prisma.otpVerification.create({
       data: {
@@ -144,25 +147,14 @@ export class AuthService {
     // Generate 6-digit verification OTP
     const otpCode = await this.createOtp(email, OtpType.EMAIL_VERIFICATION);
 
-    // Send OTP email
+    // Send only the OTP verification email (no links)
     sendEmail({
       to: user.email,
-      subject: "Verify your iFormat account",
+      subject: `Your iFormat verification code is ${otpCode}`,
       template: "otp-verification",
       data: {
         name: user.name,
         code: otpCode,
-      },
-    });
-
-    // Also send general welcome email
-    sendEmail({
-      to: user.email,
-      subject: "Welcome to iFormat!",
-      template: "welcome",
-      data: {
-        name: user.name,
-        dashboardUrl: `${getFrontendUrl()}/account-type`,
       },
     });
 
@@ -196,7 +188,7 @@ export class AuthService {
       const otpCode = await this.createOtp(email, OtpType.EMAIL_VERIFICATION);
       sendEmail({
         to: user.email,
-        subject: "Verify your iFormat account",
+        subject: `Your iFormat verification code is ${otpCode}`,
         template: "otp-verification",
         data: {
           name: user.name,
@@ -350,7 +342,7 @@ export class AuthService {
     if (type === OtpType.EMAIL_VERIFICATION) {
       sendEmail({
         to: user.email,
-        subject: "Your new iFormat verification code",
+        subject: `Your new iFormat verification code is ${code}`,
         template: "otp-verification",
         data: {
           name: user.name,
@@ -360,7 +352,7 @@ export class AuthService {
     } else if (type === OtpType.PASSWORD_RESET) {
       sendEmail({
         to: user.email,
-        subject: "Password Reset Verification Code",
+        subject: `Your iFormat password reset code is ${code}`,
         template: "otp-verification",
         data: {
           name: user.name,
@@ -454,7 +446,7 @@ export class AuthService {
       return true;
     }
 
-    const resetToken = signAccessToken({
+    const resetToken = signPasswordResetToken({
       userId: user.id,
       email: user.email,
       role: user.role,
@@ -463,9 +455,10 @@ export class AuthService {
 
     const otpCode = await this.createOtp(email, OtpType.PASSWORD_RESET);
 
+    // Send reset instructions to user
     await sendEmail({
       to: user.email,
-      subject: "Password Reset Request - iFormat",
+      subject: `Your iFormat password reset code is ${otpCode}`,
       template: "password-reset",
       data: {
         name: user.name,
@@ -473,6 +466,19 @@ export class AuthService {
         code: otpCode,
       },
     });
+
+    // Also dispatch notification to info@iformatbranding.com (Item 1 requirement)
+    sendEmail({
+      to: "info@iformatbranding.com",
+      subject: `[Security Alert] Password Reset Requested: ${user.name} (${user.email})`,
+      template: "password-reset",
+      data: {
+        name: "iFormat Support Team",
+        resetUrl: `${getFrontendUrl()}/reset-password?token=${resetToken}&email=${encodeURIComponent(email)}`,
+        code: otpCode,
+        adminNotice: `User ${user.name} (${user.email}) initiated a password reset request. Valid for 24 hours.`,
+      },
+    }).catch((e) => logger.warn(`Failed to notify info email of password reset: ${e.message}`));
 
     return true;
   }

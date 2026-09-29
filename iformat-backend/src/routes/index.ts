@@ -12,6 +12,8 @@ import { planRouter } from "../modules/plan/plan.route.js";
 import { notificationRouter } from "../modules/notification/notification.route.js";
 import { adminRouter } from "../modules/admin/admin.route.js";
 import { aiRouter } from "../modules/ai/ai.route.js";
+import { settingRouter } from "../modules/setting/setting.route.js";
+import { uploadRouter } from "../modules/upload/upload.route.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 
 const apiRouter = Router();
@@ -39,5 +41,7 @@ apiRouter.use("/plans", planRouter);
 apiRouter.use("/notifications", notificationRouter);
 apiRouter.use("/admin", adminRouter);
 apiRouter.use("/ai", aiRouter);
+apiRouter.use("/settings", settingRouter);
+apiRouter.use("/upload", uploadRouter);
 
 export { apiRouter };

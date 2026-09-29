@@ -126,9 +126,16 @@ export class AdminService {
     isVerifiedCompany?: boolean | string;
     includeDeleted?: boolean | string;
   }): Promise<{ users: AdminUserItemDTO[]; meta: any }> {
-    return apiClient.get<{ users: AdminUserItemDTO[]; meta: any }>("/admin/users", {
+    const res = await apiClient.get<any>("/admin/users", {
       params,
     });
+    if (Array.isArray(res)) {
+      return { users: res, meta: {} };
+    }
+    if (res && typeof res === "object" && Array.isArray(res.users)) {
+      return res;
+    }
+    return { users: [], meta: {} };
   }
 
   /**
@@ -170,9 +177,16 @@ export class AdminService {
     employerId?: string;
     includeDeleted?: boolean | string;
   }): Promise<{ jobs: AdminJobItemDTO[]; meta: any }> {
-    return apiClient.get<{ jobs: AdminJobItemDTO[]; meta: any }>("/admin/jobs", {
+    const res = await apiClient.get<any>("/admin/jobs", {
       params,
     });
+    if (Array.isArray(res)) {
+      return { jobs: res, meta: {} };
+    }
+    if (res && typeof res === "object" && Array.isArray(res.jobs)) {
+      return res;
+    }
+    return { jobs: [], meta: {} };
   }
 
   /**
@@ -223,9 +237,24 @@ export class AdminService {
     action?: string;
     targetType?: string;
   }): Promise<{ logs: AdminAuditLogDTO[]; meta: any }> {
-    return apiClient.get<{ logs: AdminAuditLogDTO[]; meta: any }>("/admin/audit-logs", {
+    const res = await apiClient.get<any>("/admin/audit-logs", {
       params,
     });
+    if (Array.isArray(res)) {
+      return { logs: res, meta: {} };
+    }
+    if (res && typeof res === "object" && Array.isArray(res.logs)) {
+      return res;
+    }
+    return { logs: [], meta: {} };
+  }
+
+  /**
+   * List all platform service orders & consultation bookings
+   */
+  static async listBookings(): Promise<any[]> {
+    const res = await apiClient.get<any>("/bookings/mine");
+    return Array.isArray(res) ? res : (res as any)?.data || [];
   }
 
   /**
@@ -241,6 +270,63 @@ export class AdminService {
   static async updateSettings(settings: Record<string, any>): Promise<Record<string, any>> {
     return apiClient.patch<Record<string, any>>("/admin/settings", { settings });
   }
+
+  /**
+   * List contact inquiries with optional status, search, and pagination
+   */
+  static async listInquiries(params?: {
+    page?: number;
+    limit?: number;
+    status?: string;
+    search?: string;
+  }): Promise<{ inquiries: ContactInquiryItem[]; total: number; page: number; limit: number; totalPages: number }> {
+    const res = await apiClient.get<any>("/settings/inquiries", { params });
+    const data = res?.data || res;
+    if (data?.inquiries) {
+      return {
+        inquiries: data.inquiries,
+        total: data.total ?? data.inquiries.length,
+        page: data.page ?? 1,
+        limit: data.limit ?? 20,
+        totalPages: data.totalPages ?? 1,
+      };
+    }
+    if (Array.isArray(data)) {
+      return {
+        inquiries: data,
+        total: data.length,
+        page: 1,
+        limit: data.length,
+        totalPages: 1,
+      };
+    }
+    return { inquiries: [], total: 0, page: 1, limit: 20, totalPages: 1 };
+  }
+
+  /**
+   * Update contact inquiry status
+   */
+  static async updateInquiryStatus(id: string, status: string): Promise<any> {
+    return apiClient.patch(`/settings/inquiries/${id}`, { status });
+  }
+
+  /**
+   * Delete contact inquiry
+   */
+  static async deleteInquiry(id: string): Promise<any> {
+    return apiClient.delete(`/settings/inquiries/${id}`);
+  }
+}
+
+export interface ContactInquiryItem {
+  id: string;
+  fullName: string;
+  email: string;
+  phone: string | null;
+  message: string;
+  status: "UNREAD" | "CONTACTED" | "RESOLVED" | string;
+  createdAt: string;
 }
 
 export const adminService = AdminService;
+

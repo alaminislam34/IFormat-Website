@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, Suspense } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { User, Building2, ArrowRight } from "lucide-react";
 import { AuthLayout } from "@/features/auth/components/auth-layout";
 import { RoleSelectionCard } from "@/features/auth/components/role-selection-card";
@@ -14,8 +14,10 @@ import { useAuthStore } from "@/stores/use-auth-store";
 
 type RoleType = "candidate" | "employer";
 
-export default function AccountTypePage() {
+function AccountTypeContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectUrl = searchParams.get("redirect");
   const setRole = useAuthStore((state) => state.setRole);
   const [selectedRole, setSelectedRole] = useState<RoleType>("candidate");
   const [isLoading, setIsLoading] = useState(false);
@@ -27,6 +29,11 @@ export default function AccountTypePage() {
       const { apiClient } = await import("@/lib/api/api-client");
       await apiClient.post("/users/role", { role: roleUpper });
       setRole(selectedRole);
+
+      if (redirectUrl && redirectUrl.startsWith("/")) {
+        router.push(redirectUrl);
+        return;
+      }
 
       if (selectedRole === "candidate") {
         router.push("/job-portal");
@@ -102,7 +109,7 @@ export default function AccountTypePage() {
           <span className="text-slate-500 font-medium">
             Already have an account?{" "}
             <Link
-              href="/login"
+              href={redirectUrl ? `/login?redirect=${encodeURIComponent(redirectUrl)}` : "/login"}
               className="text-[#0A54B1] font-bold hover:underline ml-1"
             >
               Log in
@@ -111,5 +118,19 @@ export default function AccountTypePage() {
         </div>
       </div>
     </AuthLayout>
+  );
+}
+
+export default function AccountTypePage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-slate-50">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0A54B1]" />
+        </div>
+      }
+    >
+      <AccountTypeContent />
+    </Suspense>
   );
 }

@@ -24,6 +24,13 @@ export const bookingService = {
   },
 
   /**
+   * Admin: List all client bookings, service orders, and consultations across platform
+   */
+  async listAllBookings(): Promise<BookingDTO[]> {
+    return apiClient.get<BookingDTO[]>("/bookings/all");
+  },
+
+  /**
    * Candidate / Client: Checkout and purchase a career service package
    */
   async checkoutServiceOrder(payload: CreateServiceOrderRequest): Promise<ServiceOrderCheckoutResponse> {

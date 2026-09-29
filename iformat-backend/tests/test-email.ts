@@ -1,10 +1,10 @@
 import { sendEmail } from "../src/lib/mailer.js";
 
 async function run() {
-  console.log("Testing email sending via AWS Mail Manager / SES...");
+  console.log("Testing email sending with info@iformatbranding.com...");
   const sent = await sendEmail({
     to: "alaminislam4122.bd@gmail.com",
-    subject: "iFormat Gmail SMTP Test OTP",
+    subject: "Your iFormat verification code is 739201",
     template: "otp-verification",
     data: {
       name: "Alamin Islam",

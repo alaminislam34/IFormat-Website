@@ -15,6 +15,12 @@ export const signAccessToken = (payload: TokenPayload): string => {
   });
 };
 
+export const signPasswordResetToken = (payload: TokenPayload): string => {
+  return jwt.sign(payload, env.JWT_ACCESS_SECRET, {
+    expiresIn: "24h",
+  });
+};
+
 export const signRefreshToken = (payload: TokenPayload): string => {
   return jwt.sign(payload, env.JWT_REFRESH_SECRET, {
     expiresIn: env.JWT_REFRESH_EXPIRES_IN as any,

@@ -55,14 +55,14 @@ export function UserMenu({ variant = "light" }: UserMenuProps) {
     return (
       <div className="flex items-center">
         <Link
-          href="/signup"
+          href="/login"
           className={`px-5 h-10 rounded-xl inline-flex items-center justify-center text-xs sm:text-sm font-bold transition-all shadow-md active:scale-95 cursor-pointer ${
             isDark
               ? "bg-white text-[#0A54B1] hover:bg-slate-100 shadow-slate-900/10"
               : "bg-[#0A54B1] text-white hover:bg-[#08428c] shadow-[#0A54B1]/20"
           }`}
         >
-          Sign Up
+          Sign In
         </Link>
       </div>
     );

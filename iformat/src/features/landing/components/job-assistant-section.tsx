@@ -3,6 +3,7 @@
 import { Sparkles, FileText, Mail, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { ScrollReveal } from "@/components/ui/scroll-reveal";
+import { SectionHeader, GradientText } from "@/components/ui/section-header";
 
 export function JobAssistantSection() {
   const tools = [
@@ -31,19 +32,18 @@ export function JobAssistantSection() {
       {/* Decorative background glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-125 h-125 bg-sky-500/10 rounded-full blur-[120px] pointer-events-none" />
       
-      <div className="max-w-7xl mx-auto px-8 relative z-10">
+      <div className="max-w-360 mx-auto w-11/12 relative z-10">
         <ScrollReveal yOffset={40}>
-          <div className="text-center max-w-2xl mx-auto mb-16 space-y-4">
-            <span className="px-3 py-1 bg-sky-500/10 text-sky-400 rounded-full text-xs font-bold tracking-wider uppercase">
-              AI Powered Tools
-            </span>
-            <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight leading-tight">
-              Your Complete <span className="text-brand-cyan">Job Assistant</span>
-            </h2>
-            <p className="text-slate-400 text-sm md:text-base leading-relaxed">
-              Supercharge your job application process. Construct stunning resumes, write persuasive cover letters, and draft outreach emails to hiring managers in seconds.
-            </p>
-          </div>
+          <SectionHeader
+            theme="dark"
+            title={
+              <>
+                Your Complete <GradientText>Job Assistant</GradientText>
+              </>
+            }
+            description="Supercharge your job application process. Construct stunning resumes, write persuasive cover letters, and draft outreach emails to hiring managers in seconds."
+            maxWidth="max-w-2xl"
+          />
         </ScrollReveal>
 
         <div className="grid md:grid-cols-3 gap-8 mb-16">

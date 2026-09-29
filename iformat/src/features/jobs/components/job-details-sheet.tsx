@@ -19,6 +19,7 @@ import { JobDetailsContent } from "./details/job-details-content";
 import { JobDetailsApplicants } from "./details/job-details-applicants";
 import { JobAnalyzerModal } from "./modal/job-analyzer-modal";
 import { AuthPromptModal } from "@/components/auth/auth-prompt-modal";
+import { UpgradeModal } from "@/components/ui/upgrade-modal";
 
 interface JobDetailsSheetProps {
   job: Job | null;
@@ -58,6 +59,8 @@ export function JobDetailsSheet({
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isAnalyzerModalOpen, setIsAnalyzerModalOpen] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [upgradeErrorMessage, setUpgradeErrorMessage] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [hasAppliedLocally, setHasAppliedLocally] = useState(false);
 
@@ -147,11 +150,21 @@ export function JobDetailsSheet({
     setIsAnalyzerModalOpen(true);
   };
 
+  // The drawer sheet should only be visible when isOpen is true AND no child modal is currently active
+  const isDrawerVisible =
+    isOpen &&
+    !isAnalyzerModalOpen &&
+    !isApplyModalOpen &&
+    !isEditModalOpen &&
+    !showAuthModal &&
+    !showUpgradeModal;
+
   const sheetContent = (
     <>
       <AnimatePresence mode="wait">
-        {isOpen && (
+        {isDrawerVisible && (
           <motion.div
+            key="job-details-drawer-wrapper"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -163,6 +176,7 @@ export function JobDetailsSheet({
 
             {/* Drawer Sheet Container matching Figma */}
             <motion.div
+              key="job-details-drawer-panel"
               initial={{ x: "100%", opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               exit={{ x: "100%", opacity: 0 }}
@@ -295,7 +309,12 @@ export function JobDetailsSheet({
         <ApplyModal
           job={job as any}
           isOpen={isApplyModalOpen}
-          onClose={() => setIsApplyModalOpen(false)}
+          onClose={() => {
+            setIsApplyModalOpen(false);
+            if (hasAppliedLocally) {
+              onClose();
+            }
+          }}
           onApplied={(jobId) => {
             setHasAppliedLocally(true);
             onApplied?.(jobId);
@@ -322,7 +341,15 @@ export function JobDetailsSheet({
           job={job as any}
           isOpen={isAnalyzerModalOpen}
           onClose={() => setIsAnalyzerModalOpen(false)}
-          onApplyNow={handleApplyClick}
+          onRequireUpgrade={(msg) => {
+            setIsAnalyzerModalOpen(false);
+            if (msg) setUpgradeErrorMessage(msg);
+            setShowUpgradeModal(true);
+          }}
+          onApplyNow={() => {
+            setIsAnalyzerModalOpen(false);
+            handleApplyClick();
+          }}
         />
       )}
 
@@ -332,6 +359,21 @@ export function JobDetailsSheet({
         onClose={() => setShowAuthModal(false)}
         title="Sign In to Analyze Job Fit"
         description="Sign in to your candidate account to scan your resume against this job's requirements and see your real-time match score."
+      />
+
+      {/* Subscription Upgrade Modal */}
+      <UpgradeModal
+        isOpen={showUpgradeModal}
+        onClose={() => {
+          setShowUpgradeModal(false);
+          setUpgradeErrorMessage(null);
+        }}
+        role="candidate"
+        title="AI Career Assistant Quota Reached"
+        message={
+          upgradeErrorMessage ||
+          "You have reached your free monthly limit of 5 AI generations. Upgrade to Pro for unlimited real-time job match analysis, tailored cover letters, and resume optimization."
+        }
       />
     </>
   );

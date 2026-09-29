@@ -10,3 +10,17 @@ model SystemSetting {
 
   @@index([key])
 }
+
+model ContactInquiry {
+  id        String   @id @default(uuid())
+  fullName  String
+  email     String
+  phone     String?
+  message   String
+  status    String   @default("UNREAD") // UNREAD, CONTACTED, RESOLVED
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email])
+  @@index([status])
+}

@@ -8,6 +8,7 @@ import { AdminPageHeader } from "@/features/admin/components/shared/admin-page-h
 import { ToastBanner } from "@/features/admin/components/shared/toast-banner";
 import { JobFilterBar } from "@/features/admin/components/jobs/job-filter-bar";
 import { JobTable } from "@/features/admin/components/jobs/job-table";
+import { Pagination } from "@/components/ui/table";
 
 export default function AdminJobsPage() {
   const [jobs, setJobs] = useState<AdminJobItemDTO[]>([]);
@@ -16,16 +17,28 @@ export default function AdminJobsPage() {
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [includeDeleted, setIncludeDeleted] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [totalCount, setTotalCount] = useState(0);
 
   const loadJobs = async () => {
     try {
       setLoading(true);
-      const params: any = { includeDeleted };
+      const params: any = {
+        includeDeleted,
+        page,
+        limit: pageSize,
+      };
       if (search.trim()) params.search = search.trim();
       if (statusFilter !== "ALL") params.status = statusFilter;
 
       const res = await adminService.listJobs(params);
-      if (res?.jobs) setJobs(res.jobs);
+      if (res) {
+        setJobs(Array.isArray(res) ? res : res.jobs || []);
+        if (res.meta?.total !== undefined) {
+          setTotalCount(res.meta.total);
+        }
+      }
     } catch (err: any) {
       console.warn("Could not load jobs:", err.message);
     } finally {
@@ -35,10 +48,11 @@ export default function AdminJobsPage() {
 
   useEffect(() => {
     loadJobs();
-  }, [statusFilter, includeDeleted]);
+  }, [page, pageSize, statusFilter, includeDeleted]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setPage(1);
     loadJobs();
   };
 
@@ -84,10 +98,10 @@ export default function AdminJobsPage() {
         <Button
           onClick={() => setIncludeDeleted(!includeDeleted)}
           variant="outline"
-          className={`rounded-xl text-xs font-bold h-10 px-4 transition-all ${
+          className={`rounded-xl text-xs font-semibold h-10 px-4 transition-all shadow-xs ${
             includeDeleted
-              ? "bg-rose-500/20 text-rose-300 border-rose-500/40"
-              : "bg-slate-900 border-slate-800 text-slate-400 hover:text-white"
+              ? "bg-rose-50 text-rose-700 border-rose-200"
+              : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-slate-900"
           }`}
         >
           <Trash2 className="w-3.5 h-3.5 mr-2" />
@@ -109,6 +123,19 @@ export default function AdminJobsPage() {
         onUpdateStatus={handleUpdateStatus}
         onSoftDelete={handleSoftDelete}
         onRestore={handleRestore}
+      />
+
+      <Pagination
+        card
+        currentPage={page}
+        pageSize={pageSize}
+        totalCount={totalCount}
+        loading={loading}
+        onPageChange={(newPage) => setPage(newPage)}
+        onPageSizeChange={(newSize) => {
+          setPageSize(newSize);
+          setPage(1);
+        }}
       />
     </div>
   );

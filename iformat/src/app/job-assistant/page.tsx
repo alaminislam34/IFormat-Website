@@ -64,51 +64,68 @@ function JobAssistantContent() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 flex flex-col justify-between pt-16 print:p-0 print:m-0 print:bg-white print:min-h-0">
+    <main className="min-h-screen bg-[#F8FAFC] flex flex-col justify-between print:p-0 print:m-0 print:bg-white print:min-h-0">
       <div className="w-full flex-1 flex flex-col print:p-0 print:m-0">
-        {/* Navigation Tabs */}
-        <div className="bg-white border-b mt-4 border-b-slate-200/80 py-3.5 px-6 w-full shadow-xs print:hidden no-print">
-          <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3 overflow-x-auto scrollbar-none">
+        {/* Unified AI Suite Header Bar */}
+        <div className="bg-white border-b border-slate-200/80 pt-24 sm:pt-28 pb-6 px-4 sm:px-8 w-full shadow-xs print:hidden no-print">
+          <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div className="space-y-1">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-sky-50 text-[#0A54B1] border border-sky-100">
+                <Sparkles className="w-3.5 h-3.5 text-[#52CEDE]" />
+                <span>iFormat AI Career Suite</span>
+              </div>
+              <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+                AI Career Assistant
+              </h1>
+              <p className="text-xs sm:text-sm text-slate-500 max-w-lg">
+                Build ATS-tailored resumes, compelling cover letters, and outreach emails in seconds.
+              </p>
+            </div>
+
+            {/* Segmented Tool Switcher */}
+            <div className="bg-slate-100 p-1.5 rounded-2xl inline-flex flex-wrap sm:flex-nowrap items-center gap-1.5 border border-slate-200/60 self-start md:self-auto">
               <button
+                type="button"
                 onClick={() => setActiveTab("cv")}
-                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
                   activeTab === "cv"
-                    ? "bg-[#0A54B1] text-white shadow-md shadow-blue-500/15"
-                    : "bg-slate-50 text-slate-700 hover:bg-slate-100 hover:text-slate-900 border border-slate-200/80"
+                    ? "bg-[#0A54B1] text-white shadow-md shadow-blue-500/20"
+                    : "text-slate-600 hover:text-slate-900 hover:bg-white/80"
                 }`}
               >
                 <Sparkles className="w-3.5 h-3.5" />
-                AI CV & Resume Builder
+                <span>AI Resume Builder</span>
               </button>
               <button
+                type="button"
                 onClick={() => setActiveTab("cover-letter")}
-                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
                   activeTab === "cover-letter"
-                    ? "bg-[#0A54B1] text-white shadow-md shadow-blue-500/15"
-                    : "bg-slate-50 text-slate-700 hover:bg-slate-100 hover:text-slate-900 border border-slate-200/80"
+                    ? "bg-[#0A54B1] text-white shadow-md shadow-blue-500/20"
+                    : "text-slate-600 hover:text-slate-900 hover:bg-white/80"
                 }`}
               >
                 <FileText className="w-3.5 h-3.5" />
-                AI Cover Letter Generator
+                <span>Cover Letter Generator</span>
               </button>
               <button
+                type="button"
                 onClick={() => setActiveTab("email")}
-                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
                   activeTab === "email"
-                    ? "bg-[#0A54B1] text-white shadow-md shadow-blue-500/15"
-                    : "bg-slate-50 text-slate-700 hover:bg-slate-100 hover:text-slate-900 border border-slate-200/80"
+                    ? "bg-[#0A54B1] text-white shadow-md shadow-blue-500/20"
+                    : "text-slate-600 hover:text-slate-900 hover:bg-white/80"
                 }`}
               >
                 <Mail className="w-3.5 h-3.5" />
-                AI Outreach Email Generator
+                <span>Outreach Email</span>
               </button>
             </div>
           </div>
         </div>
 
         {/* Content Area - Always Interactive */}
-        <div className="flex-1 w-full max-w-7xl mx-auto px-6 py-10 print:p-0 print:m-0 print:max-w-none print:w-full">
+        <div className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 py-8 print:p-0 print:m-0 print:max-w-none print:w-full">
           <AnimatePresence mode="wait">
             <motion.div
               key={activeTab}

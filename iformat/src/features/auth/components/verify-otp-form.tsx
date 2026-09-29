@@ -44,8 +44,8 @@ export function VerifyOtpForm({
       </h2>
       <p className="text-sm text-slate-500 mb-6 leading-relaxed">
         We&apos;ve sent a 6-digit verification code to{" "}
-        <span className="font-semibold text-slate-800">{email || "your email"}</span>. Please
-        enter the code below to activate your account.
+        <span className="font-semibold text-slate-800">{email || "your email"}</span>. The code is valid for{" "}
+        <strong className="text-slate-800">1 hour</strong>. Please enter the code below to activate your account.
       </p>
 
       {!emailParam && (
@@ -125,6 +125,14 @@ export function VerifyOtpForm({
         ) : (
           <span className="text-slate-400 font-medium">Resend in {countdown}s</span>
         )}
+      </div>
+
+      {/* Spam Communication Notice */}
+      <div className="mt-4 p-3 bg-amber-50/80 border border-amber-200/60 rounded-xl text-left">
+        <p className="text-xs text-amber-900 leading-relaxed">
+          <span className="font-semibold block mb-0.5">⚠️ Check your spam or junk folder:</span>
+          If you don&apos;t see the verification email within a minute, check your Spam folder and mark as &quot;Not Spam&quot; or add <span className="font-medium underline">info@iformatbranding.com</span> to your address book.
+        </p>
       </div>
 
       <div className="mt-8 text-center">

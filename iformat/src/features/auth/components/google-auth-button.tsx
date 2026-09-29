@@ -17,8 +17,12 @@ export function GoogleAuthButton({
       return;
     }
     const apiBase =
-      process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001/api/v1";
-    window.location.href = `${apiBase}/oauth/google`;
+      process.env.NEXT_PUBLIC_API_URL || "https://api.iformatbranding.com/api/v1";
+    const origin = typeof window !== "undefined" ? window.location.origin : "";
+    const params = new URLSearchParams();
+    if (origin) params.set("origin", origin);
+    const queryString = params.toString() ? `?${params.toString()}` : "";
+    window.location.href = `${apiBase}/oauth/google${queryString}`;
   };
 
   return (

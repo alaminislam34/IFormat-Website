@@ -23,6 +23,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { useAuthStore } from "@/stores/use-auth-store";
+import { BrandLogo } from "@/components/ui/brand-logo";
 import { apiClient } from "@/lib/api/api-client";
 import { toast } from "sonner";
 import { BookConsultationModal } from "@/features/services/components/book-consultation-modal";
@@ -208,18 +209,11 @@ export default function DashboardLayout({
         <div>
           {/* Brand Header */}
           <div className="h-20 px-6 flex items-center justify-between border-b border-slate-100">
-            <Link href="/" className="flex items-center gap-2.5 group">
-              <div className="w-9 h-9 rounded-xl bg-linear-to-r from-[#52CEDE] to-[#0A54B1] flex items-center justify-center shadow-md shadow-sky-500/20 group-hover:scale-105 transition-transform">
-                <span className="text-white font-black text-lg">iF</span>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-lg font-black text-slate-900 tracking-tight leading-none">
-                  iFormat
-                </span>
-                <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#0A54B1]">
-                  {isEmployer ? "Employer Hub" : "Candidate Hub"}
-                </span>
-              </div>
+            <Link href="/dashboard" className="flex items-center gap-2.5 group">
+              <BrandLogo size="sm" href="" priority />
+              <span className="px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-wider bg-blue-50 text-[#0A54B1] border border-blue-100">
+                {isEmployer ? "Employer Hub" : "Candidate Hub"}
+              </span>
             </Link>
 
             {/* Mobile Close Button */}

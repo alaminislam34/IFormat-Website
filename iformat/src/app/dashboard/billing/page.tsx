@@ -14,6 +14,7 @@ import { PlanSwitcherGrid } from "@/features/billing/components/plan-switcher-gr
 
 import { CancelDialog } from "@/features/billing/components/cancel-dialog";
 import { BillingSkeleton } from "@/features/billing/components/billing-skeleton";
+import { SubscriptionPhoneModal } from "@/features/billing/components/subscription-phone-modal";
 
 export default function BillingDashboardPage() {
   const router = useRouter();
@@ -28,6 +29,7 @@ export default function BillingDashboardPage() {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [showCancelModal, setShowCancelModal] = useState(false);
+  const [phoneModalPlan, setPhoneModalPlan] = useState<PlanDTO | null>(null);
 
   const sessionIdParam = searchParams.get("session_id") || undefined;
   const paymentParam = searchParams.get("payment");
@@ -121,17 +123,25 @@ export default function BillingDashboardPage() {
     }
   };
 
-  const handleUpgradePlan = async (planIdOrCode: string) => {
-    try {
-      setActionLoading(planIdOrCode);
-      const matched = plans.find(
-        (p) => p.id === planIdOrCode || p.code === planIdOrCode
-      );
-      const effectivePlanId = matched ? matched.id : planIdOrCode;
+  const handleUpgradePlan = (planIdOrCode: string) => {
+    const matched = plans.find(
+      (p) => p.id === planIdOrCode || p.code === planIdOrCode
+    );
+    if (matched) {
+      setPhoneModalPlan(matched);
+    } else {
+      setPhoneModalPlan({ id: planIdOrCode, name: "Selected Plan" } as any);
+    }
+  };
 
+  const handleConfirmSubscriptionPhone = async (phone: string) => {
+    if (!phoneModalPlan) return;
+    try {
+      setActionLoading(phoneModalPlan.id || phoneModalPlan.code);
       const origin = window.location.origin;
       const session = await membershipService.createCheckoutSession({
-        planId: effectivePlanId,
+        planId: phoneModalPlan.id,
+        phone,
         successUrl: `${origin}/dashboard/billing?session_id={CHECKOUT_SESSION_ID}&payment=success`,
         cancelUrl: `${origin}/dashboard/billing?payment=cancelled`,
       });
@@ -139,6 +149,7 @@ export default function BillingDashboardPage() {
       if (session?.url) window.location.href = session.url;
     } catch (err: any) {
       toast.error(err.message || "Failed to start Stripe checkout");
+      throw err;
     } finally {
       setActionLoading(null);
     }
@@ -173,13 +184,20 @@ export default function BillingDashboardPage() {
           onUpgradePlan={handleUpgradePlan}
         />
 
-
-
         <CancelDialog
           isOpen={showCancelModal}
           onClose={() => setShowCancelModal(false)}
           onConfirm={handleConfirmCancel}
           loading={actionLoading === "cancel"}
+        />
+
+        {/* Subscription Phone Collection Modal */}
+        <SubscriptionPhoneModal
+          isOpen={Boolean(phoneModalPlan)}
+          onClose={() => setPhoneModalPlan(null)}
+          plan={phoneModalPlan}
+          onConfirm={handleConfirmSubscriptionPhone}
+          loading={Boolean(actionLoading)}
         />
       </div>
     </div>

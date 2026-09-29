@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
@@ -8,17 +8,43 @@ import { motion, AnimatePresence } from "framer-motion";
 import { UserMenu } from "@/components/layout/user-menu";
 import { BrandLogo } from "@/components/ui/brand-logo";
 import { BookConsultationModal } from "@/features/services/components/book-consultation-modal";
+import { AuthPromptModal } from "@/components/auth/auth-prompt-modal";
 import { useAuthStore } from "@/stores/use-auth-store";
 import { useScrollDirection } from "@/hooks/use-scroll-direction";
 
 export function Navbar() {
+  const pathname = usePathname();
   const { user, isAuthenticated } = useAuthStore();
   const isEmployer = isAuthenticated && (user?.role === "employer" || user?.role === "EMPLOYER");
-  const { scrollDirection, isAtTop } = useScrollDirection(8);
-  const pathname = usePathname();
+  const { scrollDirection, isAtTop } = useScrollDirection(8, pathname);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isConsultModalOpen, setIsConsultModalOpen] = useState(false);
+  const [isAuthPromptOpen, setIsAuthPromptOpen] = useState(false);
   const isHomePage = pathname === "/";
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.location.search.includes("consult=open")) {
+      if (isAuthenticated) {
+        setIsConsultModalOpen(true);
+        setIsAuthPromptOpen(false);
+      } else {
+        setIsAuthPromptOpen(true);
+        setIsConsultModalOpen(false);
+      }
+    }
+  }, [isAuthenticated]);
+
+  const handleConsultClick = () => {
+    if (!isAuthenticated) {
+      setIsAuthPromptOpen(true);
+    } else {
+      setIsConsultModalOpen(true);
+    }
+  };
+
+  const consultRedirectUrl = pathname
+    ? `${pathname}${pathname.includes("?") ? "&" : "?"}consult=open`
+    : "/?consult=open";
 
   const isHidden = !isAtTop && scrollDirection === "down" && !isMobileOpen;
   const isScrolled = !isAtTop;
@@ -31,6 +57,18 @@ export function Navbar() {
         serviceTitle="Free 1-on-1 Career Strategy Consultation"
       />
 
+      <AuthPromptModal
+        isOpen={isAuthPromptOpen}
+        onClose={() => setIsAuthPromptOpen(false)}
+        onSuccess={() => {
+          setIsAuthPromptOpen(false);
+          setIsConsultModalOpen(true);
+        }}
+        title="Sign In to Book a Free Consult"
+        description="Please sign in or create an account to book your free career consultation session."
+        redirectUrl={consultRedirectUrl}
+      />
+
       <header
         className={`fixed top-0 left-0 right-0 z-50 will-change-transform transition-all duration-200 ease-out print:hidden no-print ${
           isHidden
@@ -40,11 +78,11 @@ export function Navbar() {
           isScrolled
             ? "bg-white/95 backdrop-blur-md border-b border-slate-200/90 shadow-md shadow-slate-900/5 py-4"
             : isHomePage
-            ? "bg-transparent py-6"
+            ? "bg-transparent border-b border-white/0 py-6"
             : "bg-white border-b border-slate-100 py-5"
         }`}
       >
-        <div className="max-w-350 mx-auto px-8 md:px-12 lg:px-16 flex items-center justify-between w-full">
+        <div className="max-w-360 mx-auto w-11/12 flex items-center justify-between">
           <BrandLogo variant={!isScrolled && isHomePage ? "dark" : "light"} />
           
           <div
@@ -54,18 +92,46 @@ export function Navbar() {
                 : "text-slate-600"
             }`}
           >
-            <Link href="/#about" className="hover:text-[#0A54B1] transition-colors">
-              About
+            <Link
+              href="/"
+              className={`transition-all ${
+                !isScrolled && isHomePage
+                  ? "hover:text-[#52CEDE] hover:drop-shadow-[0_0_8px_rgba(82,206,222,0.7)]"
+                  : "hover:text-[#0A54B1]"
+              }`}
+            >
+              Home
             </Link>
-            <Link href="/services" className="hover:text-[#0A54B1] transition-colors">
+            <Link
+              href="/services"
+              className={`transition-all ${
+                !isScrolled && isHomePage
+                  ? "hover:text-[#52CEDE] hover:drop-shadow-[0_0_8px_rgba(82,206,222,0.7)]"
+                  : "hover:text-[#0A54B1]"
+              }`}
+            >
               Solutions
             </Link>
             {!isEmployer && (
-              <Link href="/job-assistant" className="hover:text-[#0A54B1] transition-colors">
+              <Link
+                href="/job-assistant"
+                className={`transition-all ${
+                  !isScrolled && isHomePage
+                    ? "hover:text-[#52CEDE] hover:drop-shadow-[0_0_8px_rgba(82,206,222,0.7)]"
+                    : "hover:text-[#0A54B1]"
+                }`}
+              >
                 Job Assistant
               </Link>
-            ) }
-            <Link href="/job-portal" className="hover:text-[#0A54B1] transition-colors">
+            )}
+            <Link
+              href="/job-portal"
+              className={`transition-all ${
+                !isScrolled && isHomePage
+                  ? "hover:text-[#52CEDE] hover:drop-shadow-[0_0_8px_rgba(82,206,222,0.7)]"
+                  : "hover:text-[#0A54B1]"
+              }`}
+            >
               Job Portal
             </Link>
           </div>
@@ -73,7 +139,7 @@ export function Navbar() {
           {/* Action Buttons & Profile */}
           <div className="flex items-center gap-3">
             <button
-              onClick={() => setIsConsultModalOpen(true)}
+              onClick={handleConsultClick}
               className="hidden sm:inline-flex items-center px-5 h-10 rounded-xl bg-linear-to-r from-[#52CEDE] to-[#0A54B1] text-white text-xs sm:text-sm font-bold hover:opacity-95 transition-all shadow-md active:scale-95 cursor-pointer"
             >
               Book a Free Consult
@@ -147,7 +213,7 @@ export function Navbar() {
                 <button
                   onClick={() => {
                     setIsMobileOpen(false);
-                    setIsConsultModalOpen(true);
+                    handleConsultClick();
                   }}
                   className="block w-full py-2.5 rounded-xl bg-linear-to-r from-[#52CEDE] to-[#0A54B1] text-white text-center text-xs font-bold shadow-sm cursor-pointer"
                 >

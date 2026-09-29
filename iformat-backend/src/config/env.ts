@@ -18,25 +18,25 @@ const envSchema = z.object({
   JWT_REFRESH_EXPIRES_IN: z.string().default("7d"),
 
   // Cookie
-  COOKIE_DOMAIN: z.string().default("localhost"),
-  COOKIE_SECURE: z.preprocess((val) => val === "true" || val === true, z.boolean()).default(false),
+  COOKIE_DOMAIN: z.string().default(".iformatbranding.com"),
+  COOKIE_SECURE: z.preprocess((val) => val === "true" || val === true, z.boolean()).default(true),
 
   // CORS
-  CORS_ORIGIN: z.string().default("http://localhost:3000"),
+  CORS_ORIGIN: z.string().default("https://iformatbranding.com,https://www.iformatbranding.com,http://localhost:3000"),
 
   // OpenAI
   OPENAI_API_KEY: z.string().optional().default("sk-mock-key"),
 
   // AI Microservice (FastAPI + Bedrock)
-  AI_SERVICE_URL: z.string().default("http://18.185.68.217:8010"),
+  AI_SERVICE_URL: z.string().default("https://ai.bloodaidbd.com"),
   AI_SERVICE_TIMEOUT_MS: z.coerce.number().default(60000),
 
   // Google OAuth
-  GOOGLE_CLIENT_ID: z.string().optional().default("mock-google-client-id"),
-  GOOGLE_CLIENT_SECRET: z.string().optional().default("mock-google-client-secret"),
-  GOOGLE_CALLBACK_URL: z.string().default("http://localhost:5000/api/v1/oauth/google/callback"),
-  OAUTH_SUCCESS_REDIRECT_URL: z.string().default("http://localhost:3000/account-type"),
-  OAUTH_FAILURE_REDIRECT_URL: z.string().default("http://localhost:3000/login?error=oauth_failed"),
+  GOOGLE_CLIENT_ID: z.string().optional(),
+  GOOGLE_CLIENT_SECRET: z.string().optional(),
+  GOOGLE_CALLBACK_URL: z.string().default("https://api.iformatbranding.com/api/v1/oauth/google/callback"),
+  OAUTH_SUCCESS_REDIRECT_URL: z.string().default("https://iformatbranding.com/account-type"),
+  OAUTH_FAILURE_REDIRECT_URL: z.string().default("https://iformatbranding.com/login?error=oauth_failed"),
 
   // Stripe
   STRIPE_PUBLISHABLE_KEY: z.string().optional(),
@@ -44,6 +44,12 @@ const envSchema = z.object({
   STRIPE_WEBHOOK_SECRET: z.string().optional().default("whsec_mock_key"),
   STRIPE_CONNECT_WEBHOOK_SECRET: z.string().optional(),
   PRODUCT_ID: z.string().optional(),
+  STRIPE_PRICE_STARTER: z.string().optional(),
+  STRIPE_PRICE_GROW: z.string().optional(),
+  STRIPE_PRICE_PROFESSIONAL: z.string().optional(),
+  STRIPE_PRODUCT_STARTER: z.string().optional(),
+  STRIPE_PRODUCT_GROW: z.string().optional(),
+  STRIPE_PRODUCT_PROFESSIONAL: z.string().optional(),
 
   // AWS S3
   AWS_ACCESS_KEY_ID: z.string().optional(),
@@ -56,7 +62,8 @@ const envSchema = z.object({
   SMTP_PORT: z.coerce.number().default(587),
   SMTP_USER: z.string().optional(),
   SMTP_PASS: z.string().optional(),
-  SMTP_FROM: z.string().default("iFormat <devamin.bd@gmail.com>"),
+  SMTP_FROM: z.string().default("iFormat <info@iformatbranding.com>"),
+  SMTP_REPLY_TO: z.string().default("info@iformatbranding.com"),
 
   // Redis
   REDIS_URL: z.string().optional(),
@@ -84,6 +91,6 @@ const parseEnv = () => {
 export const env = parseEnv();
 
 export const getFrontendUrl = (): string => {
-  const origin = env.CORS_ORIGIN.split(",")[0]?.trim() || "http://localhost:3000";
+  const origin = env.CORS_ORIGIN.split(",")[0]?.trim() || "https://iformatbranding.com";
   return origin.replace(/\/+$/, "");
 };

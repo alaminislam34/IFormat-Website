@@ -2,10 +2,11 @@ import { prisma } from "../../lib/prisma.js";
 import { stripe } from "../../lib/stripe.js";
 import { env, getFrontendUrl } from "../../config/env.js";
 import { logger } from "../../utils/logger.js";
-import { ConflictError, NotFoundError, ValidationError, ForbiddenError } from "../../errors/index.js";
+import { ConflictError, NotFoundError, ValidationError, ForbiddenError, BadRequestError } from "../../errors/index.js";
 import { PlanService } from "../plan/plan.service.js";
 import { UserSubscriptionDetails } from "./payment.types.js";
 import { Role, SubscriptionStatus, PlanAudience, PlanBillingInterval } from "@prisma/client";
+import { sendEmail } from "../../lib/mailer.js";
 
 export class PaymentService {
   /**
@@ -25,6 +26,7 @@ export class PaymentService {
   static async createCheckoutSession(
     userId: string,
     planIdOrCode: string,
+    phoneInput?: string,
     successUrlOverride?: string,
     cancelUrlOverride?: string
   ) {
@@ -35,6 +37,21 @@ export class PaymentService {
 
     if (!user) {
       throw new NotFoundError("User", userId);
+    }
+
+    // Require contact phone number at subscription time
+    const effectivePhone = phoneInput?.trim() || user.phone?.trim();
+    if (!effectivePhone) {
+      throw new BadRequestError("A valid contact phone number is required to subscribe.");
+    }
+
+    // Persist phone number to user profile if provided/updated
+    if (phoneInput?.trim() && phoneInput.trim() !== user.phone) {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { phone: phoneInput.trim() },
+      });
+      user.phone = phoneInput.trim();
     }
 
     const targetPlan = await PlanService.getPlanByIdOrCode(planIdOrCode);
@@ -102,6 +119,21 @@ export class PaymentService {
         },
       });
 
+      // Dispatch purchase order notification to info@iformatbranding.com (Item 8)
+      sendEmail({
+        to: "info@iformatbranding.com",
+        subject: `[New Membership Purchase] ${targetPlan.name} by ${user.name}`,
+        template: "booking-confirmation",
+        data: {
+          name: "iFormat Billing",
+          slotTitle: `Membership: ${targetPlan.name}`,
+          advisorName: "iFormat Billing Operations",
+          sessionTime: `Purchased: ${new Date().toLocaleString()}`,
+          bookingUrl: `${getFrontendUrl()}/admin/subscriptions`,
+          details: `Client ${user.name} (${user.email} | Contact: ${effectivePhone || "None"}) subscribed to ${targetPlan.name} ($${(targetPlan.priceInCents / 100).toFixed(0)} USD).`,
+        },
+      }).catch((e) => logger.warn(`Failed to dispatch subscription purchase email: ${e.message}`));
+
       return {
         url: `${getFrontendUrl()}/dashboard/billing?mock_success=true&session_id=${mockSessionId}&plan=${targetPlan.code}`,
         sessionId: mockSessionId,
@@ -143,6 +175,9 @@ export class PaymentService {
       customer: customerId,
       client_reference_id: user.id,
       line_items: lineItems,
+      phone_number_collection: {
+        enabled: true,
+      },
       success_url: successUrl,
       cancel_url: cancelUrl,
       metadata: {
@@ -339,7 +374,7 @@ export class PaymentService {
             targetPlan = await PlanService.getPlanByIdOrCode(planCode);
           }
           if (!targetPlan) {
-            targetPlan = await PlanService.getPlanByIdOrCode("EMPLOYER_PRO");
+            targetPlan = await PlanService.getPlanByIdOrCode("BRANDING_STARTER");
           }
 
           const customerId = (session.customer as string) || user.subscription?.stripeCustomerId || `cus_${userId}`;
@@ -453,7 +488,7 @@ export class PaymentService {
               }
             }
             if (!targetPlan) {
-              targetPlan = await PlanService.getPlanByIdOrCode("EMPLOYER_PRO");
+              targetPlan = await PlanService.getPlanByIdOrCode("BRANDING_STARTER");
             }
 
             const periodStart = new Date(latestSub.current_period_start * 1000);
@@ -520,7 +555,7 @@ export class PaymentService {
     if (activeSub?.plan) {
       plan = activeSub.plan;
     } else {
-      plan = PlanService.getDefaultPlanForRole(user.role);
+      plan = await PlanService.getDefaultPlanForRole(user.role);
     }
 
     // Retrieve cycle usage
@@ -612,9 +647,19 @@ export class PaymentService {
           break;
         }
 
+        const collectedPhone = (session as any).customer_details?.phone;
+        if (collectedPhone) {
+          await prisma.user.update({
+            where: { id: userId },
+            data: { phone: collectedPhone },
+          }).catch((err) => {
+            logger.warn(`⚠️ [Webhook] Failed to update phone for user ${userId}: ${err.message}`);
+          });
+        }
+
         const plan = planCode
           ? await PlanService.getPlanByIdOrCode(planCode)
-          : await PlanService.getPlanByIdOrCode("EMPLOYER_PRO");
+          : await PlanService.getPlanByIdOrCode("BRANDING_STARTER");
 
         const customerId = session.customer as string;
         const subscriptionId = session.subscription as string;
@@ -658,6 +703,22 @@ export class PaymentService {
         });
 
         logger.info(`✅ [Webhook] User ${userId} successfully subscribed to ${plan.name}`);
+
+        // Dispatch purchase notification to info@iformatbranding.com (Item 8)
+        sendEmail({
+          to: "info@iformatbranding.com",
+          subject: `[Stripe Payment Confirmed] ${plan.name} by User ID ${userId}`,
+          template: "booking-confirmation",
+          data: {
+            name: "iFormat Billing",
+            slotTitle: `Membership: ${plan.name}`,
+            advisorName: "Stripe Live Checkout",
+            sessionTime: `Completed: ${new Date().toLocaleString()}`,
+            bookingUrl: `${getFrontendUrl()}/admin/subscriptions`,
+            details: `Stripe payment completed for ${plan.name} ($${(plan.priceInCents / 100).toFixed(0)} USD). Customer ID: ${customerId}. User ID: ${userId}.`,
+          },
+        }).catch((e) => logger.warn(`Failed to dispatch stripe webhook purchase email: ${e.message}`));
+
         break;
       }
 

@@ -117,7 +117,7 @@ export default function ForgotPasswordPage() {
                       setAgreeTerms(e.target.checked);
                       if (agreeError) setAgreeError("");
                     }}
-                    className="w-4.5 h-4.5 mt-0.5 rounded border-slate-300 text-[#0A54B1] focus:ring-[#0A54B1]/20 transition-all cursor-pointer"
+                    className="w-4 h-4 mt-0.5 rounded border-slate-300 text-[#0A54B1] accent-[#0A54B1] focus:ring-[#0A54B1]/20 transition-all cursor-pointer shrink-0"
                   />
                   <span className="text-xs text-slate-600 group-hover:text-slate-800 leading-snug transition-colors">
                     I agree to the{" "}
@@ -164,9 +164,13 @@ export default function ForgotPasswordPage() {
               <CheckCircle2 className="w-8 h-8" />
             </div>
             <h3 className="text-xl font-bold text-slate-900 mb-2">Check your email</h3>
-            <p className="text-sm text-slate-500 mb-6 leading-relaxed max-w-sm">
-              We&apos;ve sent password reset instructions to <span className="font-semibold text-slate-800">{submittedEmail}</span>. Please follow the instructions to set your new password.
+            <p className="text-sm text-slate-600 mb-3 leading-relaxed max-w-sm">
+              We&apos;ve sent password reset instructions to <span className="font-semibold text-slate-900">{submittedEmail}</span>. The reset link and code will remain valid for <strong>24 hours</strong>.
             </p>
+            <div className="w-full bg-blue-50/70 border border-blue-200/60 rounded-xl p-3 mb-6 text-xs text-blue-900 text-left">
+              <span className="font-semibold block mb-0.5">📧 Can&apos;t find the email?</span>
+              Please check your <strong>Spam</strong> or <strong>Junk</strong> folder. In case of aggressive spam filters, mark the email as &quot;Not Spam&quot; or add <span className="font-medium underline">info@iformatbranding.com</span> to your trusted contacts.
+            </div>
             <Link
               href={`/reset-password?email=${encodeURIComponent(submittedEmail)}`}
               className="w-full h-12 bg-[#0A54B1] text-white text-sm font-bold rounded-xl flex items-center justify-center gap-2 shadow-sm hover:opacity-95 transition-opacity cursor-pointer"

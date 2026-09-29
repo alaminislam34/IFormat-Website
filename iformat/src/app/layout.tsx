@@ -38,7 +38,21 @@ export default function RootLayout({
           <GlobalNavbar />
           {children}
           <ScrollToTop />
-          <Toaster position="top-center" richColors duration={1500} />
+          <Toaster
+            position="bottom-right"
+            duration={2500}
+            toastOptions={{
+              style: {
+                background: "#ffffff",
+                color: "#0f172a",
+                border: "1px solid #e2e8f0",
+                boxShadow: "0 20px 25px -5px rgba(15, 23, 42, 0.15), 0 8px 10px -6px rgba(15, 23, 42, 0.1)",
+                borderRadius: "1rem",
+                fontWeight: 600,
+              },
+              className: "bg-white text-slate-900 border border-slate-200 shadow-2xl rounded-2xl p-4 font-semibold",
+            }}
+          />
         </QueryProvider>
       </body>
     </html>

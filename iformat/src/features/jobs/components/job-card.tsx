@@ -45,7 +45,7 @@ export function JobCard({
     }
   }, [job.date, job.createdAt]);
 
-  const logoLetter = job.logoLetter || job.company?.charAt(0)?.toUpperCase() || "C";
+  const logoLetter = job.logoLetter || job.company?.trim().charAt(0)?.toUpperCase() || "I";
   const logoBg = job.logoBg || "bg-[#0A54B1]";
   const companyLogo = job.companyLogoUrl || job.employer?.companyLogoUrl;
   const applicantCount = job._count?.applications ?? job.applicants?.length ?? 0;

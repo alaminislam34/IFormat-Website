@@ -2,6 +2,7 @@ import { Subscription, Plan, SubscriptionStatus, SubscriptionUsage } from "@pris
 
 export interface CreateCheckoutSessionDto {
   planId: string;
+  phone?: string;
   successUrl?: string;
   cancelUrl?: string;
 }

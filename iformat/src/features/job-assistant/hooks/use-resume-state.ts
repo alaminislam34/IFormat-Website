@@ -192,7 +192,20 @@ export function useResumeState() {
         toast.success("Resume created & saved to cloud!");
       }
     } catch (err: any) {
-      toast.error(err?.message || "Failed to save resume to cloud");
+      if (
+        err?.code === "SUBSCRIPTION_REQUIRED" ||
+        err?.statusCode === 403 ||
+        err?.status === 402 ||
+        err?.status === 403 ||
+        err?.message?.includes("free monthly limit") ||
+        err?.message?.includes("SUBSCRIPTION_REQUIRED") ||
+        err?.message?.includes("quota") ||
+        err?.message?.includes("limit")
+      ) {
+        setShowUpgradeModal(true);
+      } else {
+        toast.error(err?.message || "Failed to save resume to cloud");
+      }
     }
   };
 
@@ -269,7 +282,6 @@ export function useResumeState() {
     setData((prev) => ({
       ...prev,
       workExperience: [
-        ...prev.workExperience,
         {
           id: String(Date.now()),
           company: "",
@@ -278,6 +290,7 @@ export function useResumeState() {
           location: "",
           description: "",
         },
+        ...prev.workExperience,
       ],
     }));
     if (errors.workExperience) {
@@ -317,8 +330,8 @@ export function useResumeState() {
     setData((prev) => ({
       ...prev,
       education: [
-        ...prev.education,
         { id: String(Date.now()), institution: "", degree: "", duration: "", location: "" },
+        ...prev.education,
       ],
     }));
     if (errors.education) {
@@ -357,7 +370,7 @@ export function useResumeState() {
   const addSkillGroup = () => {
     setData((prev) => ({
       ...prev,
-      skillGroups: [...prev.skillGroups, { id: String(Date.now()), category: "", skills: "" }],
+      skillGroups: [{ id: String(Date.now()), category: "", skills: "" }, ...prev.skillGroups],
     }));
     if (errors.skillGroups) {
       setErrors((prev) => {
@@ -387,7 +400,7 @@ export function useResumeState() {
   const addCert = () => {
     setData((prev) => ({
       ...prev,
-      certifications: [...prev.certifications, { id: String(Date.now()), name: "", link: "" }],
+      certifications: [{ id: String(Date.now()), name: "", link: "" }, ...prev.certifications],
     }));
   };
 

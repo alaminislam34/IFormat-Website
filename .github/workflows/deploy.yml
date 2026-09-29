@@ -39,10 +39,6 @@ jobs:
             build-args: |
               NEXT_PUBLIC_API_URL=https://api.iformatbranding.com/api/v1
               NEXT_PUBLIC_USE_MOCK=false
-          - service: gateway
-            context: ./nginx
-            dockerfile: ./nginx/Dockerfile
-            build-args: ""
 
     steps:
       - name: Checkout Source Code
