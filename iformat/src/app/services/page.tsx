@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -30,7 +30,12 @@ import { AuthPromptModal } from "@/components/auth/auth-prompt-modal";
 export default function ServicesPage() {
   const router = useRouter();
   const { isAuthenticated } = useAuthStore();
-  const services = useServicesStore((state) => state.services);
+  const { services, syncWithBackend } = useServicesStore();
+
+  useEffect(() => {
+    syncWithBackend();
+  }, [syncWithBackend]);
+
   const activeServices = useMemo(() => {
     return services.filter((s) => s.isActive !== false);
   }, [services]);

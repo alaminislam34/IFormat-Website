@@ -58,6 +58,7 @@ export function Partners() {
                     src={partner.image}
                     alt={partner.name}
                     fill
+                    unoptimized={partner.image?.startsWith("http") || partner.image?.startsWith("data:")}
                     className="object-cover object-top group-hover:scale-105 transition-transform duration-700"
                   />
                 ) : (

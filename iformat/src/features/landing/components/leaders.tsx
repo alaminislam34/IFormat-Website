@@ -48,9 +48,10 @@ export function Leaders() {
               className="relative rounded-3xl overflow-hidden aspect-3/4 group shadow-md"
             >
               <Image 
-                src={leader.image} 
+                src={leader.image || "/leaders/Jessica - Founder.png"} 
                 alt={leader.name}
                 fill
+                unoptimized={leader.image?.startsWith("http") || leader.image?.startsWith("data:")}
                 className="object-cover object-top group-hover:scale-105 transition-transform duration-700"
               />
               {/* Gradient Overlay for text readability */}

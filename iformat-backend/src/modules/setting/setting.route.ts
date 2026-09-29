@@ -9,12 +9,12 @@ const router = Router();
 // 1. Public Routes (accessible to all website visitors)
 router.get("/contact", catchAsync(SettingController.getContactInfo));
 router.post("/contact", catchAsync(SettingController.submitContactInquiry));
+router.get("/", catchAsync(SettingController.getSettings));
 
 // 2. Admin Protected Routes
 router.use(requireAuth);
 router.use(requireAdmin);
 
-router.get("/", catchAsync(SettingController.getSettings));
 router.patch("/", catchAsync(SettingController.updateSettings));
 router.patch("/contact", catchAsync(SettingController.updateContactInfo));
 router.get("/inquiries", catchAsync(SettingController.getContactInquiries));

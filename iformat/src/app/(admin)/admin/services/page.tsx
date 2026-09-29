@@ -32,7 +32,12 @@ export default function AdminServicesPage() {
     deleteService,
     toggleServiceStatus,
     resetToDefaults,
+    syncWithBackend,
   } = useServicesStore();
+
+  React.useEffect(() => {
+    syncWithBackend();
+  }, [syncWithBackend]);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("ALL");

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -19,10 +19,14 @@ import { OrderServiceModal } from "@/features/services/components/order-service-
 export function Services() {
   const router = useRouter();
   const { isAuthenticated } = useAuthStore();
-  const services = useServicesStore((state) => state.services);
+  const { services, syncWithBackend } = useServicesStore();
   const [selectedProduct, setSelectedProduct] = useState<ServiceProduct | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
+
+  useEffect(() => {
+    syncWithBackend();
+  }, [syncWithBackend]);
 
   // Display top 3 active featured services on landing page
   const featuredServices = useMemo(() => {
@@ -79,6 +83,7 @@ export function Services() {
                     src={service.image}
                     alt={service.title}
                     fill
+                    unoptimized={service.image?.startsWith("http") || service.image?.startsWith("data:")}
                     className="object-cover group-hover:scale-105 transition-transform duration-500 opacity-95"
                   />
                   <div className="absolute inset-0 bg-linear-to-t from-slate-950/70 via-transparent to-transparent opacity-60 group-hover:opacity-80 transition-opacity" />

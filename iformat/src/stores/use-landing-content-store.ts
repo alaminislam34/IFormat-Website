@@ -38,7 +38,7 @@ export interface PartnersSettings {
 }
 
 export const DEFAULT_VIDEO_SETTINGS: VideoSettings = {
-  videoUrl: "/videos/Event Promotion Video (2).mp4",
+  videoUrl: "/Event Promotion Video (2).mp4",
   title: "Experience the iFormat Vision",
   description:
     "Watch how our technology and psychological branding elevate executive careers & high-growth brands.",

@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { X, Plus, Trash2, UploadCloud, Camera } from "lucide-react";
+import { X, Plus, Trash2, UploadCloud, Camera, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { ServiceProductWithStatus } from "@/stores/use-services-store";
+import { apiClient } from "@/lib/api/api-client";
 
 interface AdminServiceEditorModalProps {
   isOpen: boolean;
@@ -41,33 +42,42 @@ export function AdminServiceEditorModal({
   const [audience, setAudience] = useState("");
   const [methodology, setMethodology] = useState("");
   const [image, setImage] = useState("");
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [deliverables, setDeliverables] = useState<string[]>([""]);
   const [isActive, setIsActive] = useState(true);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  const processFile = (file: File) => {
+  const processFile = async (file: File) => {
     if (!file.type.startsWith("image/")) {
       toast.error("Please select a valid image file (PNG, JPG, WEBP).");
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("Image file size should be less than 5MB.");
+    if (file.size > 15 * 1024 * 1024) {
+      toast.error("Image file size should be less than 15MB.");
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (typeof reader.result === "string") {
-        setImage(reader.result);
+    try {
+      setIsUploadingImage(true);
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await apiClient.post<any>("/upload/media", formData);
+      const uploadedUrl = res?.data?.url || res?.url;
+      if (uploadedUrl) {
+        setImage(uploadedUrl);
         toast.success(`Image "${file.name}" uploaded successfully.`);
+      } else {
+        toast.error("Upload failed: No image URL returned.");
       }
-    };
-    reader.onerror = () => {
-      toast.error("Failed to read image file.");
-    };
-    reader.readAsDataURL(file);
+    } catch (err: any) {
+      console.error("Cover image upload error:", err);
+      toast.error(err?.message || "Failed to upload image to server.");
+    } finally {
+      setIsUploadingImage(false);
+    }
   };
 
   const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -411,7 +421,15 @@ export function AdminServiceEditorModal({
               onChange={handleImageFileChange}
             />
 
-            {image ? (
+            {isUploadingImage ? (
+              <div className="border-2 border-dashed border-[#004AAD] rounded-2xl p-8 text-center bg-blue-50/50 space-y-3">
+                <Loader2 className="w-8 h-8 text-[#004AAD] animate-spin mx-auto" />
+                <p className="text-xs font-bold text-slate-800">
+                  Uploading image to cloud storage...
+                </p>
+                <p className="text-[11px] text-slate-500">Please wait a moment.</p>
+              </div>
+            ) : image ? (
               <div className="relative rounded-2xl overflow-hidden border border-slate-200 bg-slate-900 shadow-md group">
                 <div className="h-48 w-full relative">
                   <img
@@ -527,8 +545,14 @@ export function AdminServiceEditorModal({
             </button>
             <button
               type="submit"
-              className="px-5 py-2 rounded-xl bg-linear-to-r from-[#5DE0E6] to-[#004AAD] text-white font-extrabold text-xs shadow-md shadow-blue-500/15 hover:opacity-95 transition-all cursor-pointer h-9"
+              disabled={isUploadingImage}
+              className={`px-5 py-2 rounded-xl text-white font-extrabold text-xs shadow-md transition-all h-9 flex items-center gap-1.5 ${
+                isUploadingImage
+                  ? "bg-slate-400 cursor-not-allowed opacity-70"
+                  : "bg-linear-to-r from-[#5DE0E6] to-[#004AAD] shadow-blue-500/15 hover:opacity-95 cursor-pointer"
+              }`}
             >
+              {isUploadingImage && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
               {editingService ? "Save Changes" : "Create Service"}
             </button>
           </div>

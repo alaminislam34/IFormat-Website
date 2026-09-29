@@ -10,6 +10,10 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
+        hostname: "**.amazonaws.com",
+      },
+      {
+        protocol: "https",
         hostname: "ifromat-media-db.s3.eu-central-1.amazonaws.com",
       },
       {
@@ -18,11 +22,27 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
+        hostname: "**.iformatbranding.com",
+      },
+      {
+        protocol: "https",
+        hostname: "iformatbranding.com",
+      },
+      {
+        protocol: "https",
         hostname: "lh3.googleusercontent.com",
       },
       {
         protocol: "https",
         hostname: "avatars.githubusercontent.com",
+      },
+      {
+        protocol: "http",
+        hostname: "localhost",
+      },
+      {
+        protocol: "http",
+        hostname: "127.0.0.1",
       },
     ],
   },

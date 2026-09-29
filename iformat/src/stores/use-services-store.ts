@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { ServiceProduct } from "@/features/services/components/product-detail-modal";
 import { SERVICES_DATA } from "@/features/services/data/services-data";
+import { apiClient } from "@/lib/api/api-client";
 
 export interface ServiceProductWithStatus extends ServiceProduct {
   isActive?: boolean;
@@ -12,6 +13,7 @@ export interface ServiceProductWithStatus extends ServiceProduct {
 interface ServicesState {
   services: ServiceProductWithStatus[];
   isHydrated: boolean;
+  isSaving: boolean;
 
   // Actions
   setHydrated: (val: boolean) => void;
@@ -20,17 +22,20 @@ interface ServicesState {
   deleteService: (id: string) => void;
   toggleServiceStatus: (id: string) => void;
   resetToDefaults: () => void;
+  syncWithBackend: () => Promise<void>;
+  saveToBackend: () => Promise<void>;
 }
 
 export const useServicesStore = create<ServicesState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       services: SERVICES_DATA.map((s) => ({
         ...s,
         isActive: true,
         createdAt: new Date().toISOString(),
       })),
       isHydrated: false,
+      isSaving: false,
 
       setHydrated: (val: boolean) => set({ isHydrated: val }),
 
@@ -54,6 +59,7 @@ export const useServicesStore = create<ServicesState>()(
         set((state) => ({
           services: [created, ...state.services],
         }));
+        get().saveToBackend();
       },
 
       updateService: (id, updated) => {
@@ -68,12 +74,14 @@ export const useServicesStore = create<ServicesState>()(
               : service
           ),
         }));
+        get().saveToBackend();
       },
 
       deleteService: (id) => {
         set((state) => ({
           services: state.services.filter((service) => service.id !== id),
         }));
+        get().saveToBackend();
       },
 
       toggleServiceStatus: (id) => {
@@ -88,16 +96,49 @@ export const useServicesStore = create<ServicesState>()(
               : service
           ),
         }));
+        get().saveToBackend();
       },
 
       resetToDefaults: () => {
-        set({
-          services: SERVICES_DATA.map((s) => ({
-            ...s,
-            isActive: true,
-            createdAt: new Date().toISOString(),
-          })),
-        });
+        const resetServices = SERVICES_DATA.map((s) => ({
+          ...s,
+          isActive: true,
+          createdAt: new Date().toISOString(),
+        }));
+        set({ services: resetServices });
+        get().saveToBackend();
+      },
+
+      syncWithBackend: async () => {
+        try {
+          const res = await apiClient.get<any>("/settings");
+          const data = res?.data || res;
+          if (data && data.homepage_services) {
+            const remoteServices =
+              typeof data.homepage_services === "string"
+                ? JSON.parse(data.homepage_services)
+                : data.homepage_services;
+            if (Array.isArray(remoteServices) && remoteServices.length > 0) {
+              set({ services: remoteServices });
+            }
+          }
+        } catch {
+          // Fallback to localStorage gracefully
+        }
+      },
+
+      saveToBackend: async () => {
+        set({ isSaving: true });
+        try {
+          const { services } = get();
+          await apiClient.patch("/settings", {
+            homepage_services: JSON.stringify(services),
+          });
+        } catch {
+          // Saved to localStorage regardless
+        } finally {
+          set({ isSaving: false });
+        }
       },
     }),
     {
