@@ -86,11 +86,6 @@ export function BookConsultationModal({
       return;
     }
 
-    if (!isAuthenticated) {
-      toast.error("You must be logged in to book a consultation");
-      return;
-    }
-
     try {
       setIsSubmitting(true);
       await apiClient.post("/bookings/free-consult", {
@@ -124,25 +119,6 @@ export function BookConsultationModal({
 
   if (!mounted) return null;
 
-  if (!isAuthenticated) {
-    const returnUrl =
-      typeof window !== "undefined"
-        ? window.location.search.includes("consult=open")
-          ? `${window.location.pathname}${window.location.search}`
-          : `${window.location.pathname}${window.location.search ? `${window.location.search}&` : "?"}consult=open`
-        : "/?consult=open";
-
-    return (
-      <AuthPromptModal
-        isOpen={isOpen}
-        onClose={onClose}
-        title="Sign In to Book a Free Consult"
-        description="Please sign in or create an account to book your free career consultation session."
-        redirectUrl={returnUrl}
-      />
-    );
-  }
-
   const modalContent = (
     <AnimatePresence mode="wait">
       {isOpen && (
@@ -153,7 +129,6 @@ export function BookConsultationModal({
           transition={{ duration: 0.18, ease: "easeOut" }}
           className="fixed inset-0 z-100000 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md overflow-y-auto"
         >
-          {/* Backdrop click-away */}
           <div className="absolute inset-0" onClick={onClose} />
 
           <motion.div
@@ -182,8 +157,6 @@ export function BookConsultationModal({
                 <X className="w-5 h-5" />
               </button>
             </div>
-
-
             {isSuccess ? (
               <div className="text-center py-8 space-y-4">
                 <div className="w-16 h-16 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mx-auto shadow-inner">

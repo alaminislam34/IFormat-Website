@@ -32,7 +32,7 @@ export default function AdminBookingsPage() {
   const loadBookings = async () => {
     try {
       setLoading(true);
-      const data = await bookingService.listMyBookings();
+      const data = await bookingService.listAllBookings();
       setBookings(Array.isArray(data) ? data : []);
     } catch (err: any) {
       toast.error(err?.message || "Failed to load bookings. Please try again.");

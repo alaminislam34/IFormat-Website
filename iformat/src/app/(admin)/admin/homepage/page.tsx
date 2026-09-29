@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import {
   Film,
   Users,
@@ -40,6 +41,9 @@ import { apiClient } from "@/lib/api/api-client";
 import { toast } from "sonner";
 
 export default function AdminHomepageContentPage() {
+  const searchParams = useSearchParams();
+  const tabParam = searchParams.get("tab");
+
   const {
     videoSettings,
     leadersSettings,
@@ -62,7 +66,15 @@ export default function AdminHomepageContentPage() {
     isHydrated,
   } = useLandingContentStore();
 
-  const [activeTab, setActiveTab] = useState<"video" | "leaders" | "partners">("video");
+  const [activeTab, setActiveTab] = useState<"video" | "leaders" | "partners">(
+    tabParam === "leaders" || tabParam === "partners" ? tabParam : "video"
+  );
+
+  useEffect(() => {
+    if (tabParam === "leaders" || tabParam === "partners" || tabParam === "video") {
+      setActiveTab(tabParam);
+    }
+  }, [tabParam]);
 
   // Local Form States for Video
   const [videoUrl, setVideoUrl] = useState(videoSettings.videoUrl);

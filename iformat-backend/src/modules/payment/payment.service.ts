@@ -6,6 +6,7 @@ import { ConflictError, NotFoundError, ValidationError, ForbiddenError, BadReque
 import { PlanService } from "../plan/plan.service.js";
 import { UserSubscriptionDetails } from "./payment.types.js";
 import { Role, SubscriptionStatus, PlanAudience, PlanBillingInterval } from "@prisma/client";
+import { sendEmail } from "../../lib/mailer.js";
 
 export class PaymentService {
   /**
@@ -117,6 +118,21 @@ export class PaymentService {
           canceledAt: null,
         },
       });
+
+      // Dispatch purchase order notification to info@iformatbranding.com (Item 8)
+      sendEmail({
+        to: "info@iformatbranding.com",
+        subject: `[New Membership Purchase] ${targetPlan.name} by ${user.name}`,
+        template: "booking-confirmation",
+        data: {
+          name: "iFormat Billing",
+          slotTitle: `Membership: ${targetPlan.name}`,
+          advisorName: "iFormat Billing Operations",
+          sessionTime: `Purchased: ${new Date().toLocaleString()}`,
+          bookingUrl: `${getFrontendUrl()}/admin/subscriptions`,
+          details: `Client ${user.name} (${user.email} | Contact: ${effectivePhone || "None"}) subscribed to ${targetPlan.name} ($${(targetPlan.priceInCents / 100).toFixed(0)} USD).`,
+        },
+      }).catch((e) => logger.warn(`Failed to dispatch subscription purchase email: ${e.message}`));
 
       return {
         url: `${getFrontendUrl()}/dashboard/billing?mock_success=true&session_id=${mockSessionId}&plan=${targetPlan.code}`,
@@ -687,6 +703,22 @@ export class PaymentService {
         });
 
         logger.info(`✅ [Webhook] User ${userId} successfully subscribed to ${plan.name}`);
+
+        // Dispatch purchase notification to info@iformatbranding.com (Item 8)
+        sendEmail({
+          to: "info@iformatbranding.com",
+          subject: `[Stripe Payment Confirmed] ${plan.name} by User ID ${userId}`,
+          template: "booking-confirmation",
+          data: {
+            name: "iFormat Billing",
+            slotTitle: `Membership: ${plan.name}`,
+            advisorName: "Stripe Live Checkout",
+            sessionTime: `Completed: ${new Date().toLocaleString()}`,
+            bookingUrl: `${getFrontendUrl()}/admin/subscriptions`,
+            details: `Stripe payment completed for ${plan.name} ($${(plan.priceInCents / 100).toFixed(0)} USD). Customer ID: ${customerId}. User ID: ${userId}.`,
+          },
+        }).catch((e) => logger.warn(`Failed to dispatch stripe webhook purchase email: ${e.message}`));
+
         break;
       }
 

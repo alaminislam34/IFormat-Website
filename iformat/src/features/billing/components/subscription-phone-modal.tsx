@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Phone, Sparkles, X, Loader2, ShieldCheck, CheckCircle2 } from "lucide-react";
+import { Phone, Sparkles, X, Loader2, ShieldCheck, CheckCircle2, User, Mail, CalendarClock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuthStore } from "@/stores/use-auth-store";
 import { userService } from "@/services/user.service";
@@ -32,32 +32,47 @@ export function SubscriptionPhoneModal({
   loading: externalLoading = false,
 }: SubscriptionPhoneModalProps) {
   const { user, updateUser } = useAuthStore();
+  const [name, setName] = useState(user?.name || "");
+  const [email, setEmail] = useState(user?.email || "");
   const [phone, setPhone] = useState(user?.phone || "");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
+      setName(user?.name || "");
+      setEmail(user?.email || "");
       setPhone(user?.phone || "");
       setError(null);
       setIsSubmitting(false);
     }
-  }, [isOpen, user?.phone]);
+  }, [isOpen, user?.name, user?.email, user?.phone]);
 
   if (!isOpen || !plan) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const trimmed = phone.trim();
+    const trimmedName = name.trim();
+    const trimmedEmail = email.trim();
+    const trimmedPhone = phone.trim();
 
     // Validation
-    if (!trimmed) {
+    if (!trimmedName) {
+      setError("Please provide your full name for membership registration.");
+      return;
+    }
+
+    if (!trimmedEmail || !trimmedEmail.includes("@")) {
+      setError("Please enter a valid email address for billing and communications.");
+      return;
+    }
+
+    if (!trimmedPhone) {
       setError("Please enter your contact phone number to continue.");
       return;
     }
 
-    // Basic length & character check (at least 6 digits/characters, standard international phone format)
-    const cleanedDigits = trimmed.replace(/\D/g, "");
+    const cleanedDigits = trimmedPhone.replace(/\D/g, "");
     if (cleanedDigits.length < 6) {
       setError("Please enter a valid phone number with country/area code.");
       return;
@@ -67,17 +82,17 @@ export function SubscriptionPhoneModal({
       setIsSubmitting(true);
       setError(null);
 
-      // Persist to user profile if changed or not yet set
-      if (trimmed !== user?.phone) {
+      // Persist profile updates if changed
+      if (trimmedPhone !== user?.phone || (trimmedName && trimmedName !== user?.name)) {
         try {
-          await userService.updateProfile({ phone: trimmed });
-          updateUser({ phone: trimmed });
+          await userService.updateProfile({ name: trimmedName, phone: trimmedPhone });
+          updateUser({ name: trimmedName, phone: trimmedPhone });
         } catch (err: any) {
-          console.warn("Could not save phone to profile:", err?.message);
+          console.warn("Could not save updated profile:", err?.message);
         }
       }
 
-      await onConfirm(trimmed);
+      await onConfirm(trimmedPhone);
     } catch (err: any) {
       setError(err?.message || "Failed to initiate subscription checkout.");
       setIsSubmitting(false);
@@ -95,19 +110,19 @@ export function SubscriptionPhoneModal({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="bg-white border border-slate-200 rounded-3xl max-w-md w-full shadow-2xl flex flex-col max-h-[90vh] overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+      <div className="bg-white border border-slate-200 rounded-3xl max-w-lg w-full shadow-2xl flex flex-col max-h-[90vh] overflow-hidden animate-in fade-in zoom-in-95 duration-200">
         {/* Fixed Header */}
         <div className="px-6 py-4.5 border-b border-slate-100 flex items-center justify-between shrink-0 bg-white">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-sky-50 text-[#0A54B1] flex items-center justify-center shrink-0">
-              <Phone className="w-5 h-5 text-[#0A54B1]" />
+              <Sparkles className="w-5 h-5 text-[#0A54B1]" />
             </div>
             <div>
               <h3 className="text-base font-bold text-slate-900 tracking-tight">
-                Contact Number Required
+                Membership Contact Confirmation
               </h3>
               <p className="text-[11px] text-slate-500 font-medium">
-                Confirm your phone for subscription activation
+                Verify your details for membership activation & dedicated onboarding
               </p>
             </div>
           </div>
@@ -123,7 +138,7 @@ export function SubscriptionPhoneModal({
         </div>
 
         {/* Scrollable Body */}
-        <form id="sub-phone-form" onSubmit={handleSubmit} className="p-6 overflow-y-auto space-y-4.5">
+        <form id="sub-phone-form" onSubmit={handleSubmit} className="p-6 overflow-y-auto space-y-4">
           {/* Plan Summary Badge */}
           <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -144,20 +159,67 @@ export function SubscriptionPhoneModal({
             )}
           </div>
 
-          {/* Explanation */}
-          <p className="text-xs text-slate-600 leading-relaxed font-normal">
-            To ensure priority delivery of your subscription benefits, dedicated onboarding, and account support, please provide your active contact phone number.
-          </p>
+          {/* 6-Month Commitment Banner */}
+          <div className="p-3 rounded-2xl bg-amber-50/80 border border-amber-200/80 flex items-center gap-2.5 text-amber-900">
+            <CalendarClock className="w-5 h-5 text-amber-600 shrink-0" />
+            <div className="text-xs">
+              <p className="font-bold text-amber-900">Membership Duration: Min. 6 Months Commitment</p>
+              <p className="text-[11px] text-amber-700 leading-tight mt-0.5">
+                All iFormat branding plans include an initial 6-month term to deliver proven, executive personal brand acceleration.
+              </p>
+            </div>
+          </div>
 
-          {/* Phone Input Field */}
-          <div className="space-y-1.5">
+          {/* Contact Details Fields */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            {/* Full Name */}
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                <User className="w-3.5 h-3.5 text-sky-600" />
+                Full Name <span className="text-rose-500">*</span>
+              </label>
+              <input
+                type="text"
+                required
+                disabled={isLoading}
+                value={name}
+                onChange={(e) => {
+                  setName(e.target.value);
+                  if (error) setError(null);
+                }}
+                placeholder="Your Full Name"
+                className="w-full h-10 px-3 rounded-xl border border-slate-200 bg-white text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0A54B1]/20 focus:border-[#0A54B1]"
+              />
+            </div>
+
+            {/* Email Address */}
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                <Mail className="w-3.5 h-3.5 text-sky-600" />
+                Email Address <span className="text-rose-500">*</span>
+              </label>
+              <input
+                type="email"
+                required
+                disabled={isLoading || Boolean(user?.email)}
+                value={email}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  if (error) setError(null);
+                }}
+                placeholder="name@example.com"
+                className="w-full h-10 px-3 rounded-xl border border-slate-200 bg-white text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0A54B1]/20 focus:border-[#0A54B1] disabled:bg-slate-50 disabled:text-slate-500"
+              />
+            </div>
+          </div>
+
+          {/* Contact Phone Number */}
+          <div className="space-y-1">
             <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+              <Phone className="w-3.5 h-3.5 text-sky-600" />
               Contact Phone Number <span className="text-rose-500">*</span>
             </label>
             <div className="relative">
-              <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 pointer-events-none">
-                <Phone className="w-4 h-4 text-sky-600" />
-              </span>
               <input
                 type="tel"
                 required
@@ -168,8 +230,8 @@ export function SubscriptionPhoneModal({
                   setPhone(e.target.value);
                   if (error) setError(null);
                 }}
-                placeholder="+1 (555) 123-4567 or +971 50 123 4567"
-                className={`w-full h-11 pl-10 pr-3.5 rounded-xl border text-xs font-medium focus:outline-none focus:ring-2 shadow-2xs transition-all ${
+                placeholder="+1 (555) 123-4567 or +44 20 7946 0912"
+                className={`w-full h-10 px-3 rounded-xl border text-xs font-medium focus:outline-none focus:ring-2 shadow-2xs transition-all ${
                   error
                     ? "border-rose-400 bg-rose-50/20 text-rose-900 focus:ring-rose-500/20 focus:border-rose-500"
                     : "border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus:ring-[#0A54B1]/20 focus:border-[#0A54B1]"
@@ -189,7 +251,7 @@ export function SubscriptionPhoneModal({
           <div className="p-3 rounded-xl bg-sky-50/60 border border-sky-100 flex items-start gap-2.5 text-[11px] text-sky-900">
             <ShieldCheck className="w-4 h-4 text-sky-600 shrink-0 mt-0.5" />
             <span>
-              Your phone number is kept confidential and utilized strictly for subscription services, account notifications, and direct consulting.
+              Your information is secure and used strictly for onboarding, direct advisor coordination, and subscription management.
             </span>
           </div>
         </form>

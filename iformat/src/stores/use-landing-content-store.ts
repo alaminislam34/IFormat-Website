@@ -83,7 +83,7 @@ export const DEFAULT_LEADERS_SETTINGS: LeadersSettings = {
 };
 
 export const DEFAULT_PARTNERS_SETTINGS: PartnersSettings = {
-  sectionTitle: "Strategic Partners",
+  sectionTitle: "Recruitment Partners",
   sectionDescription:
     "Collaborating with elite global talent networks, venture builders, and executive organizations.",
   members: [

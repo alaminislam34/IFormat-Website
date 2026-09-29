@@ -52,6 +52,7 @@ export function ApplyModal({ job, isOpen, onClose, onApplied }: ApplyModalProps)
   const [isSuccess, setIsSuccess] = useState(false);
   const [fileError, setFileError] = useState<string>("");
   const [resumeError, setResumeError] = useState<string>("");
+  const [submissionError, setSubmissionError] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -160,6 +161,7 @@ export function ApplyModal({ job, isOpen, onClose, onApplied }: ApplyModalProps)
   };
 
   const onSubmit = async (data: ApplyFormData) => {
+    setSubmissionError("");
     if (!isAuthenticated) {
       toast.error("Please sign in or create an account to submit your application.");
       router.push(`/login?redirect=${encodeURIComponent(`/job-portal?job=${job.id}`)}`);
@@ -222,9 +224,15 @@ export function ApplyModal({ job, isOpen, onClose, onApplied }: ApplyModalProps)
             onClose();
           }, 2200);
         },
-        onError: (err) => {
+        onError: (err: any) => {
+          const msg =
+            err?.response?.data?.message ||
+            err?.message ||
+            "Failed to submit application. Please try again.";
+          setSubmissionError(msg);
           handleFormError(err, setError, {
-            fallbackMessage: "Failed to submit application. Please try again.",
+            showToastIfFieldHandled: true,
+            fallbackMessage: msg,
           });
         },
       }
@@ -258,6 +266,12 @@ export function ApplyModal({ job, isOpen, onClose, onApplied }: ApplyModalProps)
               <ApplySuccessView companyName={job.company} />
             ) : (
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                {submissionError && (
+                  <div className="p-3.5 bg-rose-50 border border-rose-200/80 rounded-2xl text-xs font-semibold text-rose-700 flex items-start gap-2.5 animate-in fade-in">
+                    <span className="text-base leading-none">⚠️</span>
+                    <span className="leading-snug">{submissionError}</span>
+                  </div>
+                )}
                 <ApplyCandidateFields register={register} errors={errors} />
 
                 {/* Resume Selector */}

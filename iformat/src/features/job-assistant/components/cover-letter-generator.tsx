@@ -16,10 +16,18 @@ import { coverLetterInputSchema } from "@/lib/validations";
 type CoverLetterTone = "Professional" | "Enthusiastic" | "Confident" | "Concise";
 
 export function CoverLetterGenerator() {
-  const { isAuthenticated } = useAuthStore();
+  const { user, isAuthenticated } = useAuthStore();
   const searchParams = useSearchParams();
   const paramRole = searchParams.get("role");
   const paramCompany = searchParams.get("company");
+
+  const [applicantName, setApplicantName] = React.useState(user?.name || "Alex Morgan");
+  const [userEmail, setUserEmail] = React.useState(user?.email || "alex.morgan@example.com");
+
+  React.useEffect(() => {
+    if (user?.name) setApplicantName(user.name);
+    if (user?.email) setUserEmail(user.email);
+  }, [user]);
 
   const [isConsultModalOpen, setIsConsultModalOpen] = React.useState(false);
   const [jobTitle, setJobTitle] = React.useState(paramRole || "Senior Full Stack Developer");
@@ -52,6 +60,9 @@ export function CoverLetterGenerator() {
   const isGenerating = generateMutation.isPending;
 
   const handleDemoGenerate = () => {
+    const candidateName = applicantName.trim() || user?.name || "Alex Morgan";
+    const candidateEmail = userEmail.trim() || user?.email || "alex.morgan@example.com";
+
     const demoLetter = `Dear ${recipient || "Hiring Team"},
 
 I am writing to express my enthusiastic interest in the ${jobTitle} position at ${companyName}. With over 8 years of dedicated experience architecting scalable cloud applications and high-conversion web platforms, I have built systems that directly enhance developer productivity and business metrics.
@@ -63,8 +74,8 @@ What excites me most about ${companyName} is your unwavering commitment to devel
 Thank you for your time and consideration. I welcome the opportunity to discuss how my background and problem-solving approach align with ${companyName}'s vision.
 
 Sincerely,
-Alex Morgan
-alex.morgan@example.com | linkedin.com/in/alexmorgan`;
+${candidateName}
+${candidateEmail} | linkedin.com/in/${candidateName.toLowerCase().replace(/\s+/g, "")}`;
 
     setGeneratedLetter(demoLetter);
     toast.success("Guest demo cover letter generated!");
@@ -108,10 +119,19 @@ alex.morgan@example.com | linkedin.com/in/alexmorgan`;
         recipient: recipient.trim() || "Hiring Manager",
         jobDescription: jobDesc.trim(),
         tone: tone.toLowerCase(),
-      },
+        candidateProfile: {
+          name: applicantName.trim() || user?.name || "Applicant",
+          email: userEmail.trim() || user?.email || "",
+        },
+      } as any,
       {
         onSuccess: (letter) => {
-          setGeneratedLetter(letter);
+          const emailToShow = userEmail.trim() || user?.email || "";
+          let finalLetter = letter;
+          if (emailToShow && !finalLetter.includes(emailToShow)) {
+            finalLetter = `${finalLetter.trim()}\n\n${applicantName.trim() || user?.name || "Applicant"}\n${emailToShow}`;
+          }
+          setGeneratedLetter(finalLetter);
           toast.success("Cover letter generated!");
         },
         onError: (err: any) => {
@@ -181,6 +201,35 @@ alex.morgan@example.com | linkedin.com/in/alexmorgan`;
           </div>
 
           <div className="space-y-4">
+            {/* Applicant Name & Email Fields */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700">
+                  Your Full Name
+                </label>
+                <input
+                  type="text"
+                  value={applicantName}
+                  onChange={(e) => setApplicantName(e.target.value)}
+                  placeholder="e.g. Alex Morgan"
+                  className="w-full h-11 px-4 rounded-xl border border-slate-200 bg-white text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0A54B1]/20 focus:border-[#0A54B1] transition-all text-sm font-medium"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700">
+                  Your Email Address <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="email"
+                  value={userEmail}
+                  onChange={(e) => setUserEmail(e.target.value)}
+                  placeholder="e.g. name@example.com"
+                  className="w-full h-11 px-4 rounded-xl border border-slate-200 bg-white text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0A54B1]/20 focus:border-[#0A54B1] transition-all text-sm font-medium"
+                />
+              </div>
+            </div>
+
             <div className="space-y-1.5">
               <label className="text-xs font-bold text-slate-700">
                 Target Role / Title <span className="text-rose-500">*</span>

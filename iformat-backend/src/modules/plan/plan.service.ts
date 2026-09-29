@@ -281,16 +281,10 @@ export class PlanService {
       throw new NotFoundError("Plan", id);
     }
 
-    // Protect Stripe-linked subscriptions from accidental price desynchronization
-    const safeData = { ...data };
-    if (existing.stripePriceId) {
-      delete safeData.priceInCents;
-      delete safeData.billingInterval;
-    }
-
+    // Update all plan fields as requested by admin (Item 6)
     return prisma.plan.update({
       where: { id },
-      data: safeData,
+      data,
     });
   }
 

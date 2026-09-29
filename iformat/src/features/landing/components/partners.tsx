@@ -33,7 +33,7 @@ export function Partners() {
           transition={{ duration: 0.6 }}
         >
           <SectionHeader
-            title={sectionTitle || "Strategic Partners"}
+            title={sectionTitle || "Recruitment Partners"}
             description={
               sectionDescription ||
               "Collaborating with elite global talent networks, venture builders, and executive organizations."

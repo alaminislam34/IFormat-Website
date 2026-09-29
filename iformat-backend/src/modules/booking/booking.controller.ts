@@ -23,6 +23,11 @@ export class BookingController {
     return ApiResponse.success(res, "Bookings retrieved successfully", bookings);
   }
 
+  static async listAllBookings(_req: Request, res: Response) {
+    const bookings = await BookingService.listAllBookings();
+    return ApiResponse.success(res, "All platform bookings retrieved successfully", bookings);
+  }
+
   static async checkoutService(req: Request, res: Response) {
     const result = await BookingService.createServiceOrderCheckout(req.user!.id, req.body);
     return ApiResponse.success(res, "Service order checkout initiated successfully", result, 201);
@@ -37,7 +42,7 @@ export class BookingController {
 
   static async requestFreeConsult(req: Request, res: Response) {
     const booking = await BookingService.requestFreeConsultation(
-      req.user!.id,
+      req.user?.id,
       req.body
     );
     return ApiResponse.success(res, "Free consultation request submitted successfully", booking, 201);

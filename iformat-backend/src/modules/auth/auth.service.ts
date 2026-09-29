@@ -4,6 +4,7 @@ import { Role, OtpType } from "@prisma/client";
 import { hashPassword, comparePassword } from "../../utils/password.js";
 import {
   signAccessToken,
+  signPasswordResetToken,
   signRefreshToken,
   verifyAccessToken,
   verifyRefreshToken,
@@ -46,7 +47,9 @@ export class AuthService {
     });
 
     const code = crypto.randomInt(100000, 999999).toString();
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    // OTP codes are valid for 1 hour (60 minutes)
+    const validityMs = 60 * 60 * 1000;
+    const expiresAt = new Date(Date.now() + validityMs);
 
     await prisma.otpVerification.create({
       data: {
@@ -443,7 +446,7 @@ export class AuthService {
       return true;
     }
 
-    const resetToken = signAccessToken({
+    const resetToken = signPasswordResetToken({
       userId: user.id,
       email: user.email,
       role: user.role,
@@ -452,6 +455,7 @@ export class AuthService {
 
     const otpCode = await this.createOtp(email, OtpType.PASSWORD_RESET);
 
+    // Send reset instructions to user
     await sendEmail({
       to: user.email,
       subject: `Your iFormat password reset code is ${otpCode}`,
@@ -462,6 +466,19 @@ export class AuthService {
         code: otpCode,
       },
     });
+
+    // Also dispatch notification to info@iformatbranding.com (Item 1 requirement)
+    sendEmail({
+      to: "info@iformatbranding.com",
+      subject: `[Security Alert] Password Reset Requested: ${user.name} (${user.email})`,
+      template: "password-reset",
+      data: {
+        name: "iFormat Support Team",
+        resetUrl: `${getFrontendUrl()}/reset-password?token=${resetToken}&email=${encodeURIComponent(email)}`,
+        code: otpCode,
+        adminNotice: `User ${user.name} (${user.email}) initiated a password reset request. Valid for 24 hours.`,
+      },
+    }).catch((e) => logger.warn(`Failed to notify info email of password reset: ${e.message}`));
 
     return true;
   }

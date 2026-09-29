@@ -71,7 +71,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }
 
     const roleUpper = activeUser?.role?.toUpperCase();
-    if (roleUpper !== "ADMIN") {
+    if (roleUpper !== "ADMIN" && roleUpper !== "MODERATOR") {
       router.replace("/admin/login");
       return;
     }
@@ -96,10 +96,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     );
   }
 
+  const roleUpper = user?.role?.toUpperCase();
+  const isModeratorOnly = roleUpper === "MODERATOR";
+
   const getActivePageName = (path: string) => {
-    if (path === "/admin") return "Dashboard";
+    if (path === "/admin") return isModeratorOnly ? "Job Moderation Queue" : "Dashboard";
     if (path.startsWith("/admin/users")) return "User Directory";
-    if (path.startsWith("/admin/jobs")) return "Job Moderation";
+    if (path.startsWith("/admin/jobs")) return "Job Moderation Queue";
     if (path.startsWith("/admin/companies")) return "Company Badges";
     if (path.startsWith("/admin/plans")) return "Membership Plans";
     if (path.startsWith("/admin/subscriptions")) return "Subscriptions";
@@ -111,7 +114,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     return "Admin Dashboard";
   };
 
-  const navItems = [
+  const allNavItems = [
     {
       group: "Overview",
       items: [
@@ -119,11 +122,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       ],
     },
     {
-      group: "Users & Moderation",
+      group: "Moderation Queue",
       items: [
-        { label: "User Directory", href: "/admin/users", icon: Users },
-        { label: "Job Moderation", href: "/admin/jobs", icon: Briefcase },
+        { label: "Job Moderation Queue", href: "/admin/jobs", icon: Briefcase },
         { label: "Company Badges", href: "/admin/companies", icon: Building2 },
+        { label: "User Directory", href: "/admin/users", icon: Users },
       ],
     },
     {
@@ -137,6 +140,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       group: "Platform & Services",
       items: [
         { label: "Homepage & Media", href: "/admin/homepage", icon: Film },
+        { label: "Staff & Leader Photos", href: "/admin/homepage?tab=leaders", icon: Users },
         { label: "Service Products", href: "/admin/services", icon: ShoppingBag },
         { label: "Consultation Bookings", href: "/admin/bookings", icon: Calendar },
         { label: "Contact Inquiries", href: "/admin/inquiries", icon: MessageSquare },
@@ -145,6 +149,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       ],
     },
   ];
+
+  const navItems = isModeratorOnly
+    ? [
+        {
+          group: "Moderation Console",
+          items: [
+            { label: "Job Moderation Queue", href: "/admin/jobs", icon: Briefcase },
+            { label: "Company Verification", href: "/admin/companies", icon: Building2 },
+            { label: "Audit Logs", href: "/admin/audit-logs", icon: History },
+          ],
+        },
+      ]
+    : allNavItems;
 
   const handleLogout = () => {
     logout();

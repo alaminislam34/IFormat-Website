@@ -39,12 +39,17 @@ export function handleFormError<T extends FieldValues>(
 
       // If at least one error was successfully rendered directly on a form element,
       // skip the toast message unless explicitly requested.
-      if (matchedAnyField && !options?.showToastIfFieldHandled) {
+      // Special fields like jobId, id, root are not form elements and MUST display a toast
+      const hasUnmappedField = fieldKeys.some(
+        (k) => !["name", "candidateName", "email", "candidateEmail", "password", "coverNote", "phone"].includes(k)
+      );
+
+      if (matchedAnyField && !options?.showToastIfFieldHandled && !hasUnmappedField) {
         return;
       }
     }
 
-    // Show toast for global / server-level errors (rate limiting 429, 500, network loss)
+    // Show toast for global / server-level errors (rate limiting 429, 500, network loss, duplicate conflicts)
     toast.error(err.message || options?.fallbackMessage || "An unexpected error occurred.");
     return;
   }

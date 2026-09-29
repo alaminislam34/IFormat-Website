@@ -18,16 +18,19 @@ const router = Router();
 // Publicly viewable available slots
 router.get("/slots", catchAsync(BookingController.listAvailableSlots));
 
-// Request a Free 1-on-1 Consultation (Strictly requires authenticated user)
+// Request a Free 1-on-1 Consultation (Open to prospective clients & authenticated users)
 router.post(
   "/free-consult",
-  requireAuth,
+  optionalAuth,
   validate({ body: freeConsultSchema }),
   catchAsync(BookingController.requestFreeConsult)
 );
 
 // Protected user routes
 router.use(requireAuth);
+
+// Admin: view all client bookings, purchase orders, and free consultations
+router.get("/all", requireRole(Role.ADMIN), catchAsync(BookingController.listAllBookings));
 
 // Candidate / User orders a professional service package with direct checkout
 router.post(

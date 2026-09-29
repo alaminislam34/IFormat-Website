@@ -13,7 +13,7 @@ export function PricingHeader({
   return (
     <SectionHeader
       title="Our Best Pricing Options"
-      description="Choose a comprehensive package tailored to your career stage, or select individual services to target specific needs."
+      description="Choose a comprehensive package tailored to your career stage. All memberships feature a minimum 6-month commitment for proven, sustained career growth."
       maxWidth="max-w-3xl"
     >
       {billingInterval && setBillingInterval && (

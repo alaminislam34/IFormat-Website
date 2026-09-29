@@ -65,20 +65,36 @@ export function PricingCard({
         </p>
 
         {/* Price Tag */}
-        <div className="mb-6 min-h-11 flex items-baseline">
+        <div className="mb-6 min-h-14 flex flex-col justify-start">
           {item.price ? (
-            <div className="flex items-baseline gap-1">
-              <span className="text-4xl font-extrabold text-[#0B1528] tracking-tight">
-                {item.price}
-              </span>
-              {item.priceSuffix && (
-                <span className="text-xs font-semibold text-[#64748B]">
-                  {item.priceSuffix}
+            <>
+              <div className="flex items-baseline gap-1">
+                <span className="text-4xl font-extrabold text-[#0B1528] tracking-tight">
+                  {item.price}
                 </span>
-              )}
-            </div>
+                {item.priceSuffix && (
+                  <span className="text-xs font-semibold text-[#64748B]">
+                    {item.priceSuffix}
+                  </span>
+                )}
+              </div>
+              <div className="mt-1.5">
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-sky-50 text-[#0A54B1] border border-sky-200/60">
+                  Min. 6 Months Commitment
+                </span>
+              </div>
+            </>
           ) : (
-            <div className="h-10" />
+            <>
+              <div className="h-10 flex items-center">
+                <span className="text-xl font-bold text-[#0B1528]">Bespoke Partnership</span>
+              </div>
+              <div className="mt-1.5">
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200">
+                  Custom Strategic Terms
+                </span>
+              </div>
+            </>
           )}
         </div>
 

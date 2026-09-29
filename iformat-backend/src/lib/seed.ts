@@ -79,34 +79,101 @@ export async function seedDatabase() {
     });
     console.log("✅ Default membership plans seeded successfully and obsolete plans purged.");
 
-    // 2. Ensure primary Admin users exist
-    const adminEmails = ["devamin.bd@gmail.com", "admin@iformatbranding.com"];
-    for (const email of adminEmails) {
-      let existingUser = await prisma.user.findUnique({ where: { email } });
+    // 2. Ensure primary Admin users exist (Superadmin, Jessica Founder, Info Desk)
+    const adminAccounts = [
+      { email: "jessica@iformatbranding.com", name: "Jessica - Founder & Executive Advisor", password: "administrator123!" },
+      { email: "admin@iformatbranding.com", name: "iFormat Executive Admin", password: "administrator123!" },
+      { email: "info@iformatbranding.com", name: "iFormat Operations Desk", password: "administrator123!" },
+      { email: "devamin.bd@gmail.com", name: "iFormat Technical Lead", password: "administrator123!" },
+    ];
+
+    let primaryAdvisorId: string | null = null;
+
+    for (const acc of adminAccounts) {
+      let existingUser = await prisma.user.findUnique({ where: { email: acc.email } });
       if (!existingUser) {
-        const passwordHash = await bcrypt.hash("administrator123!", 10);
-        await prisma.user.create({
+        const passwordHash = await bcrypt.hash(acc.password, 10);
+        existingUser = await prisma.user.create({
           data: {
-            email,
-            name: email.startsWith("admin") ? "iFormat Executive Admin" : "iFormat Administrator",
+            email: acc.email,
+            name: acc.name,
             passwordHash,
             role: Role.ADMIN,
             emailVerified: true,
             companyName: "iFormat Global",
           },
         });
-        console.log(`✅ Default Superadmin created: ${email} / administrator123!`);
+        console.log(`✅ Default Superadmin created: ${acc.email} / ${acc.password}`);
       } else {
-        // Ensure role is ADMIN
         if (existingUser.role !== Role.ADMIN) {
-          await prisma.user.update({
+          existingUser = await prisma.user.update({
             where: { id: existingUser.id },
             data: { role: Role.ADMIN },
           });
-          console.log(`✅ User ${email} promoted to ADMIN role.`);
+          console.log(`✅ User ${acc.email} promoted to ADMIN role.`);
         } else {
-          console.log(`ℹ️ Admin user already exists (${email}).`);
+          console.log(`ℹ️ Admin user already exists (${acc.email}).`);
         }
+      }
+
+      if (acc.email === "jessica@iformatbranding.com" || (!primaryAdvisorId && acc.email === "admin@iformatbranding.com")) {
+        primaryAdvisorId = existingUser.id;
+      }
+    }
+
+    // 3. Seed Available Consultation Slots for next 30 days
+    if (primaryAdvisorId) {
+      const existingFutureSlots = await prisma.consultationSlot.count({
+        where: {
+          startTime: { gte: new Date() },
+          isDeleted: false,
+          isBooked: false,
+        },
+      });
+
+      if (existingFutureSlots < 10) {
+        console.log("🌱 Seeding available consultation slots for the next 30 days...");
+        const now = new Date();
+        const slotsToCreate: any[] = [];
+
+        // Generate slots for the next 20 business days
+        for (let dayOffset = 1; dayOffset <= 28; dayOffset++) {
+          const date = new Date(now);
+          date.setDate(now.getDate() + dayOffset);
+          const dayOfWeek = date.getDay();
+
+          // Skip weekends (0 is Sunday, 6 is Saturday)
+          if (dayOfWeek === 0 || dayOfWeek === 6) continue;
+
+          // Add 3 sessions per day: 10:00 AM, 2:00 PM, 4:00 PM
+          const sessionHours = [10, 14, 16];
+          for (const hour of sessionHours) {
+            const start = new Date(date);
+            start.setHours(hour, 0, 0, 0);
+
+            const end = new Date(date);
+            end.setHours(hour + 1, 0, 0, 0);
+
+            slotsToCreate.push({
+              advisorId: primaryAdvisorId,
+              title: "1-on-1 Personal Brand & Executive Career Consultation",
+              startTime: start,
+              endTime: end,
+              isBooked: false,
+              priceInCents: 4900,
+            });
+          }
+        }
+
+        if (slotsToCreate.length > 0) {
+          await prisma.consultationSlot.createMany({
+            data: slotsToCreate,
+            skipDuplicates: true,
+          });
+          console.log(`✅ Successfully seeded ${slotsToCreate.length} consultation slots.`);
+        }
+      } else {
+        console.log(`ℹ️ Sufficient consultation slots exist (${existingFutureSlots} slots available).`);
       }
     }
 

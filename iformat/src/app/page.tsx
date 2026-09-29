@@ -21,8 +21,8 @@ export default function Home() {
       <JobAssistantSection />
       <Methodology />
       <Process />
-      <Leaders />
       <Partners />
+      <Leaders />
       <Stats />
       <Contact />
       <Footer />
