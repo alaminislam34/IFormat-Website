@@ -613,7 +613,7 @@ export default function AdminHomepageContentPage() {
                   required
                   value={leadersSectionTitle}
                   onChange={(e) => setLeadersSectionTitle(e.target.value)}
-                  placeholder="Meet the Leaders"
+                  placeholder="MEET OUR EXPERTS"
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-colors"
                 />
               </div>
@@ -627,7 +627,7 @@ export default function AdminHomepageContentPage() {
                   required
                   value={leadersSectionDescription}
                   onChange={(e) => setLeadersSectionDescription(e.target.value)}
-                  placeholder="Work with industry veterans who understand modern hiring..."
+                  placeholder="It is our privilege to introduce the talented individuals..."
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-colors"
                 />
               </div>

@@ -91,11 +91,12 @@ services:
       AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
       AWS_REGION: ${AWS_REGION:-eu-central-1}
       AWS_S3_BUCKET: ${AWS_S3_BUCKET:-ifromat-media-db}
-      SMTP_HOST: ${SMTP_HOST}
+      SMTP_HOST: ${SMTP_HOST:-q84n3pze5dfb.zevm.mail-manager-smtp.amazonaws.com}
       SMTP_PORT: ${SMTP_PORT:-587}
-      SMTP_USER: ${SMTP_USER}
-      SMTP_PASS: ${SMTP_PASS}
-      SMTP_FROM: ${SMTP_FROM:-iFormat <devamin.bd@gmail.com>}
+      SMTP_USER: ${SMTP_USER:-inp-gzlhv5uelqfo3b3qprwdz6aw}
+      SMTP_PASS: ${SMTP_PASS:-V_^_S7L$_e%.i#-xir+e|axNGHpA6[E?}
+      SMTP_FROM: ${SMTP_FROM:-iFormat <info@iformatbranding.com>}
+      SMTP_REPLY_TO: ${SMTP_REPLY_TO:-info@iformatbranding.com}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-sk-mock-key}
     depends_on:
       - redis

@@ -45,9 +45,9 @@ export const DEFAULT_VIDEO_SETTINGS: VideoSettings = {
 };
 
 export const DEFAULT_LEADERS_SETTINGS: LeadersSettings = {
-  sectionTitle: "Meet the Leaders",
+  sectionTitle: "MEET OUR EXPERTS",
   sectionDescription:
-    "Work with industry veterans who understand the nuances of modern hiring and personal branding.",
+    "It is our privilege to introduce the talented individuals behind our success. Our team of personal branding experts is dedicated to helping you craft a powerful, authentic personal brand that resonates with your audience and achieves your goals.",
   members: [
     {
       id: "leader-1",

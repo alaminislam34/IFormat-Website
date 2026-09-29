@@ -63,10 +63,10 @@ export function Leaders() {
           transition={{ duration: 0.6 }}
         >
           <SectionHeader
-            title={sectionTitle || "Meet the Leaders"}
+            title={sectionTitle || "MEET OUR EXPERTS"}
             description={
               sectionDescription ||
-              "Work with industry veterans who understand the nuances of modern hiring and personal branding."
+              "It is our privilege to introduce the talented individuals behind our success. Our team of personal branding experts is dedicated to helping you craft a powerful, authentic personal brand that resonates with your audience and achieves your goals."
             }
           />
         </motion.div>

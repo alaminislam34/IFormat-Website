@@ -169,6 +169,9 @@ export class SettingService {
             user: env.SMTP_USER,
             pass: env.SMTP_PASS,
           },
+          tls: {
+            rejectUnauthorized: false,
+          },
         });
 
         const plainText = [

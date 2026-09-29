@@ -105,8 +105,8 @@ export function Services() {
         <ScrollReveal yOffset={40}>
           <SectionHeader
             title="Individual Services"
-            description="A la carte options to boost your professional toolkit."
-            maxWidth="max-w-2xl"
+            description="Thoughtfully designed solutions, to over serve clients, delivered through collaborative partnerships that prioritize your goals, experience, and long-term success."
+            maxWidth="max-w-3xl"
           />
         </ScrollReveal>
 

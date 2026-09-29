@@ -6,22 +6,22 @@ export function Process() {
     {
       num: "01",
       title: "Consultation",
-      desc: "Deep dive into your career history, goals, and unique value proposition."
+      desc: "Consultation is scheduled with the potential client and invoice sent out"
     },
     {
       num: "02",
       title: "Payment",
-      desc: "Secure your package and gain access to our onboarding portal."
+      desc: "Once Payment is made, a meeting is set up within 24 hours"
     },
     {
       num: "03",
       title: "Conduct",
-      desc: "Our experts craft your materials using ATS and psychological frameworks."
+      desc: "Conduct a 45 min to 1 hour meeting with the client over Zoom with prepared questions"
     },
     {
       num: "04",
       title: "Delivery",
-      desc: "Review your final materials, ready to deploy in your job search."
+      desc: "Deliver a first draft within 3 days after being approved by the quality control team"
     }
   ];
 
@@ -32,9 +32,9 @@ export function Process() {
           <SectionHeader
             theme="dark"
             title="Our Process"
-            description="A streamlined, transparent journey from initial contact to final delivery."
-            descriptionClassName="text-white/80 text-lg"
-            maxWidth="max-w-2xl"
+            description="Our process is designed to be seamless and stress-free for our clients. We provide a step-by-step guide that clearly outlines each phase of the project, ensuring that clients never feel overwhelmed or pressured."
+            descriptionClassName="text-white/80 text-base md:text-lg"
+            maxWidth="max-w-3xl"
             className="mb-20"
           />
         </ScrollReveal>
