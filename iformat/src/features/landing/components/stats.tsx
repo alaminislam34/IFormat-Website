@@ -49,7 +49,6 @@ export function Stats() {
   return (
     <div className="bg-slate-50 overflow-hidden">
       <section className="relative w-full h-[65vh] min-h-115 max-h-180 bg-[#070b14] flex items-center justify-center overflow-hidden group select-none">
-        {/* Lightweight ambient glow (replaces heavy second video instance) */}
         <div className="absolute inset-0 bg-radial from-cyan-500/15 via-transparent to-transparent pointer-events-none" />
 
         <video

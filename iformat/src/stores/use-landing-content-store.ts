@@ -92,7 +92,7 @@ export const DEFAULT_PARTNERS_SETTINGS: PartnersSettings = {
       name: "Marcus Sterling",
       position: "Managing Partner",
       company: "Apex Talent Ventures",
-      image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=800",
+      image: "",
       link: "https://linkedin.com",
     },
     {
@@ -100,7 +100,7 @@ export const DEFAULT_PARTNERS_SETTINGS: PartnersSettings = {
       name: "Sophia Chen",
       position: "Head of Global Placement",
       company: "Silicon Talent Guild",
-      image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&q=80&w=800",
+      image: "",
       link: "https://linkedin.com",
     },
     {
@@ -108,7 +108,7 @@ export const DEFAULT_PARTNERS_SETTINGS: PartnersSettings = {
       name: "David Montgomery",
       position: "Principal Career Architect",
       company: "Vanguard Executive",
-      image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=800",
+      image: "",
       link: "https://linkedin.com",
     },
     {
@@ -116,7 +116,7 @@ export const DEFAULT_PARTNERS_SETTINGS: PartnersSettings = {
       name: "Elena Rostova",
       position: "Advisory Board Director",
       company: "Global Career Alliance",
-      image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=800",
+      image: "",
       link: "https://linkedin.com",
     },
     {
@@ -124,7 +124,7 @@ export const DEFAULT_PARTNERS_SETTINGS: PartnersSettings = {
       name: "Kavita Rao",
       position: "Strategic Brand Consultant",
       company: "Aura Leadership Network",
-      image: "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?auto=format&fit=crop&q=80&w=800",
+      image: "",
       link: "https://linkedin.com",
     },
   ],
@@ -135,6 +135,7 @@ interface LandingContentState {
   leadersSettings: LeadersSettings;
   partnersSettings: PartnersSettings;
   isHydrated: boolean;
+  isLoading: boolean;
   isSaving: boolean;
 
   // Actions
@@ -162,6 +163,7 @@ export const useLandingContentStore = create<LandingContentState>()(
       leadersSettings: DEFAULT_LEADERS_SETTINGS,
       partnersSettings: DEFAULT_PARTNERS_SETTINGS,
       isHydrated: false,
+      isLoading: true,
       isSaving: false,
 
       setHydrated: (val: boolean) => set({ isHydrated: val }),
@@ -286,6 +288,7 @@ export const useLandingContentStore = create<LandingContentState>()(
 
       syncWithBackend: async () => {
         try {
+          set({ isLoading: true });
           const res = await apiClient.get<any>("/settings");
           const data = res?.data || res;
           if (data) {
@@ -301,6 +304,12 @@ export const useLandingContentStore = create<LandingContentState>()(
                 typeof data.homepage_leaders === "string"
                   ? JSON.parse(data.homepage_leaders)
                   : data.homepage_leaders;
+              if (leaders && Array.isArray(leaders.members)) {
+                leaders.members = leaders.members.map((m: any) => ({
+                  ...m,
+                  image: m.image && m.image.includes("images.unsplash.com") ? "" : m.image,
+                }));
+              }
               set({ leadersSettings: leaders });
             }
             if (data.homepage_partners) {
@@ -308,11 +317,19 @@ export const useLandingContentStore = create<LandingContentState>()(
                 typeof data.homepage_partners === "string"
                   ? JSON.parse(data.homepage_partners)
                   : data.homepage_partners;
+              if (partners && Array.isArray(partners.members)) {
+                partners.members = partners.members.map((m: any) => ({
+                  ...m,
+                  image: m.image && m.image.includes("images.unsplash.com") ? "" : m.image,
+                }));
+              }
               set({ partnersSettings: partners });
             }
           }
         } catch {
           // Fallback to localStorage gracefully
+        } finally {
+          set({ isLoading: false });
         }
       },
 

@@ -81,7 +81,7 @@ export function Hero() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.4 }}
-            className="font-bold drop-shadow text-white leading-[1.1] tracking-tight mb-6 text-5xl md:text-6xl lg:text-[4.5rem]"
+            className="font-bold drop-shadow text-white leading-[1.1] tracking-tight mb-6 text-4xl md:text-6xl lg:text-[4.5rem]"
           >
             Building Brand <span className="text-[#0A54B1]">Equity</span>
             <br />
@@ -94,7 +94,7 @@ export function Hero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.6 }}
-            className="text-white text-lg md:text-xl font-normal leading-relaxed mb-8 max-w-162.5"
+            className="text-white md:text-xl font-normal leading-relaxed mb-8 max-w-162.5"
           >
             Enhancing Perceptions and Maximising Value.
             <br />

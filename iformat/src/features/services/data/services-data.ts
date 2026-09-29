@@ -10,7 +10,7 @@ export const SERVICES_DATA: ServiceProduct[] = [
     category: "Executive Suite",
     badge: "Most Popular",
     tagline: "Comprehensive end-to-end professional repositioning for market authority.",
-    image: "https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&q=80&w=800",
+    image: "",
     description:
       "Transform your professional presence across all digital touchpoints. Our senior brand architects craft a high-impact narrative that positions you as a leading domain authority to recruiters, investors, and executive search firms.",
     deliverables: [
@@ -32,7 +32,7 @@ export const SERVICES_DATA: ServiceProduct[] = [
     category: "Founders & C-Suite",
     badge: "Premium",
     tagline: "High-stakes executive branding for founders, partners, and enterprise executives.",
-    image: "https://images.unsplash.com/photo-1542744173-8e7e53415bb0?auto=format&fit=crop&q=80&w=800",
+    image: "",
     description:
       "Engineered for founders and C-Suite leaders whose personal reputation directly impacts business valuation, stakeholder trust, and media presence. Establishes indisputable industry authority.",
     deliverables: [
@@ -53,7 +53,7 @@ export const SERVICES_DATA: ServiceProduct[] = [
     deliveryTime: "2-4 Business Days",
     category: "Digital Assets",
     tagline: "A live, interactive digital portfolio showcasing your verified career milestones.",
-    image: "https://images.unsplash.com/photo-1499951360447-b19be8fe80f5?auto=format&fit=crop&q=80&w=800",
+    image: "",
     description:
       "Stand out in competitive recruitment pipelines with a dedicated, custom-branded career microsite. Host your case studies, certifications, recommendations, and executive metrics.",
     deliverables: [
@@ -75,7 +75,7 @@ export const SERVICES_DATA: ServiceProduct[] = [
     category: "Resume Engineering",
     badge: "Best Value",
     tagline: "Scientifically engineered to score 98%+ on Taleo, Workday, Greenhouse & Lever.",
-    image: "https://images.unsplash.com/photo-1586281380349-632531db7ed4?auto=format&fit=crop&q=80&w=800",
+    image: "",
     description:
       "Eliminate the black hole of online applications. Our ATS specialists reformat, restructure, and optimize your resume typography, hierarchy, and keywords to pass all modern enterprise tracking bots.",
     deliverables: [
@@ -96,7 +96,7 @@ export const SERVICES_DATA: ServiceProduct[] = [
     deliveryTime: "24-48 Hours",
     category: "Application Suite",
     tagline: "Compelling storytelling letters that grab hiring managers within the first 6 seconds.",
-    image: "https://images.unsplash.com/photo-1512429234305-12fe5b0b0fbf?auto=format&fit=crop&q=80&w=800",
+    image: "",
     description:
       "Move beyond generic templates. Receive a tailored, modular cover letter framework designed to showcase your unique value proposition, cultural fit, and immediate business impact.",
     deliverables: [
@@ -116,7 +116,7 @@ export const SERVICES_DATA: ServiceProduct[] = [
     deliveryTime: "2-3 Business Days",
     category: "Career Agility",
     tagline: "Tailor your application profile for different industries, niches, or dual career paths.",
-    image: "https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?auto=format&fit=crop&q=80&w=800",
+    image: "",
     description:
       "Don't apply with a one-size-fits-all CV. We create 2 tailored resume variations targeting distinct industry sub-domains or dual specialties (e.g., Engineering Lead vs. Product Architect).",
     deliverables: [
@@ -136,7 +136,7 @@ export const SERVICES_DATA: ServiceProduct[] = [
     deliveryTime: "3-5 Business Days",
     category: "Executive Suite",
     tagline: "Narrative authority piece crafted for board appointments, keynotes, and press.",
-    image: "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=800",
+    image: "",
     description:
       "A polished, third-person narrative capturing your leadership journey, notable governance achievements, philosophical insights, and industry impact. Ready for press releases and media kits.",
     deliverables: [
@@ -157,7 +157,7 @@ export const SERVICES_DATA: ServiceProduct[] = [
     category: "Live Advisory",
     badge: "1-on-1 Live",
     tagline: "Intensive mock interview simulation and behavioral response calibration.",
-    image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=800",
+    image: "",
     description:
       "Practice high-stakes interview scenarios with seasoned hiring consultants. Master the STAR-L methodology, salary negotiations, executive presence, and tough competency questions.",
     deliverables: [
@@ -178,7 +178,7 @@ export const SERVICES_DATA: ServiceProduct[] = [
     deliveryTime: "Ongoing Monthly",
     category: "Continuous Advisory",
     tagline: "Continuous on-demand resume tuning, cover letter drafting, and job portal strategy.",
-    image: "https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&q=80&w=800",
+    image: "",
     description:
       "Your personal career advisor on retainer. Get unlimited quick CV adjustments for specific target openings, custom cover letters on demand, and strategic job application advice every week.",
     deliverables: [

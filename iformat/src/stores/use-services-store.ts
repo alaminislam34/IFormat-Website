@@ -13,6 +13,7 @@ export interface ServiceProductWithStatus extends ServiceProduct {
 interface ServicesState {
   services: ServiceProductWithStatus[];
   isHydrated: boolean;
+  isLoading: boolean;
   isSaving: boolean;
 
   // Actions
@@ -31,10 +32,12 @@ export const useServicesStore = create<ServicesState>()(
     (set, get) => ({
       services: SERVICES_DATA.map((s) => ({
         ...s,
+        image: s.image?.includes("images.unsplash.com") ? "" : s.image,
         isActive: true,
         createdAt: new Date().toISOString(),
       })),
       isHydrated: false,
+      isLoading: true,
       isSaving: false,
 
       setHydrated: (val: boolean) => set({ isHydrated: val }),
@@ -111,6 +114,7 @@ export const useServicesStore = create<ServicesState>()(
 
       syncWithBackend: async () => {
         try {
+          set({ isLoading: true });
           const res = await apiClient.get<any>("/settings");
           const data = res?.data || res;
           if (data && data.homepage_services) {
@@ -119,11 +123,17 @@ export const useServicesStore = create<ServicesState>()(
                 ? JSON.parse(data.homepage_services)
                 : data.homepage_services;
             if (Array.isArray(remoteServices) && remoteServices.length > 0) {
-              set({ services: remoteServices });
+              const cleanedServices = remoteServices.map((s: any) => ({
+                ...s,
+                image: s.image?.includes("images.unsplash.com") ? "" : s.image,
+              }));
+              set({ services: cleanedServices });
             }
           }
         } catch {
           // Fallback to localStorage gracefully
+        } finally {
+          set({ isLoading: false });
         }
       },
 

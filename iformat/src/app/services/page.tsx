@@ -20,6 +20,7 @@ import {
 import { Footer } from "@/components/layout/footer";
 import { ScrollReveal } from "@/components/ui/scroll-reveal";
 import { SectionHeader, GradientText } from "@/components/ui/section-header";
+import { Skeleton } from "@/components/ui/skeleton";
 import { OrderServiceModal } from "@/features/services/components/order-service-modal";
 import {
   ProductDetailModal,
@@ -30,7 +31,7 @@ import { AuthPromptModal } from "@/components/auth/auth-prompt-modal";
 export default function ServicesPage() {
   const router = useRouter();
   const { isAuthenticated } = useAuthStore();
-  const { services, syncWithBackend } = useServicesStore();
+  const { services, isHydrated, isLoading, syncWithBackend } = useServicesStore();
 
   useEffect(() => {
     syncWithBackend();
@@ -132,32 +133,74 @@ export default function ServicesPage() {
             />
           </ScrollReveal>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {activeServices.map((service, idx) => (
-            <ScrollReveal key={service.id} yOffset={30} delay={idx * 0.05}>
-              <div
-                onClick={() => handleOpenDetail(service)}
-                className="bg-white rounded-xl border border-slate-200/90 overflow-hidden shadow-sm hover:shadow-lg transition-all group h-full flex flex-col cursor-pointer relative"
-              >
-                <div className="h-52 overflow-hidden relative bg-slate-900">
-                  <Image
-                    src={service.image}
-                    alt={service.title}
-                    fill
-                    className="object-cover group-hover:scale-105 transition-transform duration-500 opacity-90"
-                  />
-                  <div className="absolute inset-0 bg-linear-to-t from-slate-950/80 via-transparent to-transparent" />
-
-                  <div className="absolute top-3 left-3 flex flex-wrap gap-2">
-                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-white/95 text-slate-900 shadow-sm">
-                      {service.category}
-                    </span>
-                    {service.badge && (
-                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-linear-to-r from-[#5DE0E6] to-[#004AAD] text-white shadow-sm">
-                        {service.badge}
-                      </span>
-                    )}
+          {!isHydrated || isLoading ? (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {[...Array(6)].map((_, i) => (
+                <div
+                  key={i}
+                  className="bg-white rounded-xl border border-slate-200/90 overflow-hidden shadow-sm h-115 flex flex-col animate-pulse"
+                >
+                  <div className="h-52 bg-slate-200" />
+                  <div className="p-6 flex-1 flex flex-col justify-between space-y-4">
+                    <div className="space-y-2">
+                      <Skeleton className="h-6 w-3/4 rounded-md bg-slate-200" />
+                      <Skeleton className="h-4 w-full rounded-md bg-slate-200" />
+                      <Skeleton className="h-4 w-2/3 rounded-md bg-slate-200" />
+                    </div>
+                    <div className="flex items-center justify-between pt-4 border-t border-slate-100">
+                      <Skeleton className="h-8 w-20 rounded-md bg-slate-200" />
+                      <Skeleton className="h-8 w-24 rounded-xl bg-slate-200" />
+                    </div>
                   </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {activeServices.map((service, idx) => {
+                const hasValidImage =
+                  service.image &&
+                  !service.image.includes("images.unsplash.com") &&
+                  service.image.trim() !== "";
+
+                return (
+                  <ScrollReveal key={service.id} yOffset={30} delay={idx * 0.05}>
+                    <div
+                      onClick={() => handleOpenDetail(service)}
+                      className="bg-white rounded-xl border border-slate-200/90 overflow-hidden shadow-sm hover:shadow-lg transition-all group h-full flex flex-col cursor-pointer relative"
+                    >
+                      <div className="h-52 overflow-hidden relative bg-slate-900">
+                        {hasValidImage ? (
+                          <Image
+                            src={service.image}
+                            alt={service.title}
+                            fill
+                            unoptimized={service.image?.startsWith("http") || service.image?.startsWith("data:")}
+                            className="object-cover group-hover:scale-105 transition-transform duration-500 opacity-90"
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-linear-to-br from-[#004AAD] via-[#002868] to-slate-950 flex flex-col items-center justify-center p-6 text-center relative overflow-hidden">
+                            <div className="absolute inset-0 bg-radial from-cyan-400/20 via-transparent to-transparent pointer-events-none" />
+                            <div className="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center mb-2 shadow-inner">
+                              <ShoppingBag className="w-7 h-7 text-cyan-300" />
+                            </div>
+                            <span className="text-[11px] font-bold uppercase tracking-wider text-cyan-200/90 line-clamp-1">
+                              {service.category}
+                            </span>
+                          </div>
+                        )}
+                        <div className="absolute inset-0 bg-linear-to-t from-slate-950/80 via-transparent to-transparent" />
+
+                        <div className="absolute top-3 left-3 flex flex-wrap gap-2">
+                          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-white/95 text-slate-900 shadow-sm">
+                            {service.category}
+                          </span>
+                          {service.badge && (
+                            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-linear-to-r from-[#5DE0E6] to-[#004AAD] text-white shadow-sm">
+                              {service.badge}
+                            </span>
+                          )}
+                        </div>
 
                   <div className="absolute bottom-3 left-4 right-4 flex items-center justify-between text-white text-xs">
                     <span className="flex items-center gap-1 text-slate-200 font-semibold text-[11px]">
@@ -208,9 +251,11 @@ export default function ServicesPage() {
                 </div>
               </div>
             </ScrollReveal>
-          ))}
-        </div>
+          );
+        })}
       </div>
+    )}
+        </div>
       </section>
 
       {/* Unique Methodology Section */}
