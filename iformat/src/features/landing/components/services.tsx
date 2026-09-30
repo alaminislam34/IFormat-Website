@@ -4,7 +4,15 @@ import { useState, useMemo, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ShoppingCart, Eye, Clock, CheckCircle2, Calendar, ShoppingBag, ArrowRight, Sparkles } from "lucide-react";
+import {
+  ShoppingCart,
+  Eye,
+  Clock,
+  CheckCircle2,
+  ShoppingBag,
+  ArrowRight,
+  Sparkles,
+} from "lucide-react";
 import { toast } from "sonner";
 import { ScrollReveal } from "@/components/ui/scroll-reveal";
 import { SectionHeader } from "@/components/ui/section-header";
@@ -16,6 +24,7 @@ import {
   ServiceProduct,
 } from "@/features/services/components/product-detail-modal";
 import { OrderServiceModal } from "@/features/services/components/order-service-modal";
+import { AuthPromptModal } from "@/components/auth/auth-prompt-modal";
 
 function ServicesSkeleton() {
   return (
@@ -29,7 +38,7 @@ function ServicesSkeleton() {
           {[...Array(3)].map((_, i) => (
             <div
               key={i}
-              className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm h-105 flex flex-col animate-pulse"
+              className="bg-white rounded-xl border border-slate-200/90 overflow-hidden shadow-sm h-115 flex flex-col animate-pulse"
             >
               <div className="h-52 bg-slate-200" />
               <div className="p-6 flex-1 flex flex-col justify-between space-y-4">
@@ -39,8 +48,8 @@ function ServicesSkeleton() {
                   <Skeleton className="h-4 w-2/3 rounded-md bg-slate-200" />
                 </div>
                 <div className="flex items-center justify-between pt-4 border-t border-slate-100">
-                  <Skeleton className="h-7 w-20 rounded-md bg-slate-200" />
-                  <Skeleton className="h-9 w-28 rounded-xl bg-slate-200" />
+                  <Skeleton className="h-8 w-20 rounded-md bg-slate-200" />
+                  <Skeleton className="h-8 w-24 rounded-xl bg-slate-200" />
                 </div>
               </div>
             </div>
@@ -58,6 +67,7 @@ export function Services() {
   const [selectedProduct, setSelectedProduct] = useState<ServiceProduct | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   useEffect(() => {
     syncWithBackend();
@@ -75,6 +85,11 @@ export function Services() {
 
   const handleOrderNow = (product: ServiceProduct) => {
     setSelectedProduct(product);
+    if (!isAuthenticated) {
+      setIsDetailModalOpen(false);
+      setIsAuthModalOpen(true);
+      return;
+    }
     setIsOrderModalOpen(true);
     setIsDetailModalOpen(false);
   };
@@ -101,6 +116,19 @@ export function Services() {
         service={selectedProduct}
       />
 
+      {/* Auth Prompt Modal */}
+      <AuthPromptModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        title="Sign In to Order Package"
+        description={`Sign in or create a free account to order ${selectedProduct?.title || "this career service"}.`}
+        redirectUrl="/#services"
+        onSuccess={() => {
+          setIsAuthModalOpen(false);
+          setIsOrderModalOpen(true);
+        }}
+      />
+
       <div className="max-w-360 mx-auto w-11/12">
         <ScrollReveal yOffset={40}>
           <SectionHeader
@@ -118,10 +146,10 @@ export function Services() {
               service.image.trim() !== "";
 
             return (
-              <ScrollReveal key={service.id || idx} yOffset={40} delay={idx * 0.15}>
+              <ScrollReveal key={service.id || idx} yOffset={30} delay={idx * 0.1}>
                 <div
                   onClick={() => handleOpenDetail(service)}
-                  className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-xl hover:border-cyan-300 transition-all group h-full flex flex-col cursor-pointer"
+                  className="bg-white rounded-xl border border-slate-200/90 overflow-hidden shadow-sm hover:shadow-lg transition-all group h-full flex flex-col cursor-pointer relative"
                 >
                   <div className="h-52 overflow-hidden relative bg-slate-900">
                     {hasValidImage ? (
@@ -130,10 +158,10 @@ export function Services() {
                         alt={service.title}
                         fill
                         unoptimized={service.image?.startsWith("http") || service.image?.startsWith("data:")}
-                        className="object-cover group-hover:scale-105 transition-transform duration-500 opacity-95"
+                        className="object-cover group-hover:scale-105 transition-transform duration-500 opacity-90"
                       />
                     ) : (
-                      <div className="w-full h-full bg-linear-to-br from-[#0A54B1] via-[#052b5b] to-slate-900 flex flex-col items-center justify-center p-6 text-center relative overflow-hidden">
+                      <div className="w-full h-full bg-linear-to-br from-[#004AAD] via-[#002868] to-slate-950 flex flex-col items-center justify-center p-6 text-center relative overflow-hidden">
                         <div className="absolute inset-0 bg-radial from-cyan-400/20 via-transparent to-transparent pointer-events-none" />
                         <div className="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center mb-2 shadow-inner">
                           <ShoppingBag className="w-7 h-7 text-cyan-300" />
@@ -143,52 +171,63 @@ export function Services() {
                         </span>
                       </div>
                     )}
-                    <div className="absolute inset-0 bg-linear-to-t from-slate-950/70 via-transparent to-transparent opacity-60 group-hover:opacity-80 transition-opacity" />
+                    <div className="absolute inset-0 bg-linear-to-t from-slate-950/80 via-transparent to-transparent" />
 
-                    {/* Badge */}
                     <div className="absolute top-3 left-3 flex flex-wrap gap-2">
                       <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-white/95 text-slate-900 shadow-sm">
                         {service.category}
                       </span>
                       {service.badge && (
-                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-[#0A54B1] text-white shadow-sm">
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-linear-to-r from-[#5DE0E6] to-[#004AAD] text-white shadow-sm">
                           {service.badge}
                         </span>
                       )}
-                    </div>
-
-                    {/* Hover Quick Preview Pill */}
-                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-slate-950/30 backdrop-blur-xs">
-                      <span className="px-3.5 py-1.5 rounded-xl bg-white text-slate-900 font-bold text-xs shadow-md flex items-center gap-1.5">
-                        <Eye className="w-3.5 h-3.5 text-[#0A54B1]" /> View Details
-                      </span>
                     </div>
 
                     <div className="absolute bottom-3 left-4 right-4 flex items-center justify-between text-white text-xs">
                       <span className="flex items-center gap-1 text-slate-200 font-semibold text-[11px]">
                         <Clock className="w-3.5 h-3.5 text-cyan-300" /> {service.deliveryTime}
                       </span>
+                      <span className="text-xl font-black text-white">{service.price}</span>
                     </div>
                   </div>
 
+                  {/* Card Content */}
                   <div className="p-6 flex flex-col flex-1">
-                    <h3 className="text-lg font-bold text-slate-900 group-hover:text-[#0A54B1] transition-colors mb-2">
+                    <h3 className="text-lg font-bold text-slate-900 group-hover:text-[#004AAD] transition-colors mb-2">
                       {service.title}
                     </h3>
-                    <p className="text-xs text-slate-500 leading-relaxed line-clamp-2 mb-4 flex-1">
+                    <p className="text-xs text-slate-500 leading-relaxed line-clamp-2 mb-4">
                       {service.tagline}
                     </p>
 
-                    <div className="flex items-center justify-between pt-4 border-t border-slate-100 mt-auto">
-                      <span className="text-2xl font-bold text-brand-cyan">{service.price}</span>
+                    <div className="space-y-1.5 mb-6 flex-1">
+                      {service.deliverables.slice(0, 2).map((del, dIdx) => (
+                        <div key={dIdx} className="flex items-center gap-2 text-[11px] text-slate-700 font-medium">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                          <span className="truncate">{del}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="pt-4 border-t border-slate-100 flex items-center justify-between gap-2 mt-auto">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleOpenDetail(service);
+                        }}
+                        className="text-xs font-bold text-slate-700 hover:text-[#004AAD] bg-slate-100 hover:bg-slate-200 px-3.5 py-2 rounded-xl transition-colors cursor-pointer flex items-center gap-1.5"
+                      >
+                        <Eye className="w-3.5 h-3.5 text-slate-500" /> Details
+                      </button>
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           handleOrderNow(service);
                         }}
-                        className="flex items-center gap-1.5 text-xs font-bold text-[#0A54B1] hover:text-[#08428C] bg-blue-50 hover:bg-blue-100 px-3.5 py-2 rounded-xl transition-colors cursor-pointer"
+                        className="text-xs font-extrabold text-white bg-linear-to-r from-[#5DE0E6] to-[#004AAD] hover:opacity-95 px-4 py-2 rounded-xl transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
                       >
-                        <ShoppingBag className="w-3.5 h-3.5 text-[#0A54B1]" /> Order Package
+                        <ShoppingBag className="w-3.5 h-3.5" /> Order Service
                       </button>
                     </div>
                   </div>

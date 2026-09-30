@@ -5,11 +5,6 @@ import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   X,
-  User,
-  Mail,
-  Phone,
-  MapPin,
-  FileText,
   CheckCircle2,
   Loader2,
   Send,
@@ -169,11 +164,10 @@ export function BookConsultationModal({
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-4">
-                {/* Full Name & Email */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1 items-center gap-1.5">
-                      <User className="w-3.5 h-3.5 text-slate-400" /> Full Name <span className="text-rose-500">*</span>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      Full Name <span className="text-rose-500">*</span>
                     </label>
                     <input
                       type="text"
@@ -186,8 +180,8 @@ export function BookConsultationModal({
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1 items-center gap-1.5">
-                      <Mail className="w-3.5 h-3.5 text-slate-400" /> Email Address <span className="text-rose-500">*</span>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      Email Address <span className="text-rose-500">*</span>
                     </label>
                     <input
                       type="email"
@@ -203,8 +197,8 @@ export function BookConsultationModal({
                 {/* Contact Phone & Address */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1 items-center gap-1.5">
-                      <Phone className="w-3.5 h-3.5 text-slate-400" /> Contact Number <span className="text-rose-500">*</span>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      Contact Number <span className="text-rose-500">*</span>
                     </label>
                     <input
                       type="tel"
@@ -217,8 +211,8 @@ export function BookConsultationModal({
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1 items-center gap-1.5">
-                      <MapPin className="w-3.5 h-3.5 text-slate-400" /> Address / Location <span className="text-rose-500">*</span>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      Address / Location <span className="text-rose-500">*</span>
                     </label>
                     <input
                       type="text"
@@ -233,8 +227,8 @@ export function BookConsultationModal({
 
                 {/* Consultation Description */}
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1 items-center gap-1.5">
-                    <FileText className="w-3.5 h-3.5 text-slate-400" /> Description / Focus of Consultation <span className="text-rose-500">*</span>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Description / Focus of Consultation <span className="text-rose-500">*</span>
                   </label>
                   <textarea
                     rows={3}

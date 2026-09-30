@@ -116,6 +116,10 @@ export default function ServicesPage() {
         title="Sign In to Order Package"
         description={`Sign in or create a free account to order ${selectedProduct?.title || "this career service"}.`}
         redirectUrl="/services"
+        onSuccess={() => {
+          setIsAuthModalOpen(false);
+          setIsOrderModalOpen(true);
+        }}
       />
 
       <section className="pt-8 pb-20 w-full">
