@@ -84,6 +84,7 @@ export async function seedDatabase() {
       { email: "jessica@iformatbranding.com", name: "Jessica - Founder & Executive Advisor", password: "administrator123!" },
       { email: "admin@iformatbranding.com", name: "iFormat Executive Admin", password: "administrator123!" },
       { email: "info@iformatbranding.com", name: "iFormat Operations Desk", password: "administrator123!" },
+      { email: "infor@iformatbranding.com", name: "iFormat Operations Desk", password: "administrator123!" },
       { email: "devamin.bd@gmail.com", name: "iFormat Technical Lead", password: "administrator123!" },
     ];
 

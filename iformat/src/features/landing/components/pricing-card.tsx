@@ -87,7 +87,7 @@ export function PricingCard({
           ) : (
             <>
               <div className="h-10 flex items-center">
-                <span className="text-xl font-bold text-[#0B1528]">Bespoke Partnership</span>
+                <span className="text-xl font-bold text-[#0B1528]">Contact Us</span>
               </div>
               <div className="mt-1.5">
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200">
@@ -147,6 +147,8 @@ export function PricingCard({
                 <Loader2 className="w-4 h-4 animate-spin" />
                 Processing...
               </span>
+            ) : item.isContactUs ? (
+              item.buttonText || "Contact Us"
             ) : item.hasActiveSub ? (
               "Switch to Plan"
             ) : (

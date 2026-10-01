@@ -6,17 +6,17 @@ export function Methodology() {
   const methods = [
     {
       title: "Psycholinguistics & Neuro-Linguistic Programming",
-      desc: "Understanding how people think and decide to build trust and influence.",
+      desc: "Understanding how people think, interpret information, and make decisions to create stronger perceptions of credibility, trust, and influence.",
       icon: <Brain className="w-6 h-6 text-white" />
     },
     {
       title: "Technology & Digital Visibility",
-      desc: "Creating the most Compliant profiles navigation to the top of recruitment and expert searches.",
+      desc: "Optimizing profiles, ATS, content, and digital presence to improve discoverability across recruitment systems, search engines, and professional networks.",
       icon: <Target className="w-6 h-6 text-white" />
     },
     {
       title: "Storytelling & Positioning",
-      desc: "Turning experience and expertise into stories that set you apart and boost market relevance.",
+      desc: "Transforming experience, expertise, and business value into compelling narratives that create differentiation between having experience to expertise. Market relevance.",
       icon: <Mic2 className="w-6 h-6 text-white" />
     },
     {
@@ -26,7 +26,7 @@ export function Methodology() {
     },
     {
       title: "Executive & Founder Branding",
-      desc: "Positioning leaders as credible, visible representatives of their organizations while boosting stakeholder and customer trust and loyalty.",
+      desc: "Positioning leaders as visible, credible representatives of their organizations while strengthening stakeholder and customer confidence, trust, and loyalty.",
       icon: <Award className="w-6 h-6 text-white" />
     },
     {

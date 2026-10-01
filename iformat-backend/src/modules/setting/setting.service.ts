@@ -3,14 +3,15 @@ import { logger } from "../../utils/logger.js";
 import { env } from "../../config/env.js";
 import { Role } from "@prisma/client";
 import nodemailer from "nodemailer";
+import { NotFoundError, BadRequestError } from "../../errors/index.js";
 
 const DEFAULT_SYSTEM_SETTINGS: Record<string, string> = {
   AI_MODEL_PREFERENCE: "gpt-4o-mini",
   SCREENING_AUTO_RUN: "true",
   DEFAULT_MATCH_THRESHOLD: "75",
-  CONTACT_LOCATION: "123 Business Pkwy, Suite 400\nNew York, NY 10001",
-  CONTACT_PHONE: "+1 (555) 123-4567",
-  CONTACT_EMAIL: "info@iformatbranding.com",
+  CONTACT_LOCATION: "8350 North Dallas, Rockwall, Texas, 57087",
+  CONTACT_PHONE: "+27 76 744 8050",
+  CONTACT_EMAIL: "infor@iformatbranding.com",
 };
 
 export class SettingService {
@@ -271,6 +272,87 @@ export class SettingService {
       limit,
       totalPages: Math.ceil(total / limit),
     };
+  }
+
+  /**
+   * Reply to contact inquiry by sending an email directly to the client
+   */
+  static async replyContactInquiry(
+    id: string,
+    data: { subject?: string; message: string },
+    adminUser?: { email?: string; fullName?: string }
+  ) {
+    const inquiry = await prisma.contactInquiry.findUnique({
+      where: { id },
+    });
+
+    if (!inquiry) {
+      throw new NotFoundError("Contact inquiry not found");
+    }
+
+    const emailSubject = data.subject?.trim() || `Regarding your inquiry to iFormat Branding`;
+    const emailBody = `
+      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; color: #1e293b; background: #ffffff; border-radius: 16px; border: 1px solid #e2e8f0;">
+        <div style="text-align: center; margin-bottom: 24px;">
+          <h2 style="color: #0A54B1; margin: 0; font-size: 24px;">iFormat Branding</h2>
+          <p style="color: #64748b; font-size: 13px; margin-top: 4px;">Executive Career Branding & Advisory</p>
+        </div>
+        
+        <p style="font-size: 15px; color: #334155; line-height: 1.6;">Dear ${inquiry.fullName},</p>
+        
+        <div style="font-size: 15px; color: #1e293b; line-height: 1.7; margin: 20px 0; white-space: pre-wrap;">
+${data.message.trim()}
+        </div>
+        
+        <div style="margin-top: 30px; padding: 16px; background: #f8fafc; border-radius: 12px; border-left: 4px solid #00D2EE;">
+          <p style="font-size: 12px; font-weight: bold; color: #64748b; margin: 0 0 6px 0; text-transform: uppercase;">Your original message:</p>
+          <p style="font-size: 13px; color: #475569; margin: 0; font-style: italic;">"${inquiry.message}"</p>
+        </div>
+        
+        <div style="margin-top: 32px; padding-top: 20px; border-top: 1px solid #e2e8f0; font-size: 12px; color: #94a3b8; text-align: center;">
+          <p style="margin: 0;">iFormat Branding Ltd. • 8350 North Dallas, Rockwall, Texas</p>
+          <p style="margin: 4px 0 0 0;">Website: <a href="https://iformatbranding.com" style="color: #0A54B1;">iformatbranding.com</a> | Email: <a href="mailto:info@iformatbranding.com" style="color: #0A54B1;">info@iformatbranding.com</a></p>
+        </div>
+      </div>
+    `;
+
+    try {
+      if (env.NODE_ENV === "development" && (!env.SMTP_USER || env.SMTP_PASS === "app-password")) {
+        logger.info(
+          `📧 [DEV EMAIL SIMULATION] Reply to inquiry ${id} (${inquiry.email}) sent: "${data.message.slice(0, 50)}..."`
+        );
+      } else {
+        const transporter = nodemailer.createTransport({
+          host: env.SMTP_HOST,
+          port: env.SMTP_PORT,
+          secure: env.SMTP_PORT === 465,
+          auth: {
+            user: env.SMTP_USER,
+            pass: env.SMTP_PASS,
+          },
+          tls: {
+            rejectUnauthorized: false,
+          },
+        });
+
+        await transporter.sendMail({
+          from: env.SMTP_FROM,
+          to: inquiry.email,
+          replyTo: "info@iformatbranding.com",
+          subject: emailSubject,
+          text: data.message,
+          html: emailBody,
+        });
+      }
+    } catch (err: any) {
+      logger.error(`Failed to send email reply to ${inquiry.email}:`, err);
+      throw new BadRequestError(`Failed to send email to client: ${err.message}`);
+    }
+
+    return prisma.contactInquiry.update({
+      where: { id },
+      data: { status: "CONTACTED" },
+    });
   }
 
   /**

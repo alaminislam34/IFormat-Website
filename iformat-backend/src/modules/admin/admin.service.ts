@@ -516,6 +516,35 @@ export class AdminService {
   }
 
   /**
+   * Update Company Logo for an Employer
+   */
+  static async updateCompanyLogo(
+    adminId: string,
+    userId: string,
+    companyLogoUrl: string,
+    ipAddress?: string
+  ) {
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new NotFoundError("User", userId);
+
+    const updated = await prisma.user.update({
+      where: { id: userId },
+      data: { companyLogoUrl },
+    });
+
+    await this.logAction(
+      adminId,
+      AuditAction.SETTINGS_UPDATED,
+      "COMPANY",
+      userId,
+      { companyName: user.companyName, companyLogoUrl },
+      ipAddress
+    );
+
+    return updated;
+  }
+
+  /**
    * Subscription Management: Manually grant/comp a subscription to user
    */
   static async overrideSubscription(

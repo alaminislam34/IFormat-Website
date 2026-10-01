@@ -19,11 +19,14 @@ import {
   Eye,
   Calendar,
   Sparkles,
+  Upload,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { adminService, AdminUserItemDTO } from "@/services/admin.service";
+import { apiClient } from "@/lib/api/api-client";
 import { AdminPageHeader } from "@/features/admin/components/shared/admin-page-header";
+import { CompanyVideoPlayer } from "@/features/company/components/company-video-player";
 
 export default function AdminCompaniesPage() {
   const [companies, setCompanies] = useState<AdminUserItemDTO[]>([]);
@@ -32,9 +35,35 @@ export default function AdminCompaniesPage() {
   const [search, setSearch] = useState("");
   const [activeFilter, setActiveFilter] = useState<"ALL" | "VERIFIED" | "UNVERIFIED">("ALL");
   const [toastMessage, setToastMessage] = useState<{ text: string; type: "success" | "error" } | null>(null);
+  const [uploadingLogoId, setUploadingLogoId] = useState<string | null>(null);
 
   // Video Preview Modal State
   const [previewVideo, setPreviewVideo] = useState<{ url: string; companyName: string } | null>(null);
+
+  const handleLogoUpload = async (companyId: string, file: File) => {
+    try {
+      setUploadingLogoId(companyId);
+      const formData = new FormData();
+      formData.append("file", file);
+      const res: any = await apiClient.post("/upload/media", formData);
+      const uploadedUrl = res?.data?.url || res?.url;
+      if (!uploadedUrl) throw new Error("Upload failed: No URL returned from server");
+
+      await adminService.updateCompanyLogo(companyId, uploadedUrl);
+      setToastMessage({
+        text: "Company logo updated successfully!",
+        type: "success",
+      });
+      loadCompanies();
+    } catch (err: any) {
+      setToastMessage({
+        text: err?.message || "Failed to upload company logo",
+        type: "error",
+      });
+    } finally {
+      setUploadingLogoId(null);
+    }
+  };
 
   const loadCompanies = async () => {
     try {
@@ -247,21 +276,58 @@ export default function AdminCompaniesPage() {
                 <div>
                   {/* Top Header: Logo + Verification Status */}
                   <div className="flex items-start justify-between gap-3 mb-4">
-                    <div className="w-14 h-14 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-center overflow-hidden shrink-0">
-                      {c.companyLogoUrl ? (
-                        <img
-                          src={c.companyLogoUrl}
-                          alt={`${companyDisplayName} logo`}
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            e.currentTarget.style.display = "none";
+                    <div className="flex items-center gap-3">
+                      <div className="relative group w-14 h-14 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-center overflow-hidden shrink-0">
+                        {c.companyLogoUrl ? (
+                          <img
+                            src={c.companyLogoUrl}
+                            alt={`${companyDisplayName} logo`}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              e.currentTarget.style.display = "none";
+                            }}
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-linear-to-br from-[#0A54B1] to-indigo-700 text-white font-bold text-lg flex items-center justify-center">
+                            {logoLetter}
+                          </div>
+                        )}
+
+                        {uploadingLogoId === c.id ? (
+                          <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                            <Loader2 className="w-5 h-5 text-white animate-spin" />
+                          </div>
+                        ) : (
+                          <label
+                            htmlFor={`logo-input-${c.id}`}
+                            title="Upload or change company logo"
+                            className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center cursor-pointer transition-opacity text-white text-[9px] font-semibold text-center p-1"
+                          >
+                            <Upload className="w-3.5 h-3.5 mb-0.5" />
+                            <span>Edit</span>
+                          </label>
+                        )}
+                        <input
+                          id={`logo-input-${c.id}`}
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          disabled={uploadingLogoId === c.id}
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) handleLogoUpload(c.id, file);
+                            e.target.value = "";
                           }}
                         />
-                      ) : (
-                        <div className="w-full h-full bg-linear-to-br from-[#0A54B1] to-indigo-700 text-white font-bold text-lg flex items-center justify-center">
-                          {logoLetter}
-                        </div>
-                      )}
+                      </div>
+
+                      <label
+                        htmlFor={`logo-input-${c.id}`}
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-medium text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200/80 cursor-pointer transition-colors border border-slate-200/60"
+                      >
+                        <Upload className="w-3 h-3 text-slate-500" />
+                        <span>{uploadingLogoId === c.id ? "Uploading..." : "Upload Logo"}</span>
+                      </label>
                     </div>
 
                     <div className="flex flex-col items-end gap-1.5">
@@ -304,7 +370,7 @@ export default function AdminCompaniesPage() {
 
                   {/* Website & Live Profile Links */}
                   <div className="flex flex-wrap items-center gap-2 pt-3">
-                    {c.companyWebsite && (
+                    {c.companyWebsite && !["yopmail.com", "gmail.com", "yahoo.com", "hotmail.com", "outlook.com", "example.com"].some(d => c.companyWebsite?.toLowerCase().includes(d)) && (
                       <a
                         href={c.companyWebsite.startsWith("http") ? c.companyWebsite : `https://${c.companyWebsite}`}
                         target="_blank"
@@ -410,14 +476,11 @@ export default function AdminCompaniesPage() {
               </button>
             </div>
 
-            <div className="relative rounded-2xl overflow-hidden bg-black aspect-video border border-slate-200">
-              <video
-                src={previewVideo.url}
-                controls
-                autoPlay
-                className="w-full h-full object-cover"
-              />
-            </div>
+            <CompanyVideoPlayer
+              src={previewVideo.url}
+              title={`${previewVideo.companyName} Culture Video`}
+              autoPlay={true}
+            />
           </div>
         </div>
       )}

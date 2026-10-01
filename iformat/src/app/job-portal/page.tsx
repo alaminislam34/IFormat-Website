@@ -107,23 +107,16 @@ function JobPortalContent() {
   }, [allJobs, user]);
 
   // Base pool of jobs:
-  // - For employers: Show ONLY their own company's posted jobs!
-  // - For candidates & visitors: Show all published platform jobs.
+  // - Shows all published platform jobs by default for everyone (candidates, visitors, employers, admins).
+  // - If an employer explicitly selects "My Postings", shows only their company's jobs.
   const baseJobs = React.useMemo(() => {
-    if (isEmployer) {
+    if (selectedCategory === "My Postings") {
       return myCompanyJobs;
     }
     return allJobs;
-  }, [isEmployer, myCompanyJobs, allJobs]);
+  }, [selectedCategory, myCompanyJobs, allJobs]);
 
-  const defaultCategoryLabel = isEmployer ? "All Postings" : "All Industries";
-
-  // If employer is active and category is still "All Industries", auto-switch to "All Postings"
-  React.useEffect(() => {
-    if (isEmployer && (selectedCategory === "All Industries" || selectedCategory === "My Postings")) {
-      setSelectedCategory("All Postings");
-    }
-  }, [isEmployer, selectedCategory, setSelectedCategory]);
+  const defaultCategoryLabel = "All Industries";
 
   // Auto-open job details when returning from login redirect (?job=ID)
   React.useEffect(() => {

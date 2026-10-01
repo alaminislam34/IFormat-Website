@@ -18,6 +18,7 @@ router.use(requireAdmin);
 router.patch("/", catchAsync(SettingController.updateSettings));
 router.patch("/contact", catchAsync(SettingController.updateContactInfo));
 router.get("/inquiries", catchAsync(SettingController.getContactInquiries));
+router.post("/inquiries/:id/reply", catchAsync(SettingController.replyContactInquiry));
 router.patch("/inquiries/:id", catchAsync(SettingController.updateContactInquiryStatus));
 router.delete("/inquiries/:id", catchAsync(SettingController.deleteContactInquiry));
 

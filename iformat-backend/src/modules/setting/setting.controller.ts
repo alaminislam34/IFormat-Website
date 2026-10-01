@@ -52,6 +52,17 @@ export class SettingController {
     return ApiResponse.success(res, "Contact inquiries retrieved successfully", data);
   }
 
+  static async replyContactInquiry(req: Request, res: Response) {
+    const { id } = req.params;
+    const { subject, message } = req.body || {};
+    if (!message || !message.trim()) {
+      throw new BadRequestError("Reply message is required");
+    }
+    const adminUser = (req as any).user;
+    const updated = await SettingService.replyContactInquiry(id, { subject, message }, adminUser);
+    return ApiResponse.success(res, "Reply email sent successfully to the client", updated);
+  }
+
   static async updateContactInquiryStatus(req: Request, res: Response) {
     const { id } = req.params;
     const { status } = req.body;

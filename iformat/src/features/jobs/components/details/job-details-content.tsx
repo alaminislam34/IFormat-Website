@@ -2,6 +2,7 @@
 
 import { Building2, Check, Video, Globe, ExternalLink } from "lucide-react";
 import { Job } from "../job-card";
+import { CompanyVideoPlayer } from "@/features/company/components/company-video-player";
 
 interface JobDetailsContentProps {
   job: Job;
@@ -52,16 +53,10 @@ export function JobDetailsContent({ job }: JobDetailsContentProps) {
               <Video className="w-4 h-4 text-[#0099FF]" />
               <span>Company Spotlight Video</span>
             </div>
-            <div className="rounded-xl overflow-hidden border border-slate-200 bg-black aspect-video relative shadow-inner">
-              <video
-                src={companyVideo}
-                controls
-                className="w-full h-full object-contain"
-                poster={companyLogo || undefined}
-              >
-                Your browser does not support HTML video playback.
-              </video>
-            </div>
+            <CompanyVideoPlayer
+              src={companyVideo}
+              title={`${job.company} Spotlight Video`}
+            />
           </div>
         ) : (
           <div className="flex items-center gap-2 p-2.5 rounded-xl bg-white/80 border border-slate-200/60 text-[11px] text-slate-500 font-medium">

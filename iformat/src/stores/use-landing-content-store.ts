@@ -69,7 +69,7 @@ export const DEFAULT_LEADERS_SETTINGS: LeadersSettings = {
     },
     {
       id: "leader-4",
-      name: "Ian Francis",
+      name: "Ian",
       role: "Chief Editor",
       image: "/leaders/Ian - Chief Editor.png",
     },

@@ -1,8 +1,9 @@
 "use client";
 
 import React from "react";
-import { CheckCircle, Trash2, Paperclip, Video } from "lucide-react";
+import { CheckCircle, Trash2, Paperclip, Video, Eye } from "lucide-react";
 import { motion } from "framer-motion";
+import { CompanyVideoPlayer } from "./company-video-player";
 
 interface FileUploadPreviewProps {
   label: string;
@@ -14,6 +15,7 @@ interface FileUploadPreviewProps {
   placeholder: string;
   inputRef: React.RefObject<HTMLInputElement | null>;
   isVideo?: boolean;
+  previewUrl?: string | null;
   onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onRemove: () => void;
 }
@@ -28,6 +30,7 @@ export function FileUploadPreview({
   placeholder,
   inputRef,
   isVideo = false,
+  previewUrl,
   onFileChange,
   onRemove,
 }: FileUploadPreviewProps) {
@@ -45,18 +48,41 @@ export function FileUploadPreview({
       />
       <div className="relative">
         {file ? (
-          <div className="flex h-12 items-center justify-between px-3.5 rounded-xl border border-green-200 bg-green-50/20 text-sm">
-            <span className="flex items-center gap-2 text-green-600 font-semibold truncate max-w-75">
-              {isVideo ? <Video className="w-4.5 h-4.5 shrink-0" /> : <CheckCircle className="w-4.5 h-4.5 shrink-0" />}
-              {file}
-            </span>
-            <button
-              type="button"
-              onClick={onRemove}
-              className="p-1 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all cursor-pointer"
-            >
-              <Trash2 className="w-4.5 h-4.5" />
-            </button>
+          <div className="space-y-2">
+            <div className="flex h-12 items-center justify-between px-3.5 rounded-xl border border-green-200 bg-green-50/20 text-sm">
+              <span className="flex items-center gap-2 text-green-600 font-semibold truncate max-w-75">
+                {isVideo ? (
+                  <Video className="w-4.5 h-4.5 shrink-0" />
+                ) : previewUrl ? (
+                  <img
+                    src={previewUrl}
+                    alt="Logo preview"
+                    className="w-5 h-5 rounded object-contain bg-white border border-green-200 shrink-0"
+                  />
+                ) : (
+                  <CheckCircle className="w-4.5 h-4.5 shrink-0" />
+                )}
+                {file}
+              </span>
+              <button
+                type="button"
+                onClick={onRemove}
+                className="p-1 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all cursor-pointer"
+              >
+                <Trash2 className="w-4.5 h-4.5" />
+              </button>
+            </div>
+            {isVideo && previewUrl && (
+              <div className="pt-1">
+                <div className="flex items-center justify-between mb-1.5 px-0.5">
+                  <span className="text-[11px] font-bold text-slate-600 uppercase tracking-wider flex items-center gap-1">
+                    <Eye className="w-3.5 h-3.5 text-[#0A54B1]" />
+                    Spotlight Video Preview
+                  </span>
+                </div>
+                <CompanyVideoPlayer src={previewUrl} title="Uploaded Spotlight Video" />
+              </div>
+            )}
           </div>
         ) : uploading ? (
           <div className="flex h-12 flex-col justify-center px-3.5 rounded-xl border border-slate-200 bg-slate-50/50 relative overflow-hidden">

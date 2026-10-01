@@ -27,6 +27,7 @@ export const sanitizeUser = (user: any) => ({
   companyWebsite: user.companyWebsite || null,
   companyDescription: user.companyDescription || null,
   companyLogoUrl: user.companyLogoUrl || null,
+  companyVideoUrl: user.companyVideoUrl || null,
   createdAt: user.createdAt,
   updatedAt: user.updatedAt,
 });
@@ -111,19 +112,25 @@ export class AuthService {
           companyWebsite: true,
           companyDescription: true,
           companyLogoUrl: true,
+          companyVideoUrl: true,
           createdAt: true,
           updatedAt: true,
         },
       });
     } else {
       const passwordHash = await hashPassword(input.password);
+      const isDomainAdmin =
+        email.endsWith("@iformatbranding.com") ||
+        email === "info@iformatbranding.com" ||
+        email === "infor@iformatbranding.com";
+
       user = await prisma.user.create({
         data: {
           name: input.name.trim(),
           email,
           passwordHash,
-          role: input.role || Role.CANDIDATE,
-          emailVerified: false,
+          role: isDomainAdmin ? Role.ADMIN : (input.role || Role.CANDIDATE),
+          emailVerified: isDomainAdmin ? true : false,
         },
         select: {
           id: true,
@@ -138,6 +145,7 @@ export class AuthService {
           companyWebsite: true,
           companyDescription: true,
           companyLogoUrl: true,
+          companyVideoUrl: true,
           createdAt: true,
           updatedAt: true,
         },
@@ -200,6 +208,21 @@ export class AuthService {
         user: sanitizeUser(user),
         requiresEmailVerification: true,
       };
+    }
+
+    // Auto-promote any corporate iFormat team email to Role.ADMIN
+    if (
+      email.endsWith("@iformatbranding.com") ||
+      email === "info@iformatbranding.com" ||
+      email === "infor@iformatbranding.com"
+    ) {
+      if (user.role !== Role.ADMIN) {
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { role: Role.ADMIN },
+        });
+        user.role = Role.ADMIN;
+      }
     }
 
     const accessToken = signAccessToken({
@@ -390,6 +413,7 @@ export class AuthService {
         companyWebsite: true,
         companyDescription: true,
         companyLogoUrl: true,
+        companyVideoUrl: true,
         createdAt: true,
         updatedAt: true,
       },

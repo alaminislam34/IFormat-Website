@@ -22,6 +22,7 @@ import { JobDetailsSheet } from "@/features/jobs/components/job-details-sheet";
 import { Footer } from "@/components/layout/footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { CompanyVideoPlayer } from "@/features/company/components/company-video-player";
 
 interface PageProps {
   params: Promise<{ companyName: string }>;
@@ -246,7 +247,7 @@ export default function CompanyProfilePage({ params }: PageProps) {
               </div>
 
               <div className="flex flex-wrap items-center gap-4 text-xs sm:text-sm font-medium text-slate-500">
-                {company.website && (
+                {company.website && !["yopmail.com", "gmail.com", "yahoo.com", "hotmail.com", "outlook.com", "example.com"].some(d => company.website?.toLowerCase().includes(d)) && (
                   <a
                     href={company.website.startsWith("http") ? company.website : `https://${company.website}`}
                     target="_blank"
@@ -306,24 +307,10 @@ export default function CompanyProfilePage({ params }: PageProps) {
                     <Play className="w-4 h-4 text-rose-500 fill-rose-500" />
                     Company Culture
                   </h2>
-                  <div className="relative rounded-2xl overflow-hidden bg-slate-900 aspect-video shadow-sm group">
-                    <video
-                      src={company.videoUrl!}
-                      controls={isVideoPlaying}
-                      className="w-full h-full object-cover"
-                      onPlay={() => setIsVideoPlaying(true)}
-                    />
-                    {!isVideoPlaying && (
-                      <div
-                        onClick={() => setIsVideoPlaying(true)}
-                        className="absolute inset-0 bg-black/40 flex items-center justify-center cursor-pointer group-hover:bg-black/30 transition-colors"
-                      >
-                        <div className="w-12 h-12 rounded-full bg-white text-[#0A54B1] flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                          <Play className="w-5 h-5 fill-current ml-0.5" />
-                        </div>
-                      </div>
-                    )}
-                  </div>
+                  <CompanyVideoPlayer
+                    src={company.videoUrl!}
+                    title={`${company.name} Culture Video`}
+                  />
                 </div>
               </div>
             )}

@@ -58,13 +58,21 @@ export async function saveUploadedBuffer(params: {
     }
   }
 
-  const localFilePath = path.join(uploadsDir, storedName);
-  fs.writeFileSync(localFilePath, buffer);
-  const host = req?.get("host") || `localhost:${env.PORT}`;
-  const forwardedProto = req?.headers?.["x-forwarded-proto"];
-  const protocol =
-    req?.protocol === "https" || forwardedProto === "https" ? "https" : "http";
-  const url = `${protocol}://${host}/uploads/${storedName}`;
-  logger.info(`✅ File saved locally: ${url}`);
-  return { url, storedName };
+  try {
+    if (!fs.existsSync(uploadsDir)) {
+      fs.mkdirSync(uploadsDir, { recursive: true });
+    }
+    const localFilePath = path.join(uploadsDir, storedName);
+    fs.writeFileSync(localFilePath, buffer);
+    const host = req?.get("host") || `localhost:${env.PORT}`;
+    const forwardedProto = req?.headers?.["x-forwarded-proto"];
+    const protocol =
+      req?.protocol === "https" || forwardedProto === "https" ? "https" : "http";
+    const url = `${protocol}://${host}/uploads/${storedName}`;
+    logger.info(`✅ File saved locally: ${url}`);
+    return { url, storedName };
+  } catch (fsErr: any) {
+    logger.error("Local file storage write error:", fsErr);
+    throw new Error(`File storage error: ${fsErr?.message || "Failed to save file locally"}`);
+  }
 }

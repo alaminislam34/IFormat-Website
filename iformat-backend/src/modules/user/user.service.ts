@@ -62,10 +62,10 @@ export class UserService {
     userId: string,
     input: {
       companyName: string;
-      companyWebsite?: string;
-      companyDescription?: string;
-      companyLogoUrl?: string;
-      companyVideoUrl?: string;
+      companyWebsite?: string | null;
+      companyDescription?: string | null;
+      companyLogoUrl?: string | null;
+      companyVideoUrl?: string | null;
     }
   ) {
     const user = await prisma.user.update({

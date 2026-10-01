@@ -32,16 +32,16 @@ export default function CompanyDetailsPage() {
   useEffect(() => {
     if (user) {
       if (user.companyName) setCompanyName(user.companyName);
-      if (user.companyWebsite) {
-        setCompanyEmail(user.companyWebsite.replace(/^https?:\/\//, ""));
-      } else if (user.email) {
-        setCompanyEmail(user.email);
-      }
+      if (user.email) setCompanyEmail(user.email);
       if (user.phone) setContactInfo(user.phone);
       if (user.companyDescription) setDescription(user.companyDescription);
       if (user.companyLogoUrl) {
         setUploadedLogoUrl(user.companyLogoUrl);
         setLogoFile("Existing Company Logo");
+      }
+      if (user.companyVideoUrl) {
+        setUploadedVideoUrl(user.companyVideoUrl);
+        setVideoFile("Existing Company Video");
       }
     }
   }, [user]);
@@ -172,7 +172,7 @@ export default function CompanyDetailsPage() {
       const { apiClient } = await import("@/lib/api/api-client");
       const updatedUser = await apiClient.post<any>("/users/company", {
         companyName,
-        companyWebsite: companyEmail ? `https://${companyEmail.split("@")[1] || "example.com"}` : undefined,
+        companyWebsite: user?.companyWebsite || undefined,
         companyDescription: description || undefined,
         companyLogoUrl: uploadedLogoUrl || undefined,
         companyVideoUrl: uploadedVideoUrl || undefined,
@@ -233,12 +233,14 @@ export default function CompanyDetailsPage() {
             logoFile={logoFile}
             logoUploading={logoUploading}
             logoProgress={logoProgress}
+            uploadedLogoUrl={uploadedLogoUrl}
             logoInputRef={logoInputRef}
             handleLogoChange={handleLogoChange}
             removeLogo={removeLogo}
             videoFile={videoFile}
             videoUploading={videoUploading}
             videoProgress={videoProgress}
+            uploadedVideoUrl={uploadedVideoUrl}
             videoInputRef={videoInputRef}
             handleVideoChange={handleVideoChange}
             removeVideo={removeVideo}

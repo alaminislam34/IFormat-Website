@@ -51,6 +51,44 @@ export default function AdminContactInquiriesPage() {
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
+  // Reply Modal State
+  const [replyingInquiry, setReplyingInquiry] = useState<ContactInquiryItem | null>(null);
+  const [replySubject, setReplySubject] = useState("");
+  const [replyMessage, setReplyMessage] = useState("");
+  const [isSendingReply, setIsSendingReply] = useState(false);
+
+  const handleSendReply = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!replyingInquiry) return;
+    if (!replyMessage.trim()) {
+      toast.error("Please enter a reply message");
+      return;
+    }
+
+    try {
+      setIsSendingReply(true);
+      await adminService.replyInquiry(replyingInquiry.id, {
+        subject: replySubject.trim() || undefined,
+        message: replyMessage.trim(),
+      });
+      toast.success(`Reply email dispatched successfully to ${replyingInquiry.email}!`);
+
+      // Update status locally to CONTACTED
+      setInquiries((prev) =>
+        prev.map((inq) =>
+          inq.id === replyingInquiry.id ? { ...inq, status: "CONTACTED" } : inq
+        )
+      );
+
+      setReplyingInquiry(null);
+      setReplyMessage("");
+    } catch (err: any) {
+      toast.error(err?.message || "Failed to send reply email");
+    } finally {
+      setIsSendingReply(false);
+    }
+  };
+
   const loadInquiries = async () => {
     try {
       setLoading(true);
@@ -413,16 +451,20 @@ export default function AdminContactInquiriesPage() {
                           View
                         </Button>
 
-                        <a
-                          href={`mailto:${inq.email}?subject=${encodeURIComponent(
-                            "Regarding your inquiry to iFormat"
-                          )}`}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setReplyingInquiry(inq);
+                            setReplySubject(`Regarding your inquiry to iFormat Branding`);
+                            setReplyMessage("");
+                          }}
                           className="h-8 px-2.5 rounded-xl text-xs font-semibold bg-sky-50 border border-sky-200 text-sky-700 hover:bg-sky-100 shadow-xs inline-flex items-center gap-1 cursor-pointer transition-colors"
-                          title="Reply via Email"
+                          title="Reply directly via Email"
                         >
                           <Mail className="w-3.5 h-3.5 text-sky-600" />
                           Reply
-                        </a>
+                        </Button>
 
                         <Button
                           variant="ghost"
@@ -603,17 +645,139 @@ export default function AdminContactInquiriesPage() {
                     Call Client
                   </a>
                 )}
-                <a
-                  href={`mailto:${selectedInquiry.email}?subject=${encodeURIComponent(
-                    "Regarding your inquiry to iFormat"
-                  )}`}
+                <Button
+                  onClick={() => {
+                    const inq = selectedInquiry;
+                    setSelectedInquiry(null);
+                    setReplyingInquiry(inq);
+                    setReplySubject(`Regarding your inquiry to iFormat Branding`);
+                    setReplyMessage("");
+                  }}
                   className="h-9 px-4 rounded-xl text-xs font-semibold bg-sky-600 hover:bg-sky-700 text-white shadow-xs inline-flex items-center gap-1.5 cursor-pointer transition-colors"
                 >
                   <Mail className="w-3.5 h-3.5" />
-                  Reply by Email
-                </a>
+                  Reply to Client
+                </Button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Reply to Client Email Modal */}
+      {replyingInquiry && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl max-w-xl w-full max-h-[90vh] shadow-2xl border border-slate-100 flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+            {/* Header */}
+            <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between shrink-0 bg-slate-50/50">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-sky-50 text-sky-600 flex items-center justify-center shrink-0">
+                  <Mail className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">
+                    Reply to {replyingInquiry.fullName}
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    Sending email to: <span className="font-semibold text-slate-700">{replyingInquiry.email}</span>
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setReplyingInquiry(null)}
+                className="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 cursor-pointer transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Form */}
+            <form onSubmit={handleSendReply} className="flex flex-col flex-1 overflow-hidden">
+              <div className="p-6 overflow-y-auto space-y-4 flex-1">
+                {/* Original Message Quote */}
+                <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 text-xs">
+                  <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
+                    Client's Original Message:
+                  </span>
+                  <p className="text-slate-700 italic line-clamp-3">"{replyingInquiry.message}"</p>
+                </div>
+
+                {/* Email Subject */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                    Email Subject
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={replySubject}
+                    onChange={(e) => setReplySubject(e.target.value)}
+                    placeholder="Regarding your inquiry to iFormat"
+                    className="w-full h-10 px-3.5 rounded-xl text-xs bg-white border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-hidden focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"
+                  />
+                </div>
+
+                {/* Reply Message */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                    Your Response Message
+                  </label>
+                  <textarea
+                    rows={6}
+                    required
+                    value={replyMessage}
+                    onChange={(e) => setReplyMessage(e.target.value)}
+                    placeholder="Dear client, thank you for reaching out..."
+                    className="w-full p-3.5 rounded-xl text-xs bg-white border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-hidden focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 resize-none leading-relaxed"
+                  />
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between shrink-0 bg-slate-50/50">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setReplyingInquiry(null)}
+                  disabled={isSendingReply}
+                  className="text-xs text-slate-600 rounded-xl cursor-pointer"
+                >
+                  Cancel
+                </Button>
+
+                <div className="flex items-center gap-2">
+                  <a
+                    href={`mailto:${replyingInquiry.email}?subject=${encodeURIComponent(replySubject)}`}
+                    className="h-9 px-3 rounded-xl text-xs text-slate-500 hover:text-slate-700 hover:bg-slate-100 inline-flex items-center gap-1 cursor-pointer transition-colors"
+                    title="Open in your default mail app"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" />
+                    Mail App
+                  </a>
+
+                  <Button
+                    type="submit"
+                    disabled={isSendingReply}
+                    className="h-9 px-4 rounded-xl text-xs font-bold bg-sky-600 hover:bg-sky-700 text-white shadow-xs inline-flex items-center gap-1.5 cursor-pointer"
+                  >
+                    {isSendingReply ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        Sending...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-3.5 h-3.5" />
+                        Send Email to Client
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </form>
           </div>
         </div>
       )}

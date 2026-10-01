@@ -20,6 +20,7 @@ import {
   FileText,
   Sparkles,
   Compass,
+  Building2,
   type LucideIcon,
 } from "lucide-react";
 import { useAuthStore } from "@/stores/use-auth-store";
@@ -89,6 +90,12 @@ export default function DashboardLayout({
                 href: "/dashboard/jobs",
                 icon: Briefcase,
                 active: pathname.startsWith("/dashboard/jobs"),
+              },
+              {
+                label: "Company Profile & Media",
+                href: "/company-details",
+                icon: Building2,
+                active: pathname === "/company-details",
               },
             ]
           : [

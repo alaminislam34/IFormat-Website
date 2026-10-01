@@ -13,8 +13,8 @@ export const updateRoleSchema = z.object({
 
 export const updateCompanyProfileSchema = z.object({
   companyName: z.string().min(2, "Company name is required"),
-  companyWebsite: z.string().url("Must be a valid URL").optional(),
-  companyDescription: z.string().optional(),
-  companyLogoUrl: z.string().optional(),
-  companyVideoUrl: z.string().optional(),
+  companyWebsite: z.string().url("Must be a valid URL").nullable().optional(),
+  companyDescription: z.string().nullable().optional(),
+  companyLogoUrl: z.string().nullable().optional(),
+  companyVideoUrl: z.string().nullable().optional(),
 });

@@ -1,10 +1,14 @@
 import { Request, Response } from "express";
 import { CVService } from "./cv.service.js";
 import { ApiResponse } from "../../utils/apiResponse.js";
-import { BadRequestError } from "../../errors/index.js";
+import { BadRequestError, AuthError } from "../../errors/index.js";
 
 export class CVController {
   static async uploadPdf(req: Request, res: Response) {
+    if (!req.user?.id) {
+      throw new AuthError("Please sign in or create an account to upload your resume");
+    }
+
     if (!req.file) {
       throw new BadRequestError("Please upload a PDF resume in the 'file' field");
     }
@@ -14,7 +18,7 @@ export class CVController {
         ? req.body.title.trim()
         : undefined;
 
-    const cv = await CVService.createFromUploadedPdf(req.user!.id, req.file, {
+    const cv = await CVService.createFromUploadedPdf(req.user.id, req.file, {
       title,
       req,
     });

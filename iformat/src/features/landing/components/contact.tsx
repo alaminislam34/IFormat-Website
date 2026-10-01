@@ -13,9 +13,9 @@ import { apiClient } from "@/lib/api/api-client";
 
 export function Contact() {
   const [contactInfo, setContactInfo] = useState({
-    location: "123 Business Pkwy, Suite 400\nNew York, NY 10001",
-    phone: "+1 (555) 123-4567",
-    email: "info@iformatbranding.com",
+    location: "8350 North Dallas, Rockwall, Texas, 57087",
+    phone: "+27 76 744 8050",
+    email: "infor@iformatbranding.com",
   });
 
   const {
@@ -34,9 +34,9 @@ export function Contact() {
         const data = res?.data || res;
         if (data && (data.location || data.phone || data.email)) {
           setContactInfo({
-            location: data.location || "123 Business Pkwy, Suite 400\nNew York, NY 10001",
-            phone: data.phone || "+1 (555) 123-4567",
-            email: data.email || "info@iformatbranding.com",
+            location: data.location || "8350 North Dallas, Rockwall, Texas, 57087",
+            phone: data.phone || "+27 76 744 8050",
+            email: data.email || "infor@iformatbranding.com",
           });
         }
       })

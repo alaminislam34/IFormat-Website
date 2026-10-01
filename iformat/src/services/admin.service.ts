@@ -218,6 +218,13 @@ export class AdminService {
   }
 
   /**
+   * Update company logo URL
+   */
+  static async updateCompanyLogo(userId: string, companyLogoUrl: string) {
+    return apiClient.patch(`/admin/companies/${userId}/logo`, { companyLogoUrl });
+  }
+
+  /**
    * Manually grant / comp a subscription
    */
   static async overrideSubscription(userId: string, planId: string, durationDays = 365) {
@@ -308,6 +315,13 @@ export class AdminService {
    */
   static async updateInquiryStatus(id: string, status: string): Promise<any> {
     return apiClient.patch(`/settings/inquiries/${id}`, { status });
+  }
+
+  /**
+   * Reply to contact inquiry via email
+   */
+  static async replyInquiry(id: string, payload: { subject?: string; message: string }): Promise<any> {
+    return apiClient.post(`/settings/inquiries/${id}/reply`, payload);
   }
 
   /**

@@ -27,11 +27,13 @@ interface CompanyDetailsFormProps {
   logoUploading: boolean;
   logoProgress: number;
   logoInputRef: React.RefObject<HTMLInputElement | null>;
+  uploadedLogoUrl?: string | null;
   handleLogoChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   removeLogo: () => void;
   videoFile: string | null;
   videoUploading: boolean;
   videoProgress: number;
+  uploadedVideoUrl?: string | null;
   videoInputRef: React.RefObject<HTMLInputElement | null>;
   handleVideoChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   removeVideo: () => void;
@@ -52,12 +54,14 @@ export function CompanyDetailsForm({
   logoFile,
   logoUploading,
   logoProgress,
+  uploadedLogoUrl,
   logoInputRef,
   handleLogoChange,
   removeLogo,
   videoFile,
   videoUploading,
   videoProgress,
+  uploadedVideoUrl,
   videoInputRef,
   handleVideoChange,
   removeVideo,
@@ -115,6 +119,7 @@ export function CompanyDetailsForm({
             file={logoFile}
             uploading={logoUploading}
             progress={logoProgress}
+            previewUrl={uploadedLogoUrl}
             accept="image/*"
             placeholder="Select logo file..."
             inputRef={logoInputRef}
@@ -198,6 +203,7 @@ export function CompanyDetailsForm({
           file={videoFile}
           uploading={videoUploading}
           progress={videoProgress}
+          previewUrl={uploadedVideoUrl}
           accept="video/*"
           placeholder="upload a video"
           inputRef={videoInputRef}

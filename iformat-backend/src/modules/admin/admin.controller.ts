@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { AdminService } from "./admin.service.js";
 import { ApiResponse } from "../../utils/apiResponse.js";
+import { BadRequestError } from "../../errors/index.js";
 
 export class AdminController {
   static async getMetrics(_req: Request, res: Response) {
@@ -86,6 +87,21 @@ export class AdminController {
       isVerifiedCompany ? "Company verified badge granted" : "Company verification revoked",
       user
     );
+  }
+
+  static async updateCompanyLogo(req: Request, res: Response) {
+    const { companyLogoUrl } = req.body;
+    if (!companyLogoUrl) {
+      throw new BadRequestError("Company logo URL is required");
+    }
+    const ipAddress = req.ip || req.socket.remoteAddress;
+    const user = await AdminService.updateCompanyLogo(
+      req.user!.id,
+      req.params.userId,
+      companyLogoUrl,
+      ipAddress
+    );
+    return ApiResponse.success(res, "Company logo updated successfully", user);
   }
 
   static async overrideSubscription(req: Request, res: Response) {

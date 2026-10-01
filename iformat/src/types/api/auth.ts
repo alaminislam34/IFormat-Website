@@ -13,6 +13,7 @@ export interface UserSession {
   companyWebsite?: string | null;
   companyDescription?: string | null;
   companyLogoUrl?: string | null;
+  companyVideoUrl?: string | null;
   createdAt: string;
   updatedAt?: string;
 }

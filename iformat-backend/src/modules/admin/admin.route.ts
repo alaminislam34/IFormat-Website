@@ -27,8 +27,9 @@ router.patch("/jobs/:id/status", catchAsync(AdminController.updateJobStatus));
 router.delete("/jobs/:id", catchAsync(AdminController.softDeleteJob));
 router.post("/jobs/:id/restore", catchAsync(AdminController.restoreJob));
 
-// 4. Company Verification
+// 4. Company Verification & Branding
 router.patch("/companies/:userId/verify", catchAsync(AdminController.toggleCompanyVerification));
+router.patch("/companies/:userId/logo", catchAsync(AdminController.updateCompanyLogo));
 
 // 5. Subscription Manual Grant / Override
 router.post("/subscriptions/override", catchAsync(AdminController.overrideSubscription));
