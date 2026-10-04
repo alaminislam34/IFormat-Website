@@ -22,7 +22,9 @@ import { JobDetailsSheet } from "@/features/jobs/components/job-details-sheet";
 import { Footer } from "@/components/layout/footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import { CompanyVideoPlayer } from "@/features/company/components/company-video-player";
+import { getMediaUrl } from "@/lib/utils";
 
 interface PageProps {
   params: Promise<{ companyName: string }>;
@@ -48,6 +50,7 @@ export default function CompanyProfilePage({ params }: PageProps) {
 
   // Video modal state
   const [isVideoPlaying, setIsVideoPlaying] = React.useState(false);
+  const [logoError, setLogoError] = React.useState(false);
 
   React.useEffect(() => {
     if (!companyName) return;
@@ -140,15 +143,7 @@ export default function CompanyProfilePage({ params }: PageProps) {
   const hasVideo = Boolean(company?.videoUrl && company.videoUrl.trim().length > 0);
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-white flex flex-col pt-24 sm:pt-28">
-        <div className="flex-1 max-w-360 w-11/12 mx-auto py-20 flex flex-col items-center justify-center space-y-4">
-          <Loader2 className="w-8 h-8 text-[#0A54B1] animate-spin" />
-          <p className="text-sm font-semibold text-slate-500">Loading company profile...</p>
-        </div>
-        <Footer />
-      </div>
-    );
+    return <CompanyProfileSkeleton />;
   }
 
   if (error || !company) {
@@ -217,13 +212,13 @@ export default function CompanyProfilePage({ params }: PageProps) {
           {/* Logo & Info */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5">
             <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-white border-2 border-slate-100 shadow-md flex items-center justify-center overflow-hidden shrink-0">
-              {company.logoUrl ? (
+              {company.logoUrl && !logoError ? (
                 <img
-                  src={company.logoUrl}
+                  src={getMediaUrl(company.logoUrl)}
                   alt={`${company.name} logo`}
                   className="w-full h-full object-cover"
-                  onError={(e) => {
-                    e.currentTarget.style.display = "none";
+                  onError={() => {
+                    setLogoError(true);
                   }}
                 />
               ) : (
@@ -308,7 +303,7 @@ export default function CompanyProfilePage({ params }: PageProps) {
                     Company Culture
                   </h2>
                   <CompanyVideoPlayer
-                    src={company.videoUrl!}
+                    src={getMediaUrl(company.videoUrl!)}
                     title={`${company.name} Culture Video`}
                   />
                 </div>
@@ -416,6 +411,123 @@ export default function CompanyProfilePage({ params }: PageProps) {
           setTimeout(() => setSelectedJob(null), 300);
         }}
       />
+    </div>
+  );
+}
+
+function CompanyProfileSkeleton() {
+  return (
+    <div className="min-h-screen bg-slate-50 flex flex-col">
+      {/* Hero Cover Header Skeleton */}
+      <div className="relative bg-linear-to-r from-[#061e47] via-[#0A54B1] to-[#0284c7] text-white pt-24 sm:pt-28 pb-20 sm:pb-24 overflow-hidden">
+        <div className="absolute -right-20 -top-20 w-96 h-96 bg-[#52CEDE]/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="max-w-360 w-11/12 mx-auto relative z-10">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-2">
+              <Skeleton className="h-4 w-28 bg-white/20 rounded-md" />
+              <span className="text-white/40">/</span>
+              <Skeleton className="h-4 w-16 bg-white/20 rounded-md" />
+              <span className="text-white/40">/</span>
+              <Skeleton className="h-4 w-32 bg-white/30 rounded-md" />
+            </div>
+            <Skeleton className="h-8 w-28 bg-white/20 rounded-xl" />
+          </div>
+        </div>
+      </div>
+
+      {/* Elevated Company Identity Card Skeleton */}
+      <div className="max-w-360 w-11/12 mx-auto -mt-12 sm:-mt-16 relative z-20">
+        <div className="bg-white rounded-3xl border border-slate-200/90 shadow-xl shadow-slate-200/50 p-6 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5 flex-1">
+            {/* Logo skeleton */}
+            <Skeleton className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-slate-200 border-2 border-slate-100 shadow-md shrink-0" />
+
+            <div className="space-y-3 flex-1 max-w-lg">
+              <div className="flex flex-wrap items-center gap-3">
+                <Skeleton className="h-8 w-56 sm:w-72 rounded-lg bg-slate-200" />
+                <Skeleton className="h-6 w-28 rounded-full bg-slate-200" />
+              </div>
+              <div className="flex flex-wrap items-center gap-4">
+                <Skeleton className="h-4 w-36 rounded-md bg-slate-200" />
+                <Skeleton className="h-4 w-28 rounded-md bg-slate-200" />
+              </div>
+            </div>
+          </div>
+
+          {/* Action button skeleton */}
+          <Skeleton className="h-11 w-44 rounded-xl bg-slate-200 shrink-0" />
+        </div>
+      </div>
+
+      {/* Main Content Area Skeleton */}
+      <main className="max-w-360 w-11/12 mx-auto py-10 flex-1 space-y-10">
+        {/* Overview & Video Grid Skeleton */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* About section skeleton */}
+          <div className="lg:col-span-2 bg-white rounded-3xl border border-slate-200/80 p-6 sm:p-8 shadow-xs space-y-4">
+            <Skeleton className="h-6 w-44 rounded-lg bg-slate-200" />
+            <div className="space-y-2.5 pt-2">
+              <Skeleton className="h-4 w-full rounded-md bg-slate-200" />
+              <Skeleton className="h-4 w-11/12 rounded-md bg-slate-200" />
+              <Skeleton className="h-4 w-4/5 rounded-md bg-slate-200" />
+              <Skeleton className="h-4 w-3/5 rounded-md bg-slate-200" />
+            </div>
+          </div>
+
+          {/* Video preview skeleton */}
+          <div className="bg-white rounded-3xl border border-slate-200/80 p-6 sm:p-8 shadow-xs space-y-4">
+            <Skeleton className="h-6 w-36 rounded-lg bg-slate-200" />
+            <div className="aspect-video w-full rounded-2xl bg-slate-200 flex items-center justify-center">
+              <div className="w-12 h-12 rounded-full bg-slate-300 flex items-center justify-center">
+                <Play className="w-5 h-5 text-slate-400 fill-slate-400 ml-0.5" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Jobs Section Skeleton */}
+        <section className="space-y-6 pt-2">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="space-y-2">
+              <Skeleton className="h-7 w-64 rounded-lg bg-slate-200" />
+              <Skeleton className="h-4 w-44 rounded-md bg-slate-200" />
+            </div>
+            <div className="flex items-center gap-3">
+              <Skeleton className="h-10 w-52 rounded-xl bg-slate-200" />
+              <Skeleton className="h-10 w-44 rounded-xl bg-slate-200" />
+            </div>
+          </div>
+
+          {/* Job Cards Skeleton Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-xs space-y-5"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <Skeleton className="w-12 h-12 rounded-xl bg-slate-200 shrink-0" />
+                  <Skeleton className="h-6 w-20 rounded-full bg-slate-200" />
+                </div>
+                <div className="space-y-2">
+                  <Skeleton className="h-5 w-3/4 rounded-md bg-slate-200" />
+                  <Skeleton className="h-4 w-1/2 rounded-md bg-slate-200" />
+                </div>
+                <div className="flex items-center gap-2 pt-1">
+                  <Skeleton className="h-6 w-20 rounded-md bg-slate-200" />
+                  <Skeleton className="h-6 w-16 rounded-md bg-slate-200" />
+                </div>
+                <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
+                  <Skeleton className="h-4 w-24 rounded-md bg-slate-200" />
+                  <Skeleton className="h-8 w-24 rounded-xl bg-slate-200" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      </main>
+
+      <Footer />
     </div>
   );
 }

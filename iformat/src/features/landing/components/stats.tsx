@@ -8,6 +8,7 @@ import {
   useLandingContentStore,
   DEFAULT_VIDEO_SETTINGS,
 } from "@/stores/use-landing-content-store";
+import { getMediaUrl } from "@/lib/utils";
 
 export function Stats() {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -54,7 +55,7 @@ export function Stats() {
         <video
           ref={videoRef}
           key={`main-${activeVideo.videoUrl}`}
-          src={activeVideo.videoUrl}
+          src={getMediaUrl(activeVideo.videoUrl)}
           className="relative z-10 w-full h-full object-cover cursor-pointer"
           playsInline
           loop

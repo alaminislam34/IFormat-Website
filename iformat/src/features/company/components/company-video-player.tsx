@@ -2,6 +2,7 @@
 
 import React, { useRef, useState, useEffect } from "react";
 import { Play, ExternalLink, AlertCircle, RotateCcw } from "lucide-react";
+import { getMediaUrl } from "@/lib/utils";
 
 interface CompanyVideoPlayerProps {
   src: string;
@@ -23,6 +24,11 @@ export function CompanyVideoPlayer({
   const [hasError, setHasError] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
 
+  // Automatically rewrite raw S3 bucket URLs to CloudFront CDN
+  const mediaSrc = React.useMemo(() => {
+    return getMediaUrl(src);
+  }, [src]);
+
   // Validate poster: never pass SVG URLs as video poster since browsers cannot render them
   const validPoster = React.useMemo(() => {
     if (!poster) return undefined;
@@ -30,19 +36,19 @@ export function CompanyVideoPlayer({
     if (clean.endsWith(".svg") || clean.includes("image/svg")) {
       return undefined;
     }
-    return poster;
+    return getMediaUrl(poster);
   }, [poster]);
 
   // Determine MIME type for optimal browser decoding
   const mimeType = React.useMemo(() => {
-    if (!src) return undefined;
-    const clean = src.split("?")[0].toLowerCase();
+    if (!mediaSrc) return undefined;
+    const clean = mediaSrc.split("?")[0].toLowerCase();
     if (clean.endsWith(".webm")) return "video/webm";
     if (clean.endsWith(".mp4")) return "video/mp4";
     if (clean.endsWith(".mov")) return "video/quicktime";
     if (clean.endsWith(".ogg") || clean.endsWith(".ogv")) return "video/ogg";
     return undefined;
-  }, [src]);
+  }, [mediaSrc]);
 
   // Reset error when src changes
   useEffect(() => {
@@ -52,7 +58,7 @@ export function CompanyVideoPlayer({
     if (videoRef.current) {
       videoRef.current.load();
     }
-  }, [src]);
+  }, [mediaSrc]);
 
   const handlePlayOverlay = async () => {
     if (!videoRef.current) return;
@@ -104,7 +110,7 @@ export function CompanyVideoPlayer({
               <span>Retry</span>
             </button>
             <a
-              href={src}
+              href={mediaSrc}
               target="_blank"
               rel="noopener noreferrer"
               className="px-3 py-1.5 rounded-lg bg-[#0A54B1] hover:bg-[#084290] text-xs font-semibold text-white transition-colors flex items-center gap-1.5 cursor-pointer"
@@ -130,8 +136,8 @@ export function CompanyVideoPlayer({
             onLoadedData={() => setIsLoaded(true)}
             onError={() => setHasError(true)}
           >
-            {mimeType && <source src={src} type={mimeType} />}
-            <source src={src} />
+            {mimeType && <source src={mediaSrc} type={mimeType} />}
+            <source src={mediaSrc} />
             Your browser does not support HTML5 video playback.
           </video>
 
@@ -150,7 +156,7 @@ export function CompanyVideoPlayer({
 
           {/* Direct Link button in top right */}
           <a
-            href={src}
+            href={mediaSrc}
             target="_blank"
             rel="noopener noreferrer"
             title="Open video in new tab"

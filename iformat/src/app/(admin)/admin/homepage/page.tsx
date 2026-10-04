@@ -28,6 +28,7 @@ import {
   Globe,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { getMediaUrl } from "@/lib/utils";
 import { AdminPageHeader } from "@/features/admin/components/shared/admin-page-header";
 import {
   useLandingContentStore,
@@ -553,7 +554,7 @@ export default function AdminHomepageContentPage() {
               <div className="relative rounded-2xl overflow-hidden aspect-video bg-black border border-slate-900 shadow-md flex items-center justify-center">
                 <video
                   key={videoUrl}
-                  src={videoUrl}
+                  src={getMediaUrl(videoUrl)}
                   controls
                   playsInline
                   className="w-full h-full object-contain"
