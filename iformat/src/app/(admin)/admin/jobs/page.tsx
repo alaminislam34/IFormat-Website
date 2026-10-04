@@ -34,10 +34,11 @@ export default function AdminJobsPage() {
 
       const res = await adminService.listJobs(params);
       if (res) {
-        setJobs(Array.isArray(res) ? res : res.jobs || []);
-        if (res.meta?.total !== undefined) {
-          setTotalCount(res.meta.total);
-        }
+        const jobList = Array.isArray(res) ? res : res.jobs || [];
+        setJobs(jobList);
+        const resolvedTotal =
+          res.meta?.total !== undefined ? res.meta.total : jobList.length;
+        setTotalCount(resolvedTotal);
       }
     } catch (err: any) {
       console.warn("Could not load jobs:", err.message);

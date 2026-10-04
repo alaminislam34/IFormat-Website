@@ -20,6 +20,7 @@ import {
   Calendar,
   User,
   MessageCircle,
+  RotateCcw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AdminPageHeader } from "@/features/admin/components/shared/admin-page-header";
@@ -417,24 +418,28 @@ export default function AdminContactInquiriesPage() {
                       </p>
                     </TableCell>
 
-                    {/* Status with Quick Select */}
+                    {/* Status Badge */}
                     <TableCell onClick={(e) => e.stopPropagation()}>
-                      <select
-                        value={inq.status}
-                        disabled={updatingId === inq.id}
-                        onChange={(e) => handleUpdateStatus(inq.id, e.target.value)}
-                        className={`px-2.5 py-1 rounded-lg text-xs font-semibold border cursor-pointer focus:outline-hidden transition-colors ${
+                      <span
+                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${
                           inq.status === "UNREAD"
-                            ? "bg-amber-50 text-amber-800 border-amber-200"
+                            ? "bg-amber-50 text-amber-800 border-amber-200/80"
                             : inq.status === "CONTACTED"
-                            ? "bg-sky-50 text-sky-700 border-sky-200"
-                            : "bg-emerald-50 text-emerald-700 border-emerald-200"
+                            ? "bg-sky-50 text-sky-700 border-sky-200/80"
+                            : "bg-emerald-50 text-emerald-700 border-emerald-200/80"
                         }`}
                       >
-                        <option value="UNREAD">Unread</option>
-                        <option value="CONTACTED">Contacted</option>
-                        <option value="RESOLVED">Resolved</option>
-                      </select>
+                        <span
+                          className={`w-1.5 h-1.5 rounded-full ${
+                            inq.status === "UNREAD"
+                              ? "bg-amber-500"
+                              : inq.status === "CONTACTED"
+                              ? "bg-sky-500"
+                              : "bg-emerald-500"
+                          }`}
+                        />
+                        {inq.status === "UNREAD" ? "Unread" : inq.status === "CONTACTED" ? "Contacted" : "Resolved"}
+                      </span>
                     </TableCell>
 
                     {/* Actions */}
@@ -593,34 +598,6 @@ export default function AdminContactInquiriesPage() {
                   {selectedInquiry.message}
                 </div>
               </div>
-
-              {/* Status Selector in Modal */}
-              <div className="p-4 rounded-2xl border border-slate-200/80 bg-white space-y-2">
-                <label className="block text-xs font-semibold text-slate-700">
-                  Update Resolution Status
-                </label>
-                <div className="grid grid-cols-3 gap-2">
-                  {(["UNREAD", "CONTACTED", "RESOLVED"] as const).map((st) => (
-                    <button
-                      key={st}
-                      type="button"
-                      disabled={updatingId === selectedInquiry.id}
-                      onClick={() => handleUpdateStatus(selectedInquiry.id, st)}
-                      className={`py-2 px-3 rounded-xl text-xs font-semibold transition-all border cursor-pointer ${
-                        selectedInquiry.status === st
-                          ? st === "UNREAD"
-                            ? "bg-amber-500 text-white border-amber-600 shadow-xs"
-                            : st === "CONTACTED"
-                            ? "bg-sky-600 text-white border-sky-700 shadow-xs"
-                            : "bg-emerald-600 text-white border-emerald-700 shadow-xs"
-                          : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
-                      }`}
-                    >
-                      {st === "UNREAD" ? "Unread" : st === "CONTACTED" ? "Contacted" : "Resolved"}
-                    </button>
-                  ))}
-                </div>
-              </div>
             </div>
 
             {/* Fixed Footer */}
@@ -636,9 +613,39 @@ export default function AdminContactInquiriesPage() {
               </Button>
 
               <div className="flex items-center gap-2">
+                {selectedInquiry.status !== "RESOLVED" ? (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={updatingId === selectedInquiry.id}
+                    onClick={() => handleUpdateStatus(selectedInquiry.id, "RESOLVED")}
+                    className="h-9 px-3.5 rounded-xl text-xs font-semibold bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100 shadow-xs inline-flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                    Mark as Resolved
+                  </Button>
+                ) : (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={updatingId === selectedInquiry.id}
+                    onClick={() => handleUpdateStatus(selectedInquiry.id, "CONTACTED")}
+                    className="h-9 px-3 rounded-xl text-xs font-semibold bg-white text-slate-600 border-slate-200 hover:bg-slate-50 shadow-xs inline-flex items-center gap-1.5 cursor-pointer"
+                    title="Reopen inquiry as Contacted"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5 text-slate-500" />
+                    Reopen
+                  </Button>
+                )}
+
                 {selectedInquiry.phone && (
                   <a
                     href={`tel:${selectedInquiry.phone.replace(/[^0-9+]/g, "")}`}
+                    onClick={() => {
+                      if (selectedInquiry.status === "UNREAD") {
+                        handleUpdateStatus(selectedInquiry.id, "CONTACTED");
+                      }
+                    }}
                     className="h-9 px-3.5 rounded-xl text-xs font-semibold bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 shadow-xs inline-flex items-center gap-1.5 cursor-pointer"
                   >
                     <Phone className="w-3.5 h-3.5 text-sky-600" />

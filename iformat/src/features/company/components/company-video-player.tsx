@@ -24,12 +24,10 @@ export function CompanyVideoPlayer({
   const [hasError, setHasError] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
 
-  // Automatically rewrite raw S3 bucket URLs to CloudFront CDN
   const mediaSrc = React.useMemo(() => {
     return getMediaUrl(src);
   }, [src]);
 
-  // Validate poster: never pass SVG URLs as video poster since browsers cannot render them
   const validPoster = React.useMemo(() => {
     if (!poster) return undefined;
     const clean = poster.split("?")[0].toLowerCase();
@@ -39,7 +37,6 @@ export function CompanyVideoPlayer({
     return getMediaUrl(poster);
   }, [poster]);
 
-  // Determine MIME type for optimal browser decoding
   const mimeType = React.useMemo(() => {
     if (!mediaSrc) return undefined;
     const clean = mediaSrc.split("?")[0].toLowerCase();
@@ -50,7 +47,6 @@ export function CompanyVideoPlayer({
     return undefined;
   }, [mediaSrc]);
 
-  // Reset error when src changes
   useEffect(() => {
     setHasError(false);
     setIsPlaying(false);
@@ -68,7 +64,6 @@ export function CompanyVideoPlayer({
       setIsPlaying(true);
     } catch (err: any) {
       console.warn("Video play request failed or blocked:", err);
-      // If autoplay was blocked or decoding issue, try with controls
       setIsPlaying(true);
     }
   };
@@ -127,9 +122,9 @@ export function CompanyVideoPlayer({
             controls={isPlaying || isLoaded}
             playsInline
             preload="metadata"
-            autoPlay={autoPlay}
+            autoPlay={autoPlay ? true : undefined}
             poster={validPoster}
-            className="w-full h-full object-contain bg-black"
+            className="w-full h-full object-contain"
             onPlay={() => setIsPlaying(true)}
             onPause={() => setIsPlaying(false)}
             onEnded={() => setIsPlaying(false)}
@@ -141,11 +136,10 @@ export function CompanyVideoPlayer({
             Your browser does not support HTML5 video playback.
           </video>
 
-          {/* Interactive Play Overlay when not playing */}
           {!isPlaying && (
             <div
               onClick={handlePlayOverlay}
-              className="absolute inset-0 bg-black/40 flex items-center justify-center cursor-pointer transition-all duration-200 group-hover:bg-black/30 z-10"
+              className="absolute inset-0 flex items-center justify-center cursor-pointer transition-all duration-200 z-10"
               title="Click to play video"
             >
               <div className="w-14 h-14 rounded-full bg-white/95 text-[#0A54B1] shadow-2xl flex items-center justify-center group-hover:scale-110 active:scale-95 transition-all duration-200 border-2 border-white/40">
@@ -154,13 +148,12 @@ export function CompanyVideoPlayer({
             </div>
           )}
 
-          {/* Direct Link button in top right */}
           <a
             href={mediaSrc}
             target="_blank"
             rel="noopener noreferrer"
             title="Open video in new tab"
-            className="absolute top-2.5 right-2.5 p-1.5 rounded-lg bg-black/60 hover:bg-black/80 text-white/80 hover:text-white transition-colors opacity-0 group-hover:opacity-100 z-10"
+            className="absolute top-2.5 right-2.5 p-1.5 rounded-lg text-white/80 hover:text-white transition-colors opacity-0 group-hover:opacity-100 z-10"
           >
             <ExternalLink className="w-3.5 h-3.5" />
           </a>

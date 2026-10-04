@@ -43,12 +43,6 @@ export class AdminController {
     return ApiResponse.success(res, "User account restored successfully", user);
   }
 
-  static async forceVerifyEmail(req: Request, res: Response) {
-    const ipAddress = req.ip || req.socket.remoteAddress;
-    const user = await AdminService.forceVerifyEmail(req.user!.id, req.params.id, ipAddress);
-    return ApiResponse.success(res, "User email address marked as verified", user);
-  }
-
   static async listJobs(req: Request, res: Response) {
     const { jobs, meta } = await AdminService.listJobs(req.query as any);
     return ApiResponse.collection(res, "Jobs retrieved", jobs, meta);

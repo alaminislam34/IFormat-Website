@@ -130,12 +130,15 @@ export class AdminService {
       params,
     });
     if (Array.isArray(res)) {
-      return { users: res, meta: {} };
+      const meta = (res as any).meta || { total: res.length, page: params?.page || 1, limit: params?.limit || 10 };
+      return { users: res, meta };
     }
-    if (res && typeof res === "object" && Array.isArray(res.users)) {
-      return res;
+    if (res && typeof res === "object") {
+      const users = Array.isArray(res.users) ? res.users : Array.isArray(res.data) ? res.data : [];
+      const meta = res.meta || (res as any).data?.meta || { total: users.length };
+      return { users, meta };
     }
-    return { users: [], meta: {} };
+    return { users: [], meta: { total: 0 } };
   }
 
   /**
@@ -160,13 +163,6 @@ export class AdminService {
   }
 
   /**
-   * Force verify user email
-   */
-  static async forceVerifyEmail(userId: string) {
-    return apiClient.post(`/admin/users/${userId}/verify-email`);
-  }
-
-  /**
    * List all job postings for moderation
    */
   static async listJobs(params?: {
@@ -181,12 +177,15 @@ export class AdminService {
       params,
     });
     if (Array.isArray(res)) {
-      return { jobs: res, meta: {} };
+      const meta = (res as any).meta || { total: res.length, page: params?.page || 1, limit: params?.limit || 10 };
+      return { jobs: res, meta };
     }
-    if (res && typeof res === "object" && Array.isArray(res.jobs)) {
-      return res;
+    if (res && typeof res === "object") {
+      const jobs = Array.isArray(res.jobs) ? res.jobs : Array.isArray(res.data) ? res.data : [];
+      const meta = res.meta || (res as any).data?.meta || { total: jobs.length };
+      return { jobs, meta };
     }
-    return { jobs: [], meta: {} };
+    return { jobs: [], meta: { total: 0 } };
   }
 
   /**
@@ -248,12 +247,15 @@ export class AdminService {
       params,
     });
     if (Array.isArray(res)) {
-      return { logs: res, meta: {} };
+      const meta = (res as any).meta || { total: res.length, page: params?.page || 1, limit: params?.limit || 10 };
+      return { logs: res, meta };
     }
-    if (res && typeof res === "object" && Array.isArray(res.logs)) {
-      return res;
+    if (res && typeof res === "object") {
+      const logs = Array.isArray(res.logs) ? res.logs : Array.isArray(res.data) ? res.data : [];
+      const meta = res.meta || (res as any).data?.meta || { total: logs.length };
+      return { logs, meta };
     }
-    return { logs: [], meta: {} };
+    return { logs: [], meta: { total: 0 } };
   }
 
   /**

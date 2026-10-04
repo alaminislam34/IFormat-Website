@@ -10,7 +10,7 @@ interface QuickActionPanelsProps {
 export function QuickActionPanels({ metrics }: QuickActionPanelsProps) {
   return (
     <div className="grid md:grid-cols-3 gap-6">
-      {/* Panel 1: Content Moderation */}
+
       <div className="bg-white border border-slate-200/80 rounded-3xl p-6 flex flex-col justify-between space-y-4 shadow-xs hover:border-slate-300 hover:shadow-md transition-all">
         <div>
           <div className="w-10 h-10 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center mb-3">
@@ -36,7 +36,6 @@ export function QuickActionPanels({ metrics }: QuickActionPanelsProps) {
         </div>
       </div>
 
-      {/* Panel 2: User Moderation & Soft Deletes */}
       <div className="bg-white border border-slate-200/80 rounded-3xl p-6 flex flex-col justify-between space-y-4 shadow-xs hover:border-slate-300 hover:shadow-md transition-all">
         <div>
           <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center mb-3">
@@ -62,7 +61,6 @@ export function QuickActionPanels({ metrics }: QuickActionPanelsProps) {
         </div>
       </div>
 
-      {/* Panel 3: Monetization & Plans */}
       <div className="bg-white border border-slate-200/80 rounded-3xl p-6 flex flex-col justify-between space-y-4 shadow-xs hover:border-slate-300 hover:shadow-md transition-all">
         <div>
           <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-3">
@@ -87,6 +85,7 @@ export function QuickActionPanels({ metrics }: QuickActionPanelsProps) {
           </Link>
         </div>
       </div>
+      
     </div>
   );
 }

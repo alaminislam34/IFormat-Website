@@ -224,10 +224,10 @@ export function PrivacyView() {
                     To exercise GDPR data export, account deletion, or report a privacy concern:
                   </p>
                   <a
-                    href="mailto:devamin.bd@gmail.com"
+                    href="mailto:support@iformatbranding.com"
                     className="text-[#0A54B1] font-bold hover:underline inline-flex items-center gap-1"
                   >
-                    devamin.bd@gmail.com <ChevronRight className="w-3.5 h-3.5" />
+                    support@iformatbranding.com <ChevronRight className="w-3.5 h-3.5" />
                   </a>
                 </div>
               </div>
@@ -498,7 +498,7 @@ export function PrivacyView() {
                   </h4>
                   <div className="pt-2 text-xs md:text-sm space-y-1.5 text-slate-300">
                     <p><strong className="text-white">Organization:</strong> iFormat Personal Branding & Career Platform</p>
-                    <p><strong className="text-white">Direct Privacy Email:</strong> <a href="mailto:devamin.bd@gmail.com" className="text-cyan-400 hover:underline">devamin.bd@gmail.com</a></p>
+                    <p><strong className="text-white">Direct Privacy Email:</strong> <a href="mailto:privacy@iformatbranding.com" className="text-cyan-400 hover:underline">privacy@iformatbranding.com</a></p>
                     <p><strong className="text-white">Customer Support:</strong> <a href="mailto:support@iformatbranding.com" className="text-cyan-400 hover:underline">support@iformatbranding.com</a></p>
                     <p><strong className="text-white">Response Commitment:</strong> All verified data access, export, or erasure requests are addressed within 30 days.</p>
                   </div>

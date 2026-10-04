@@ -15,7 +15,6 @@ import {
 interface UserTableProps {
   users: AdminUserItemDTO[];
   loading: boolean;
-  onVerifyEmail: (user: AdminUserItemDTO) => void;
   onOpenBanModal: (user: AdminUserItemDTO) => void;
   onSoftDelete: (user: AdminUserItemDTO) => void;
   onRestore: (user: AdminUserItemDTO) => void;
@@ -24,7 +23,6 @@ interface UserTableProps {
 export function UserTable({
   users,
   loading,
-  onVerifyEmail,
   onOpenBanModal,
   onSoftDelete,
   onRestore,
@@ -114,7 +112,6 @@ export function UserTable({
               <UserRow
                 key={u.id}
                 user={u}
-                onVerifyEmail={onVerifyEmail}
                 onOpenBanModal={onOpenBanModal}
                 onSoftDelete={onSoftDelete}
                 onRestore={onRestore}

@@ -296,10 +296,9 @@ export default function CompanyProfilePage({ params }: PageProps) {
             )}
 
             {hasVideo && (
-              <div className="bg-white rounded-3xl border border-slate-200/80 p-6 sm:p-8 shadow-xs flex flex-col justify-between space-y-4">
+              <div className="flex flex-col justify-between space-y-4">
                 <div>
                   <h2 className="text-lg font-bold text-slate-900 tracking-tight flex items-center gap-2 mb-3">
-                    <Play className="w-4 h-4 text-rose-500 fill-rose-500" />
                     Company Culture
                   </h2>
                   <CompanyVideoPlayer

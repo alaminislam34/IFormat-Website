@@ -1,11 +1,10 @@
 import React from "react";
-import { User, Building2, MailCheck, ShieldAlert, RotateCcw, Trash2 } from "lucide-react";
+import { User, Building2, ShieldAlert, RotateCcw, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AdminUserItemDTO } from "@/services/admin.service";
 
 interface UserRowProps {
   user: AdminUserItemDTO;
-  onVerifyEmail: (user: AdminUserItemDTO) => void;
   onOpenBanModal: (user: AdminUserItemDTO) => void;
   onSoftDelete: (user: AdminUserItemDTO) => void;
   onRestore: (user: AdminUserItemDTO) => void;
@@ -13,7 +12,6 @@ interface UserRowProps {
 
 export function UserRow({
   user: u,
-  onVerifyEmail,
   onOpenBanModal,
   onSoftDelete,
   onRestore,
@@ -108,17 +106,6 @@ export function UserRow({
       {/* Actions */}
       <td className="p-4 text-right">
         <div className="flex items-center justify-end gap-1.5">
-          {!u.emailVerified && !u.isDeleted && (
-            <Button
-              onClick={() => onVerifyEmail(u)}
-              variant="ghost"
-              size="sm"
-              title="Force Verify Email"
-              className="h-8 px-2 text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg text-xs"
-            >
-              <MailCheck className="w-3.5 h-3.5" />
-            </Button>
-          )}
 
           {u.role !== "ADMIN" && !u.isDeleted && (
             <Button

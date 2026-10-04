@@ -59,10 +59,11 @@ export default function AdminSubscriptionsPage() {
       ]);
 
       if (uRes) {
-        setUsers(Array.isArray(uRes) ? uRes : uRes.users || []);
-        if (uRes.meta?.total !== undefined) {
-          setTotalCount(uRes.meta.total);
-        }
+        const uList = Array.isArray(uRes) ? uRes : uRes.users || [];
+        setUsers(uList);
+        const resolvedTotal =
+          uRes.meta?.total !== undefined ? uRes.meta.total : uList.length;
+        setTotalCount(resolvedTotal);
       }
       if (pRes) {
         setPlans(Array.isArray(pRes) ? pRes : (pRes as any).plans || []);

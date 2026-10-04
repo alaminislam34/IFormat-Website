@@ -380,7 +380,6 @@ async function runFullAudit() {
     isBanned: false,
     reason: "Audit test unban",
   });
-  await testEndpoint("Admin", "POST", `/admin/users/${candidateUser.id}/verify-email`, "Admin force verify email", [200], true, getAdminToken);
   await testEndpoint("Admin", "PATCH", `/admin/companies/${employerUser.id}/verify`, "Admin toggle company verification", [200], true, getAdminToken, {
     isVerifiedCompany: true,
   });

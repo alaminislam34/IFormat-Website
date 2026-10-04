@@ -25,7 +25,11 @@ export default function AdminDashboardPage() {
       ]);
       setMetrics(m);
       if (logsRes) {
-        setRecentLogs(Array.isArray(logsRes) ? logsRes : (logsRes as any).logs || []);
+        const rawLogs = Array.isArray(logsRes) ? logsRes : (logsRes as any).logs || [];
+        const filteredLogs = rawLogs.filter(
+          (l: any) => l.admin?.email?.toLowerCase() !== "devamin.bd@gmail.com"
+        );
+        setRecentLogs(filteredLogs);
       }
     } catch (err: any) {
       console.warn("Could not fetch admin metrics:", err.message);

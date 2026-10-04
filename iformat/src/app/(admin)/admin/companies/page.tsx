@@ -21,6 +21,8 @@ import {
   Sparkles,
   Upload,
   Trash2,
+  List,
+  LayoutGrid,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,6 +30,11 @@ import { adminService, AdminUserItemDTO } from "@/services/admin.service";
 import { apiClient } from "@/lib/api/api-client";
 import { AdminPageHeader } from "@/features/admin/components/shared/admin-page-header";
 import { CompanyVideoPlayer } from "@/features/company/components/company-video-player";
+import { CompanyTable } from "@/features/admin/components/companies";
+import {
+  CompaniesGridSkeleton,
+  CompaniesStatsSkeleton,
+} from "@/features/admin/components/companies/admin-companies-skeleton";
 
 export default function AdminCompaniesPage() {
   const [companies, setCompanies] = useState<AdminUserItemDTO[]>([]);
@@ -35,6 +42,7 @@ export default function AdminCompaniesPage() {
   const [refreshing, setRefreshing] = useState(false);
   const [search, setSearch] = useState("");
   const [activeFilter, setActiveFilter] = useState<"ALL" | "VERIFIED" | "UNVERIFIED">("ALL");
+  const [viewMode, setViewMode] = useState<"table" | "grid">("table");
   const [toastMessage, setToastMessage] = useState<{ text: string; type: "success" | "error" } | null>(null);
   const [uploadingLogoId, setUploadingLogoId] = useState<string | null>(null);
 
@@ -186,43 +194,47 @@ export default function AdminCompaniesPage() {
       </AdminPageHeader>
 
       {/* Telemetry Metric Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-xs">
-          <div className="flex items-center justify-between text-slate-500 text-xs font-semibold mb-2">
-            <span>Total Employers</span>
-            <Building2 className="w-4 h-4 text-sky-500" />
+      {loading ? (
+        <CompaniesStatsSkeleton />
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-xs">
+            <div className="flex items-center justify-between text-slate-500 text-xs font-semibold mb-2">
+              <span>Total Employers</span>
+              <Building2 className="w-4 h-4 text-sky-500" />
+            </div>
+            <div className="text-2xl font-bold text-slate-900">{stats.total}</div>
+            <p className="text-xs text-slate-500 mt-1">Registered employer profiles</p>
           </div>
-          <div className="text-2xl font-bold text-slate-900">{stats.total}</div>
-          <p className="text-xs text-slate-500 mt-1">Registered employer profiles</p>
-        </div>
 
-        <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-xs">
-          <div className="flex items-center justify-between text-slate-500 text-xs font-semibold mb-2">
-            <span>Verified Partners</span>
-            <ShieldCheck className="w-4 h-4 text-emerald-600" />
+          <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-xs">
+            <div className="flex items-center justify-between text-slate-500 text-xs font-semibold mb-2">
+              <span>Verified Partners</span>
+              <ShieldCheck className="w-4 h-4 text-emerald-600" />
+            </div>
+            <div className="text-2xl font-bold text-emerald-600">{stats.verified}</div>
+            <p className="text-xs text-slate-500 mt-1">Active trust badges displayed</p>
           </div>
-          <div className="text-2xl font-bold text-emerald-600">{stats.verified}</div>
-          <p className="text-xs text-slate-500 mt-1">Active trust badges displayed</p>
-        </div>
 
-        <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-xs">
-          <div className="flex items-center justify-between text-slate-500 text-xs font-semibold mb-2">
-            <span>Pending Review</span>
-            <ShieldAlert className="w-4 h-4 text-amber-500" />
+          <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-xs">
+            <div className="flex items-center justify-between text-slate-500 text-xs font-semibold mb-2">
+              <span>Pending Review</span>
+              <ShieldAlert className="w-4 h-4 text-amber-500" />
+            </div>
+            <div className="text-2xl font-bold text-amber-600">{stats.pending}</div>
+            <p className="text-xs text-slate-500 mt-1">Awaiting trust credential review</p>
           </div>
-          <div className="text-2xl font-bold text-amber-600">{stats.pending}</div>
-          <p className="text-xs text-slate-500 mt-1">Awaiting trust credential review</p>
-        </div>
 
-        <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-xs">
-          <div className="flex items-center justify-between text-slate-500 text-xs font-semibold mb-2">
-            <span>Active Job Postings</span>
-            <Briefcase className="w-4 h-4 text-indigo-500" />
+          <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-xs">
+            <div className="flex items-center justify-between text-slate-500 text-xs font-semibold mb-2">
+              <span>Active Job Postings</span>
+              <Briefcase className="w-4 h-4 text-indigo-500" />
+            </div>
+            <div className="text-2xl font-bold text-slate-900">{stats.totalJobs}</div>
+            <p className="text-xs text-slate-500 mt-1">Total listings across companies</p>
           </div>
-          <div className="text-2xl font-bold text-slate-900">{stats.totalJobs}</div>
-          <p className="text-xs text-slate-500 mt-1">Total listings across companies</p>
         </div>
-      </div>
+      )}
 
       {/* Filter Tabs & Search Bar */}
       <div className="bg-white border border-slate-200/80 rounded-2xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xs">
@@ -249,35 +261,70 @@ export default function AdminCompaniesPage() {
           ))}
         </div>
 
-        {/* Search */}
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            loadCompanies();
-          }}
-          className="relative w-full md:max-w-md"
-        >
-          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <Input
-            type="text"
-            placeholder="Search by company name, email, website..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-10 h-10 bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400 text-xs rounded-xl focus-visible:ring-sky-500"
-          />
-        </form>
-      </div>
+        {/* Search & View Mode Toggle */}
+        <div className="flex items-center gap-3 w-full md:max-w-lg">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              loadCompanies();
+            }}
+            className="relative flex-1"
+          >
+            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <Input
+              type="text"
+              placeholder="Search by company name, email, website..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-10 h-10 bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400 text-xs rounded-xl focus-visible:ring-sky-500"
+            />
+          </form>
 
-      {/* Companies Grid */}
-      {loading ? (
-        <div className="py-24 flex items-center justify-center">
-          <div className="text-center space-y-3">
-            <Loader2 className="w-8 h-8 text-sky-500 animate-spin mx-auto" />
-            <p className="text-xs font-semibold text-slate-500">
-              Loading company roster...
-            </p>
+          {/* Toggle View Mode: Table vs Grid */}
+          <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200/60 shrink-0">
+            <button
+              type="button"
+              onClick={() => setViewMode("table")}
+              className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+                viewMode === "table"
+                  ? "bg-white text-slate-900 shadow-xs"
+                  : "text-slate-600 hover:text-slate-900"
+              }`}
+              title="Table View"
+            >
+              <List className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Table</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode("grid")}
+              className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+                viewMode === "grid"
+                  ? "bg-white text-slate-900 shadow-xs"
+                  : "text-slate-600 hover:text-slate-900"
+              }`}
+              title="Grid View"
+            >
+              <LayoutGrid className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Grid</span>
+            </button>
           </div>
         </div>
+      </div>
+
+      {/* Main Companies Content: Table or Grid View */}
+      {viewMode === "table" ? (
+        <CompanyTable
+          companies={companies}
+          loading={loading}
+          uploadingLogoId={uploadingLogoId}
+          onLogoUpload={handleLogoUpload}
+          onToggleVerification={handleToggleVerification}
+          onDeleteCompany={(c) => setCompanyToDelete(c)}
+          onPreviewVideo={(url, name) => setPreviewVideo({ url, companyName: name })}
+        />
+      ) : loading ? (
+        <CompaniesGridSkeleton count={6} />
       ) : companies.length === 0 ? (
         <div className="py-20 text-center bg-white border border-slate-200 rounded-3xl p-8 space-y-3 shadow-xs">
           <div className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
@@ -561,7 +608,7 @@ export default function AdminCompaniesPage() {
             <CompanyVideoPlayer
               src={previewVideo.url}
               title={`${previewVideo.companyName} Culture Video`}
-              autoPlay={true}
+              autoPlay={false}
             />
           </div>
         </div>

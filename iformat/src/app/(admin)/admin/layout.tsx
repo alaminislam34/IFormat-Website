@@ -140,7 +140,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       group: "Platform & Services",
       items: [
         { label: "Homepage & Media", href: "/admin/homepage", icon: Film },
-        { label: "Staff & Leader Photos", href: "/admin/homepage?tab=leaders", icon: Users },
         { label: "Service Products", href: "/admin/services", icon: ShoppingBag },
         { label: "Consultation Bookings", href: "/admin/bookings", icon: Calendar },
         { label: "Contact Inquiries", href: "/admin/inquiries", icon: MessageSquare },

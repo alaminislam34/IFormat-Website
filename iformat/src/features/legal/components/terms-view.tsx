@@ -470,7 +470,7 @@ export function TermsView() {
                   </p>
                   <div className="pt-2 text-xs space-y-1 text-slate-400">
                     <p><strong className="text-white">Organization:</strong> iFormat Personal Branding & Career Network</p>
-                    <p><strong className="text-white">Email:</strong> <a href="mailto:devamin.bd@gmail.com" className="text-cyan-400 hover:underline">devamin.bd@gmail.com</a> / <a href="mailto:support@iformatbranding.com" className="text-cyan-400 hover:underline">support@iformatbranding.com</a></p>
+                    <p><strong className="text-white">Email:</strong> <a href="mailto:support@iformatbranding.com" className="text-cyan-400 hover:underline">support@iformatbranding.com</a></p>
                     <p><strong className="text-white">Live Portal:</strong> <a href="https://iformatbranding.com" className="text-cyan-400 hover:underline">https://iformatbranding.com</a></p>
                   </div>
                 </div>

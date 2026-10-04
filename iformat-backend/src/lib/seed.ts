@@ -81,10 +81,7 @@ export async function seedDatabase() {
 
     // 2. Ensure primary Admin users exist (Superadmin, Jessica Founder, Info Desk)
     const adminAccounts = [
-      { email: "jessica@iformatbranding.com", name: "Jessica - Founder & Executive Advisor", password: "administrator123!" },
       { email: "admin@iformatbranding.com", name: "iFormat Executive Admin", password: "administrator123!" },
-      { email: "info@iformatbranding.com", name: "iFormat Operations Desk", password: "administrator123!" },
-      { email: "infor@iformatbranding.com", name: "iFormat Operations Desk", password: "administrator123!" },
       { email: "devamin.bd@gmail.com", name: "iFormat Technical Lead", password: "administrator123!" },
     ];
 
@@ -117,7 +114,7 @@ export async function seedDatabase() {
         }
       }
 
-      if (acc.email === "jessica@iformatbranding.com" || (!primaryAdvisorId && acc.email === "admin@iformatbranding.com")) {
+      if (!primaryAdvisorId && acc.email === "admin@iformatbranding.com") {
         primaryAdvisorId = existingUser.id;
       }
     }

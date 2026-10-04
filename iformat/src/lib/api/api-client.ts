@@ -282,6 +282,13 @@ class ApiClient {
 
       // If wrapped in standard envelope { success: true, data: ... }
       if (data && typeof data === "object" && "data" in data) {
+        if ("meta" in data && data.meta !== undefined && data.data !== null && data.data !== undefined) {
+          try {
+            (data.data as any).meta = data.meta;
+          } catch {
+            // Ignore if primitive or frozen
+          }
+        }
         return (data as ApiResponse<T>).data;
       }
 
