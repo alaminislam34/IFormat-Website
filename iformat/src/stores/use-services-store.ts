@@ -27,12 +27,21 @@ interface ServicesState {
   saveToBackend: () => Promise<void>;
 }
 
+const mapToCloudFront = (url?: string): string => {
+  if (!url) return "";
+  if (url.includes("images.unsplash.com")) return "";
+  return url.replace(
+    /https:\/\/(?:ifromat-media-db\.s3[.-][^/]+|s3[.-][^/]+\/ifromat-media-db)/g,
+    "https://d27emhc73cwv74.cloudfront.net"
+  );
+};
+
 export const useServicesStore = create<ServicesState>()(
   persist(
     (set, get) => ({
       services: SERVICES_DATA.map((s) => ({
         ...s,
-        image: s.image?.includes("images.unsplash.com") ? "" : s.image,
+        image: mapToCloudFront(s.image),
         isActive: true,
         createdAt: new Date().toISOString(),
       })),
@@ -54,6 +63,7 @@ export const useServicesStore = create<ServicesState>()(
         const created: ServiceProductWithStatus = {
           ...newService,
           id,
+          image: mapToCloudFront(newService.image),
           isActive: newService.isActive !== undefined ? newService.isActive : true,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
@@ -72,6 +82,7 @@ export const useServicesStore = create<ServicesState>()(
               ? {
                   ...service,
                   ...updated,
+                  image: updated.image !== undefined ? mapToCloudFront(updated.image) : service.image,
                   updatedAt: new Date().toISOString(),
                 }
               : service
@@ -105,6 +116,7 @@ export const useServicesStore = create<ServicesState>()(
       resetToDefaults: () => {
         const resetServices = SERVICES_DATA.map((s) => ({
           ...s,
+          image: mapToCloudFront(s.image),
           isActive: true,
           createdAt: new Date().toISOString(),
         }));
@@ -123,10 +135,14 @@ export const useServicesStore = create<ServicesState>()(
                 ? JSON.parse(data.homepage_services)
                 : data.homepage_services;
             if (Array.isArray(remoteServices) && remoteServices.length > 0) {
-              const cleanedServices = remoteServices.map((s: any) => ({
-                ...s,
-                image: s.image?.includes("images.unsplash.com") ? "" : s.image,
-              }));
+              const cleanedServices = remoteServices.map((s: any) => {
+                const defaultItem = SERVICES_DATA.find((d) => d.id === s.id);
+                const mappedImg = mapToCloudFront(s.image) || defaultItem?.image || "";
+                return {
+                  ...s,
+                  image: mappedImg,
+                };
+              });
               set({ services: cleanedServices });
             }
           }
@@ -155,6 +171,46 @@ export const useServicesStore = create<ServicesState>()(
       name: "iformat-services-storage",
       storage: createJSONStorage(() => localStorage),
       onRehydrateStorage: () => (state) => {
+        if (state && Array.isArray(state.services)) {
+          state.services = state.services.map((s) => {
+            const defaultItem = SERVICES_DATA.find((d) => d.id === s.id);
+            let updatedImage = mapToCloudFront(s.image);
+            if (!updatedImage && defaultItem?.image) {
+              updatedImage = defaultItem.image;
+            }
+            const finalImage = updatedImage || defaultItem?.image || "";
+
+            if (s.id === "personal-brand-builder" || s.title === "Personal Brand Builder") {
+              return {
+                ...s,
+                id: "brand-equity-builder",
+                title: "Brand Equity Builder",
+                image: finalImage,
+              };
+            }
+            if (s.id === "strategic-branding" || s.title === "Strategic Corporate & Founder Branding") {
+              return {
+                ...s,
+                id: "executive-strategic-cv-linkedin",
+                title: "Executive Strategic CV and Linkedin",
+                image: finalImage,
+              };
+            }
+            if (s.id === "career-hosting-package" || s.title === "Career Hosting & Portfolio Package") {
+              return {
+                ...s,
+                id: "career-hunting-readiness",
+                title: "Career Hunting Readiness",
+                category: "Career Acceleration",
+                image: finalImage,
+              };
+            }
+            return {
+              ...s,
+              image: finalImage,
+            };
+          });
+        }
         state?.setHydrated(true);
       },
     }

@@ -2,15 +2,15 @@ import { ServiceProduct } from "../components/product-detail-modal";
 
 export const SERVICES_DATA: ServiceProduct[] = [
   {
-    id: "personal-brand-builder",
-    title: "Personal Brand Builder",
+    id: "brand-equity-builder",
+    title: "Brand Equity Builder",
     price: "$199",
     priceNum: 199,
     deliveryTime: "3-5 Business Days",
     category: "Executive Suite",
     badge: "Most Popular",
     tagline: "Comprehensive end-to-end professional repositioning for market authority.",
-    image: "",
+    image: "https://d27emhc73cwv74.cloudfront.net/uploads/media-1790811134410-430488244.png",
     description:
       "Transform your professional presence across all digital touchpoints. Our senior brand architects craft a high-impact narrative that positions you as a leading domain authority to recruiters, investors, and executive search firms.",
     deliverables: [
@@ -24,15 +24,15 @@ export const SERVICES_DATA: ServiceProduct[] = [
     methodology: "Blends Psycholinguistic Narrative Frameworks with proprietary ATS Keyword Topology.",
   },
   {
-    id: "strategic-branding",
-    title: "Strategic Corporate & Founder Branding",
+    id: "executive-strategic-cv-linkedin",
+    title: "Executive Strategic CV and Linkedin",
     price: "$249",
     priceNum: 249,
     deliveryTime: "4-6 Business Days",
     category: "Founders & C-Suite",
     badge: "Premium",
     tagline: "High-stakes executive branding for founders, partners, and enterprise executives.",
-    image: "",
+    image: "https://d27emhc73cwv74.cloudfront.net/uploads/media-1790811368062-83879163.png",
     description:
       "Engineered for founders and C-Suite leaders whose personal reputation directly impacts business valuation, stakeholder trust, and media presence. Establishes indisputable industry authority.",
     deliverables: [
@@ -46,25 +46,25 @@ export const SERVICES_DATA: ServiceProduct[] = [
     methodology: "Neuro-Linguistic Framing combined with Corporate Stakeholder Perception Mapping.",
   },
   {
-    id: "career-hosting-package",
-    title: "Career Hosting & Portfolio Package",
+    id: "career-hunting-readiness",
+    title: "Career Hunting Readiness",
     price: "$129",
     priceNum: 129,
     deliveryTime: "2-4 Business Days",
-    category: "Digital Assets",
-    tagline: "A live, interactive digital portfolio showcasing your verified career milestones.",
-    image: "",
+    category: "Career Acceleration",
+    tagline: "Total job-search alignment, recruiter outreach optimization, and interview readiness.",
+    image: "https://d27emhc73cwv74.cloudfront.net/uploads/media-1790811530945-619777906.png",
     description:
-      "Stand out in competitive recruitment pipelines with a dedicated, custom-branded career microsite. Host your case studies, certifications, recommendations, and executive metrics.",
+      "Stand out in competitive recruitment pipelines with end-to-end career hunting readiness. Optimize your recruiter outreach, interview strategy, case studies, and salary negotiation positioning.",
     deliverables: [
-      "Personalized Live Web Portfolio Link & QR Code",
-      "Interactive Case Study & Project Showcase",
-      "Integrated 1-Click Meeting Scheduler for Recruiters",
-      "Real-time Analytics on Recruiter Views & Downloads",
-      "1-Year High-Speed Cloud Hosting Included",
+      "Recruiter Search Optimization & Direct Messaging Scripts",
+      "Interactive Case Study & Project Milestones Showcase",
+      "Behavioral & Executive Interview Preparation Toolkit",
+      "Real-time Recruiter Market Readiness Guidance",
+      "Dedicated Career Acceleration Advisory",
     ],
-    audience: "Product Leaders, Technical Architects, Consultants, and Creative Executives.",
-    methodology: "High-conversion UX design optimized for fast recruiter scanning and mobile viewing.",
+    audience: "Product Leaders, Technical Architects, Consultants, and Ambitious Professionals.",
+    methodology: "High-conversion strategic positioning calibrated for modern enterprise recruiting cycles.",
   },
   {
     id: "ats-compliant-cv",
@@ -75,7 +75,7 @@ export const SERVICES_DATA: ServiceProduct[] = [
     category: "Resume Engineering",
     badge: "Best Value",
     tagline: "Scientifically engineered to score 98%+ on Taleo, Workday, Greenhouse & Lever.",
-    image: "",
+    image: "https://d27emhc73cwv74.cloudfront.net/uploads/media-1790811808104-613258730.png",
     description:
       "Eliminate the black hole of online applications. Our ATS specialists reformat, restructure, and optimize your resume typography, hierarchy, and keywords to pass all modern enterprise tracking bots.",
     deliverables: [
@@ -96,7 +96,7 @@ export const SERVICES_DATA: ServiceProduct[] = [
     deliveryTime: "24-48 Hours",
     category: "Application Suite",
     tagline: "Compelling storytelling letters that grab hiring managers within the first 6 seconds.",
-    image: "",
+    image: "https://d27emhc73cwv74.cloudfront.net/uploads/media-1790784953307-775277519.png",
     description:
       "Move beyond generic templates. Receive a tailored, modular cover letter framework designed to showcase your unique value proposition, cultural fit, and immediate business impact.",
     deliverables: [
@@ -116,7 +116,7 @@ export const SERVICES_DATA: ServiceProduct[] = [
     deliveryTime: "2-3 Business Days",
     category: "Career Agility",
     tagline: "Tailor your application profile for different industries, niches, or dual career paths.",
-    image: "",
+    image: "https://d27emhc73cwv74.cloudfront.net/uploads/media-1790784991697-114990127.png",
     description:
       "Don't apply with a one-size-fits-all CV. We create 2 tailored resume variations targeting distinct industry sub-domains or dual specialties (e.g., Engineering Lead vs. Product Architect).",
     deliverables: [

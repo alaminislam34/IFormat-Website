@@ -27,6 +27,7 @@ import {
   ServiceProduct,
 } from "@/features/services/components/product-detail-modal";
 import { AuthPromptModal } from "@/components/auth/auth-prompt-modal";
+import { getMediaUrl } from "@/lib/utils";
 
 export default function ServicesPage() {
   const router = useRouter();
@@ -162,10 +163,8 @@ export default function ServicesPage() {
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
               {activeServices.map((service, idx) => {
-                const hasValidImage =
-                  service.image &&
-                  !service.image.includes("images.unsplash.com") &&
-                  service.image.trim() !== "";
+                const mediaUrl = getMediaUrl(service.image);
+                const hasValidImage = Boolean(mediaUrl && mediaUrl.trim() !== "");
 
                 return (
                   <ScrollReveal key={service.id} yOffset={30} delay={idx * 0.05}>
@@ -176,10 +175,10 @@ export default function ServicesPage() {
                       <div className="h-52 overflow-hidden relative bg-slate-900">
                         {hasValidImage ? (
                           <Image
-                            src={service.image}
+                            src={mediaUrl}
                             alt={service.title}
                             fill
-                            unoptimized={service.image?.startsWith("http") || service.image?.startsWith("data:")}
+                            unoptimized
                             className="object-cover group-hover:scale-105 transition-transform duration-500 opacity-90"
                           />
                         ) : (

@@ -14,6 +14,29 @@ const DEFAULT_SYSTEM_SETTINGS: Record<string, string> = {
   CONTACT_EMAIL: "infor@iformatbranding.com",
 };
 
+function mapS3ToCloudFront(val: any): any {
+  if (typeof val === "string") {
+    const cfDomain =
+      env.AWS_CLOUDFRONT_DOMAIN?.replace(/^https?:\/\//, "").replace(/\/+$/, "") ||
+      "d27emhc73cwv74.cloudfront.net";
+    return val.replace(
+      /https:\/\/(?:ifromat-media-db\.s3[.-][^/]+|s3[.-][^/]+\/ifromat-media-db)/g,
+      `https://${cfDomain}`
+    );
+  }
+  if (Array.isArray(val)) {
+    return val.map(mapS3ToCloudFront);
+  }
+  if (val !== null && typeof val === "object") {
+    const mapped: Record<string, any> = {};
+    for (const [k, v] of Object.entries(val)) {
+      mapped[k] = mapS3ToCloudFront(v);
+    }
+    return mapped;
+  }
+  return val;
+}
+
 export class SettingService {
   /**
    * Get all system settings as a key-value dictionary
@@ -24,9 +47,10 @@ export class SettingService {
     const settingsMap: Record<string, any> = { ...DEFAULT_SYSTEM_SETTINGS };
     for (const row of rows) {
       try {
-        settingsMap[row.key] = JSON.parse(row.value);
+        const parsed = JSON.parse(row.value);
+        settingsMap[row.key] = mapS3ToCloudFront(parsed);
       } catch {
-        settingsMap[row.key] = row.value;
+        settingsMap[row.key] = mapS3ToCloudFront(row.value);
       }
     }
 

@@ -50,8 +50,11 @@ export async function saveUploadedBuffer(params: {
           ContentType: mimeType,
         })
       );
-      const url = `https://${env.AWS_S3_BUCKET}.s3.${env.AWS_REGION}.amazonaws.com/${s3Key}`;
-      logger.info(`✅ File uploaded to S3: ${url}`);
+      const cfDomain = env.AWS_CLOUDFRONT_DOMAIN?.replace(/^https?:\/\//, "").replace(/\/+$/, "");
+      const url = cfDomain
+        ? `https://${cfDomain}/${s3Key}`
+        : `https://${env.AWS_S3_BUCKET}.s3.${env.AWS_REGION}.amazonaws.com/${s3Key}`;
+      logger.info(`✅ File uploaded to S3 / CloudFront: ${url}`);
       return { url, storedName };
     } catch (s3Error) {
       logger.warn("S3 upload failed, falling back to local file storage:", s3Error);
@@ -72,7 +75,25 @@ export async function saveUploadedBuffer(params: {
     logger.info(`✅ File saved locally: ${url}`);
     return { url, storedName };
   } catch (fsErr: any) {
-    logger.error("Local file storage write error:", fsErr);
-    throw new Error(`File storage error: ${fsErr?.message || "Failed to save file locally"}`);
+    logger.error("Local file storage write error, attempting /tmp fallback:", fsErr);
+
+    // Fallback tier 2: /tmp directory
+    try {
+      const tmpDir = path.resolve("/tmp", "uploads");
+      if (!fs.existsSync(tmpDir)) {
+        fs.mkdirSync(tmpDir, { recursive: true });
+      }
+      fs.writeFileSync(path.join(tmpDir, storedName), buffer);
+      const host = req?.get("host") || `localhost:${env.PORT}`;
+      const url = `https://${host}/uploads/${storedName}`;
+      logger.info(`✅ File saved in /tmp fallback: ${url}`);
+      return { url, storedName };
+    } catch (tmpErr) {
+      logger.warn("Could not save to /tmp, converting to data URI fallback:", tmpErr);
+    }
+
+    // Fallback tier 3: Inline base64 data URI so user application never fails
+    const dataUri = `data:${mimeType};base64,${buffer.toString("base64")}`;
+    return { url: dataUri, storedName };
   }
 }

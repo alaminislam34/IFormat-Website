@@ -51,11 +51,12 @@ const envSchema = z.object({
   STRIPE_PRODUCT_GROW: z.string().optional(),
   STRIPE_PRODUCT_PROFESSIONAL: z.string().optional(),
 
-  // AWS S3
+  // AWS S3 & CloudFront CDN
   AWS_ACCESS_KEY_ID: z.string().optional(),
   AWS_SECRET_ACCESS_KEY: z.string().optional(),
   AWS_REGION: z.string().default("eu-central-1"),
   AWS_S3_BUCKET: z.string().default("ifromat-media-db"),
+  AWS_CLOUDFRONT_DOMAIN: z.string().optional().default("d27emhc73cwv74.cloudfront.net"),
 
   // SMTP (Amazon SES / Mail Manager)
   SMTP_HOST: z.string().default("q84n3pze5dfb.zevm.mail-manager-smtp.amazonaws.com"),

@@ -88,10 +88,11 @@ const PARTNER_LOGOS: PartnerLogo[] = [
 ];
 
 export function Partners() {
+  const marqueeItems = [...PARTNER_LOGOS, ...PARTNER_LOGOS];
+
   return (
     <section className="py-20 sm:py-24 bg-white border-t border-slate-100 overflow-hidden" id="partners">
-      <div className="max-w-7xl mx-auto px-6">
-        {/* Section Header using SectionHeader component */}
+      <div className="max-w-7xl mx-auto px-6 mb-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -100,36 +101,45 @@ export function Partners() {
         >
           <SectionHeader
             title="Our Partners"
-            className="mb-14 sm:mb-16"
+            className="mb-6"
           >
             <div className="w-14 h-1 bg-[#00D2EE] rounded-full mx-auto -mt-2" />
           </SectionHeader>
         </motion.div>
+      </div>
 
-        {/* Partners Logos Grid: 2 rows of 5 on desktop */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-8 sm:gap-10 lg:gap-12 items-center justify-items-center">
-          {PARTNER_LOGOS.map((partner, idx) => (
-            <motion.div
-              key={partner.id}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-30px" }}
-              transition={{ duration: 0.4, delay: idx * 0.05 }}
-              className="w-full flex items-center justify-center p-3 h-20 sm:h-24"
+      {/* Infinite Horizontal Smooth Marquee (Flowing Right to Left) */}
+      <div className="relative w-full overflow-hidden py-4">
+        {/* Edge Gradient Fades */}
+        <div className="pointer-events-none absolute inset-y-0 left-0 w-24 bg-linear-to-r from-white to-transparent z-10" />
+        <div className="pointer-events-none absolute inset-y-0 right-0 w-24 bg-linear-to-l from-white to-transparent z-10" />
+
+        <motion.div
+          className="flex items-center gap-12 sm:gap-16 w-max"
+          animate={{ x: ["0%", "-50%"] }}
+          transition={{
+            repeat: Infinity,
+            repeatType: "loop",
+            duration: 28,
+            ease: "linear",
+          }}
+        >
+          {marqueeItems.map((partner, idx) => (
+            <div
+              key={`${partner.id}-${idx}`}
+              className="flex items-center justify-center shrink-0 px-4 py-2 group cursor-pointer"
             >
-              <div className="relative w-full h-full flex items-center justify-center">
-                <Image
-                  src={partner.src}
-                  alt={partner.name}
-                  width={partner.width}
-                  height={partner.height}
-                  className="max-h-12 sm:max-h-14 md:max-h-16 w-auto object-contain transition-transform duration-300"
-                  priority={idx < 5}
-                />
-              </div>
-            </motion.div>
+              <Image
+                src={partner.src}
+                alt={partner.name}
+                width={partner.width}
+                height={partner.height}
+                className="max-h-12 sm:max-h-14 w-auto object-contain filter grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-300 transform group-hover:scale-105"
+                priority={idx < 5}
+              />
+            </div>
           ))}
-        </div>
+        </motion.div>
       </div>
     </section>
   );

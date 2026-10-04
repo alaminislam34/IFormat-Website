@@ -20,6 +20,7 @@ import {
   Calendar,
   Sparkles,
   Upload,
+  Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,6 +40,10 @@ export default function AdminCompaniesPage() {
 
   // Video Preview Modal State
   const [previewVideo, setPreviewVideo] = useState<{ url: string; companyName: string } | null>(null);
+
+  // Delete Company Modal State
+  const [companyToDelete, setCompanyToDelete] = useState<AdminUserItemDTO | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleLogoUpload = async (companyId: string, file: File) => {
     try {
@@ -109,6 +114,27 @@ export default function AdminCompaniesPage() {
         text: err.message || "Failed to update verification status",
         type: "error",
       });
+    }
+  };
+
+  const handleConfirmDeleteCompany = async () => {
+    if (!companyToDelete) return;
+    try {
+      setIsDeleting(true);
+      await adminService.softDeleteUser(companyToDelete.id);
+      setToastMessage({
+        text: `Company '${companyToDelete.companyName || companyToDelete.name}' and its job listings have been deleted.`,
+        type: "success",
+      });
+      setCompanyToDelete(null);
+      loadCompanies();
+    } catch (err: any) {
+      setToastMessage({
+        text: err?.message || "Failed to delete company",
+        type: "error",
+      });
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -430,11 +456,11 @@ export default function AdminCompaniesPage() {
                   </div>
                 </div>
 
-                {/* Verification Action Button */}
-                <div className="pt-2">
+                {/* Actions: Verification & Delete Company */}
+                <div className="pt-2 flex items-center gap-2">
                   <Button
                     onClick={() => handleToggleVerification(c)}
-                    className={`w-full h-10 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                    className={`flex-1 h-10 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                       c.isVerifiedCompany
                         ? "bg-white hover:bg-rose-50 text-slate-700 hover:text-rose-700 border border-slate-200 hover:border-rose-200 shadow-xs"
                         : "bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs"
@@ -443,19 +469,75 @@ export default function AdminCompaniesPage() {
                     {c.isVerifiedCompany ? (
                       <span className="flex items-center gap-1.5">
                         <X className="w-3.5 h-3.5" />
-                        Revoke Verification Badge
+                        Revoke Badge
                       </span>
                     ) : (
                       <span className="flex items-center gap-1.5">
                         <Sparkles className="w-3.5 h-3.5" />
-                        Grant Verified Trust Badge
+                        Grant Verified Badge
                       </span>
                     )}
                   </Button>
+
+                  <button
+                    type="button"
+                    onClick={() => setCompanyToDelete(c)}
+                    className="h-10 px-3 rounded-xl border border-red-200 bg-red-50/50 text-red-600 hover:bg-red-100/80 hover:text-red-700 transition-colors cursor-pointer flex items-center justify-center shrink-0 shadow-xs"
+                    title={`Delete ${companyDisplayName} and hide its job postings`}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Delete Company Confirmation Modal */}
+      {companyToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
+          <div className="relative w-full max-w-md bg-white border border-slate-200 rounded-3xl p-6 shadow-2xl space-y-4">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-red-100 text-red-600 flex items-center justify-center shrink-0">
+                <Trash2 className="w-5 h-5" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-base font-bold text-slate-900">
+                  Delete Company & Job Postings?
+                </h3>
+                <p className="text-xs text-slate-500 leading-relaxed">
+                  Are you sure you want to delete <strong className="text-slate-800 font-semibold">{companyToDelete.companyName || companyToDelete.name}</strong>?
+                  This will soft-delete the employer profile and immediately hide all associated job listings from the public job board.
+                </p>
+              </div>
+            </div>
+
+            <div className="pt-3 flex items-center justify-end gap-2.5">
+              <Button
+                variant="outline"
+                onClick={() => setCompanyToDelete(null)}
+                disabled={isDeleting}
+                className="h-9 px-4 rounded-xl text-xs font-semibold cursor-pointer"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleConfirmDeleteCompany}
+                disabled={isDeleting}
+                className="h-9 px-4 rounded-xl text-xs font-semibold bg-red-600 hover:bg-red-700 text-white flex items-center gap-1.5 cursor-pointer"
+              >
+                {isDeleting ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <span>Deleting...</span>
+                  </>
+                ) : (
+                  <span>Delete Company</span>
+                )}
+              </Button>
+            </div>
+          </div>
         </div>
       )}
 

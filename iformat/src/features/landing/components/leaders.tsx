@@ -10,6 +10,7 @@ import {
   useLandingContentStore,
   DEFAULT_LEADERS_SETTINGS,
 } from "@/stores/use-landing-content-store";
+import { getMediaUrl } from "@/lib/utils";
 
 function LeadersSkeleton() {
   return (
@@ -73,10 +74,8 @@ export function Leaders() {
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-5">
           {members.map((leader, idx) => {
-            const hasValidImage =
-              leader.image &&
-              !leader.image.includes("images.unsplash.com") &&
-              leader.image.trim() !== "";
+            const mediaUrl = getMediaUrl(leader.image);
+            const hasValidImage = Boolean(mediaUrl && mediaUrl.trim() !== "");
 
             return (
               <motion.div 
@@ -89,10 +88,10 @@ export function Leaders() {
               >
                 {hasValidImage ? (
                   <Image 
-                    src={leader.image} 
+                    src={mediaUrl} 
                     alt={leader.name}
                     fill
-                    unoptimized={leader.image?.startsWith("http") || leader.image?.startsWith("data:")}
+                    unoptimized
                     className="object-cover object-top group-hover:scale-105 transition-transform duration-700"
                   />
                 ) : (

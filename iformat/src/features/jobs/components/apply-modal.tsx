@@ -186,8 +186,12 @@ export function ApplyModal({ job, isOpen, onClose, onApplied }: ApplyModalProps)
         finalCvId = uploadRes.id;
         refetchCVs();
       } catch (err: any) {
-        // Upload failure is an async server error — inline banner
-        setResumeError(err?.message || "Failed to read your resume. Please upload a text-based PDF.");
+        const errorMsg =
+          err?.response?.data?.message ||
+          (err?.message && !err.message.toLowerCase().includes("internal server error")
+            ? err.message
+            : "We had trouble reading this PDF. Please verify it is a valid PDF or try again.");
+        setResumeError(errorMsg);
         setIsUploadingFile(false);
         return;
       } finally {

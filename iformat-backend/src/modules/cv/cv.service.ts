@@ -81,27 +81,42 @@ export class CVService {
       rawText = `Uploaded PDF Resume: ${file.originalname || "Candidate CV"}`;
     }
 
-    const stored = await saveUploadedBuffer({
-      buffer: file.buffer,
-      originalName: file.originalname || "resume.pdf",
-      mimeType: file.mimetype || "application/pdf",
-      prefix: "resume",
-      req: options.req,
-    });
+    let stored;
+    try {
+      stored = await saveUploadedBuffer({
+        buffer: file.buffer,
+        originalName: file.originalname || "resume.pdf",
+        mimeType: file.mimetype || "application/pdf",
+        prefix: "resume",
+        req: options.req,
+      });
+    } catch (storageError: any) {
+      logger.error("Storage error during PDF CV upload:", storageError);
+      // Fallback inline data URI
+      stored = {
+        url: `data:${mime};base64,${file.buffer.toString("base64")}`,
+        storedName: `resume-${Date.now()}.pdf`,
+      };
+    }
 
-    return this.createCV(userId, {
-      title: options.title || `Resume: ${file.originalname || "Uploaded PDF"}`,
-      content: {
-        source: "pdf_upload",
-        fileName: file.originalname,
-        fileSize: file.size,
-        fileType: file.mimetype,
-        fileUrl: stored.url,
-        uploadedAt: new Date().toISOString(),
-        parseStatus: "extracted",
-        raw_text: rawText,
-      },
-    });
+    try {
+      return await this.createCV(userId, {
+        title: options.title || `Resume: ${file.originalname || "Uploaded PDF"}`,
+        content: {
+          source: "pdf_upload",
+          fileName: file.originalname,
+          fileSize: file.size,
+          fileType: file.mimetype,
+          fileUrl: stored.url,
+          uploadedAt: new Date().toISOString(),
+          parseStatus: "extracted",
+          raw_text: rawText,
+        },
+      });
+    } catch (dbErr: any) {
+      logger.error("Database error saving uploaded CV record:", dbErr);
+      throw new BadRequestError("Unable to save resume profile. Please try again.");
+    }
   }
 
   static async saveNewVersion(cvId: string, userId: string, content: any) {

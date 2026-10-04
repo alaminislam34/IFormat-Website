@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AnimatePresence } from "framer-motion";
-import { Eye, EyeOff, Mail, Lock } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { AuthLayout } from "@/features/auth/components/auth-layout";
 import { LoadingScreen } from "@/features/auth/components/loading-screen";
@@ -232,8 +232,16 @@ function LoginContent() {
             >
               Sign in
             </button>
-          <GoogleAuthButton label="Sign in with Google" />
+            <GoogleAuthButton label="Sign in with Google" />
 
+            {/* Email Delivery / Spam Folder Notice */}
+            <div className="mt-4 p-3.5 rounded-xl bg-amber-50/80 border border-amber-200 text-[11px] leading-relaxed text-amber-900 flex items-start gap-2.5 shadow-xs">
+              <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+              <div>
+                <span className="font-bold text-amber-950">Expecting an email or verification code? </span>
+                <span>Please check your <strong className="font-semibold text-amber-950">Spam or Junk folder</strong> if it does not appear in your inbox within a few minutes, or add <span className="font-medium text-amber-950 underline decoration-amber-300">info@iformatbranding.com</span> to your safe sender list.</span>
+              </div>
+            </div>
           </form>
         </div>
       </AuthLayout>

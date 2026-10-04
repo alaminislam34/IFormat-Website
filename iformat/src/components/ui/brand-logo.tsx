@@ -33,14 +33,14 @@ export function BrandLogo({
 
   const content = (
     <div
-      className={`inline-flex items-center group cursor-pointer select-none transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98] ${className}`}
+      className={`inline-flex items-center group cursor-pointer select-none transition-transform ${className}`}
     >
       <Image
         src={logoSrc}
         alt="iFormat Branding"
         width={currentSize.width}
         height={currentSize.height}
-        className={`${currentSize.className} object-contain transition-opacity duration-200 group-hover:opacity-95`}
+        className={`${currentSize.className} object-contain transition-opacity duration-200`}
         priority={priority}
       />
     </div>

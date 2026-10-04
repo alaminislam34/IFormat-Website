@@ -16,6 +16,7 @@ import {
   CreditCard,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { getMediaUrl } from "@/lib/utils";
 
 export interface ServiceProduct {
   id: string;
@@ -79,19 +80,22 @@ export function ProductDetailModal({
           >
             {/* Header Image & Close Button */}
             <div className="relative h-48 sm:h-56 w-full bg-slate-900 shrink-0 overflow-hidden">
-              {product.image && !product.image.includes("images.unsplash.com") && product.image.trim() !== "" ? (
-                <Image
-                  src={product.image}
-                  alt={product.title}
-                  fill
-                  unoptimized={product.image?.startsWith("http") || product.image?.startsWith("data:")}
-                  className="object-cover opacity-80"
-                />
-              ) : (
-                <div className="w-full h-full bg-linear-to-br from-[#004AAD] via-[#052b5b] to-slate-950 flex items-center justify-center relative">
-                  <div className="absolute inset-0 bg-radial from-cyan-400/20 via-transparent to-transparent pointer-events-none" />
-                </div>
-              )}
+              {(() => {
+                const mediaUrl = getMediaUrl(product.image);
+                return mediaUrl ? (
+                  <Image
+                    src={mediaUrl}
+                    alt={product.title}
+                    fill
+                    unoptimized
+                    className="object-cover opacity-80"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-linear-to-br from-[#004AAD] via-[#052b5b] to-slate-950 flex items-center justify-center relative">
+                    <div className="absolute inset-0 bg-radial from-cyan-400/20 via-transparent to-transparent pointer-events-none" />
+                  </div>
+                );
+              })()}
               <div className="absolute inset-0 bg-linear-to-t from-slate-950/90 via-slate-950/40 to-transparent" />
 
               {/* Close button */}

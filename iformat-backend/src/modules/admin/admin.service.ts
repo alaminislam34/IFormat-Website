@@ -253,6 +253,17 @@ export class AdminService {
       },
     });
 
+    // If an employer is soft-deleted, hide all their job postings as well
+    if (user.role === Role.EMPLOYER) {
+      await prisma.jobPosting.updateMany({
+        where: { employerId: userId, isDeleted: false },
+        data: {
+          isDeleted: true,
+          deletedAt: new Date(),
+        },
+      });
+    }
+
     await this.logAction(
       adminId,
       AuditAction.USER_SOFT_DELETED,

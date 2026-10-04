@@ -83,6 +83,7 @@ export const DEFAULT_BRANDING_PLANS: PricingCardItem[] = [
 export function Pricing() {
   const router = useRouter();
   const { isAuthenticated } = useAuthStore();
+  const [commitmentInterval, setCommitmentInterval] = useState<"6_MONTHS" | "12_MONTHS">("6_MONTHS");
   const [plans, setPlans] = useState<PricingCardItem[]>(DEFAULT_BRANDING_PLANS);
   const [loadingPlanCode, setLoadingPlanCode] = useState<string | null>(null);
   const [subscription, setSubscription] = useState<UserSubscriptionDetailsDTO | null>(null);
@@ -209,7 +210,10 @@ export function Pricing() {
   return (
     <section id="pricing" className="py-24 px-6 bg-slate-50/50 relative overflow-hidden">
       <div className="max-w-7xl mx-auto space-y-14">
-        <PricingHeader />
+        <PricingHeader
+          commitmentInterval={commitmentInterval}
+          setCommitmentInterval={setCommitmentInterval}
+        />
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
           {plans.map((item) => {
@@ -221,8 +225,30 @@ export function Pricing() {
                   (item.id && currentPlan.id === item.id))
             );
 
+            // Compute price and badge based on 6 vs 12 months commitment
+            let displayPrice = item.price;
+            let commitmentBadge =
+              commitmentInterval === "12_MONTHS"
+                ? "12 Months Commitment (Best Value)"
+                : "6 Months Commitment";
+
+            if (item.price && !item.isContactUs) {
+              const baseNum = parseFloat(item.price.replace(/[^0-9.]/g, ""));
+              if (!isNaN(baseNum) && baseNum > 0) {
+                if (commitmentInterval === "12_MONTHS") {
+                  // 15% discount for 12 months commitment
+                  const discounted = Math.round(baseNum * 0.85);
+                  displayPrice = `$${discounted}`;
+                } else {
+                  displayPrice = `$${baseNum}`;
+                }
+              }
+            }
+
             const cardItem: PricingCardItem = {
               ...item,
+              price: displayPrice,
+              commitmentBadge,
               isCurrent,
               hasActiveSub: isPaidActive,
             };

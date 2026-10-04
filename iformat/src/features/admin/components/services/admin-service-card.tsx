@@ -31,13 +31,25 @@ export function AdminServiceCard({
     >
       {/* Top Image Preview & Badges */}
       <div className="h-44 relative bg-slate-900 overflow-hidden">
-        <Image
-          src={service.image}
-          alt={service.title}
-          fill
-          className="object-cover opacity-85 group-hover:scale-105 transition-transform duration-500"
-        />
-        <div className="absolute inset-0 bg-linear-to-t from-slate-950/80 via-transparent to-transparent" />
+        {service.image ? (
+          <Image
+            src={service.image}
+            alt={service.title}
+            fill
+            unoptimized
+            className="object-cover opacity-85 group-hover:scale-105 transition-transform duration-500"
+          />
+        ) : (
+          <div className="w-full h-full bg-linear-to-br from-[#004AAD] via-[#002868] to-slate-950 flex flex-col items-center justify-center p-6 text-center">
+            <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center mb-1">
+              <EyeOff className="w-5 h-5 text-cyan-300" />
+            </div>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-cyan-200/90">
+              No Cover Uploaded
+            </span>
+          </div>
+        )}
+        <div className="absolute inset-0 bg-linear-to-t from-slate-950/80 via-transparent to-transparent pointer-events-none" />
 
         {/* Top Badges */}
         <div className="absolute top-3 left-3 flex flex-wrap gap-2 z-10">

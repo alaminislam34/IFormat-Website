@@ -179,6 +179,7 @@ export function AdminServiceTable({
                               src={service.image}
                               alt={service.title}
                               fill
+                              unoptimized
                               className="object-cover"
                             />
                           ) : (

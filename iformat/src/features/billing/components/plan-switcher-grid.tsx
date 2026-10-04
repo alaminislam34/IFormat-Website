@@ -91,17 +91,49 @@ export function PlanSwitcherGrid({
   onUpgradePlan,
 }: PlanSwitcherGridProps) {
   const [isConsultModalOpen, setIsConsultModalOpen] = useState(false);
+  const [commitmentInterval, setCommitmentInterval] = useState<"6_MONTHS" | "12_MONTHS">("6_MONTHS");
   const currentPlan = subscription?.plan;
 
   return (
     <div id="available-plans" className="space-y-8 pt-6">
-      <div>
-        <h3 className="text-2xl sm:text-3xl font-extrabold text-[#0B1528] tracking-tight">
-          Available Membership & Branding Tiers
-        </h3>
-        <p className="text-xs text-[#64748B] mt-1 max-w-xl">
-          Choose the membership that fits your career or hiring roadmap. Upgrade anytime with instant activation.
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h3 className="text-2xl sm:text-3xl font-extrabold text-[#0B1528] tracking-tight">
+            Available Membership & Branding Tiers
+          </h3>
+          <p className="text-xs text-[#64748B] mt-1 max-w-xl">
+            Choose the membership that fits your career or hiring roadmap. Upgrade anytime with instant activation.
+          </p>
+        </div>
+
+        {/* 6 vs 12 Months Commitment Switcher */}
+        <div className="p-1 bg-slate-100 rounded-2xl inline-flex items-center border border-slate-200 self-start sm:self-auto shrink-0 shadow-xs">
+          <button
+            type="button"
+            onClick={() => setCommitmentInterval("6_MONTHS")}
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+              commitmentInterval === "6_MONTHS"
+                ? "bg-white text-[#0A54B1] shadow-xs"
+                : "text-slate-500 hover:text-slate-900"
+            }`}
+          >
+            6 Months
+          </button>
+          <button
+            type="button"
+            onClick={() => setCommitmentInterval("12_MONTHS")}
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+              commitmentInterval === "12_MONTHS"
+                ? "bg-white text-[#0A54B1] shadow-xs"
+                : "text-slate-500 hover:text-slate-900"
+            }`}
+          >
+            <span>12 Months</span>
+            <span className="px-1.5 py-0.5 rounded text-[10px] font-extrabold bg-sky-100 text-[#004AAD]">
+              Save 15%
+            </span>
+          </button>
+        </div>
       </div>
 
       {/* 4 Cards Exactly Matching Website & Figma Design */}
@@ -126,6 +158,18 @@ export function PlanSwitcherGrid({
 
           const planIdToTrigger = matchedDbPlan?.id || plans.find((p) => p.priceInCents > 0)?.id;
           const isThisLoading = actionLoading === planIdToTrigger || actionLoading === pkg.code;
+
+          let displayPrice = pkg.price;
+          if (pkg.price && !pkg.isContactUs) {
+            const baseNum = parseFloat(pkg.price.replace(/[^0-9.]/g, ""));
+            if (!isNaN(baseNum) && baseNum > 0) {
+              if (commitmentInterval === "12_MONTHS") {
+                displayPrice = `$${Math.round(baseNum * 0.85)}`;
+              } else {
+                displayPrice = `$${baseNum}`;
+              }
+            }
+          }
 
           return (
             <div
@@ -160,18 +204,25 @@ export function PlanSwitcherGrid({
                 </p>
 
                 {/* Price Tag */}
-                <div className="mb-6 min-h-11 flex items-baseline">
-                  {pkg.price ? (
-                    <div className="flex items-baseline gap-1">
-                      <span className="text-4xl font-extrabold text-[#0B1528] tracking-tight">
-                        {pkg.price}
-                      </span>
-                      {pkg.priceSuffix && (
-                        <span className="text-xs font-semibold text-[#64748B]">
-                          {pkg.priceSuffix}
+                <div className="mb-6 min-h-16 flex flex-col justify-start">
+                  {displayPrice ? (
+                    <>
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-4xl font-extrabold text-[#0B1528] tracking-tight">
+                          {displayPrice}
                         </span>
-                      )}
-                    </div>
+                        {pkg.priceSuffix && (
+                          <span className="text-xs font-semibold text-[#64748B]">
+                            {pkg.priceSuffix}
+                          </span>
+                        )}
+                      </div>
+                      <div className="mt-1.5">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-sky-50 text-[#0A54B1] border border-sky-200/60">
+                          {commitmentInterval === "12_MONTHS" ? "12 Months (Best Value)" : "6 Months Commitment"}
+                        </span>
+                      </div>
+                    </>
                   ) : (
                     <div className="h-10" />
                   )}

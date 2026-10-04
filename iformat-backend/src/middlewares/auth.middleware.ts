@@ -37,15 +37,29 @@ export const requireAuth = async (
     }
 
     // 4. Verify user exists in database & token version matches
-    const user = await prisma.user.findUnique({
-      where: { id: decoded.userId },
-      select: {
-        id: true,
-        email: true,
-        role: true,
-        tokenVersion: true,
-      },
-    });
+    let user;
+    try {
+      user = await prisma.user.findUnique({
+        where: { id: decoded.userId },
+        select: {
+          id: true,
+          email: true,
+          role: true,
+          tokenVersion: true,
+        },
+      });
+    } catch {
+      await prisma.$connect().catch(() => {});
+      user = await prisma.user.findUnique({
+        where: { id: decoded.userId },
+        select: {
+          id: true,
+          email: true,
+          role: true,
+          tokenVersion: true,
+        },
+      });
+    }
 
     if (!user) {
       return next(new AuthError("User no longer exists"));

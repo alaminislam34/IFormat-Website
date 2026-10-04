@@ -13,7 +13,8 @@
     "studio": "prisma studio",
     "lint": "tsc --noEmit",
     "test:qa": "tsx tests/qa-auth.test.ts && tsx tests/qa-jobs-applications.test.ts && tsx tests/qa-payments-entitlements.test.ts && tsx tests/qa-ai-services.test.ts",
-    "test:apis": "tsx scripts/test-all-apis.ts"
+    "test:apis": "tsx scripts/test-all-apis.ts",
+    "seed": "tsx scripts/seed-admins.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.758.0",
@@ -41,6 +42,7 @@
     "zod": "^3.24.2"
   },
   "devDependencies": {
+    "@aws-sdk/client-cloudfront": "^3.1146.0",
     "@types/bcryptjs": "^2.4.6",
     "@types/cookie-parser": "^1.4.8",
     "@types/cors": "^2.8.17",

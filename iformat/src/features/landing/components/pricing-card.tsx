@@ -15,6 +15,7 @@ export interface PricingCardItem {
   isContactUs?: boolean;
   isCurrent?: boolean;
   hasActiveSub?: boolean;
+  commitmentBadge?: string;
 }
 
 interface PricingCardProps {
@@ -80,7 +81,7 @@ export function PricingCard({
               </div>
               <div className="mt-1.5">
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-sky-50 text-[#0A54B1] border border-sky-200/60">
-                  Min. 6 Months Commitment
+                  {item.commitmentBadge || "6 Months Commitment"}
                 </span>
               </div>
             </>

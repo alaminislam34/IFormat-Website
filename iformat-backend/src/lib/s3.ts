@@ -35,10 +35,25 @@ export const getPresignedUploadUrl = async (
   }
 };
 
+export const getPublicAssetUrl = (key: string): string => {
+  const cleanKey = key.replace(/^\/+/, "");
+  const cfDomain = env.AWS_CLOUDFRONT_DOMAIN?.replace(/^https?:\/\//, "").replace(/\/+$/, "");
+  if (cfDomain) {
+    return `https://${cfDomain}/${cleanKey}`;
+  }
+  return `https://${env.AWS_S3_BUCKET}.s3.${env.AWS_REGION}.amazonaws.com/${cleanKey}`;
+};
+
 export const getPresignedDownloadUrl = async (
   key: string,
   expiresIn = 3600
 ): Promise<string> => {
+  // If CloudFront is configured, deliver directly through high-speed CDN without presigning needed
+  const cfDomain = env.AWS_CLOUDFRONT_DOMAIN?.replace(/^https?:\/\//, "").replace(/\/+$/, "");
+  if (cfDomain) {
+    return getPublicAssetUrl(key);
+  }
+
   try {
     const command = new GetObjectCommand({
       Bucket: env.AWS_S3_BUCKET,
@@ -48,7 +63,7 @@ export const getPresignedDownloadUrl = async (
     return await getSignedUrl(s3Client, command, { expiresIn });
   } catch (error) {
     logger.error("Error generating S3 presigned download URL:", error);
-    return `https://${env.AWS_S3_BUCKET}.s3.${env.AWS_REGION}.amazonaws.com/${key}`;
+    return getPublicAssetUrl(key);
   }
 };
 
