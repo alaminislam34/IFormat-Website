@@ -85,7 +85,7 @@ export function QuickActionPanels({ metrics }: QuickActionPanelsProps) {
           </Link>
         </div>
       </div>
-      
+
     </div>
   );
 }
