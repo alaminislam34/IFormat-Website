@@ -10,6 +10,7 @@ import {
   Send,
   Sparkles,
   LogIn,
+  AlertCircle,
 } from "lucide-react";
 import { useAuthStore } from "@/stores/use-auth-store";
 import { toast } from "sonner";
@@ -36,6 +37,7 @@ export function BookConsultationModal({
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
   const [description, setDescription] = useState("");
+  const [descriptionError, setDescriptionError] = useState("");
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -77,9 +79,10 @@ export function BookConsultationModal({
     }
 
     if (!description.trim() || description.trim().length < 10) {
-      toast.error("Please provide at least 10 characters describing your consultation focus");
+      setDescriptionError("Please provide at least 10 characters describing your consultation focus");
       return;
     }
+    setDescriptionError("");
 
     try {
       setIsSubmitting(true);
@@ -227,17 +230,40 @@ export function BookConsultationModal({
 
                 {/* Consultation Description */}
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Description / Focus of Consultation <span className="text-rose-500">*</span>
-                  </label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs font-semibold text-slate-700">
+                      Description / Focus of Consultation <span className="text-rose-500">*</span>
+                    </label>
+                    <span
+                      className={`text-[10px] font-medium transition-colors ${
+                        descriptionError ? "text-rose-500 font-bold" : "text-slate-400"
+                      }`}
+                    >
+                      {description.trim().length}/10 min characters
+                    </span>
+                  </div>
                   <textarea
                     rows={3}
-                    required
                     value={description}
-                    onChange={(e) => setDescription(e.target.value)}
+                    onChange={(e) => {
+                      setDescription(e.target.value);
+                      if (descriptionError && e.target.value.trim().length >= 10) {
+                        setDescriptionError("");
+                      }
+                    }}
                     placeholder="Tell us about your target role, industry transition, CV review needs, or executive personal branding goals..."
-                    className="w-full text-xs p-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0A54B1]/20 focus:border-[#0A54B1] transition-all resize-none"
+                    className={`w-full text-xs p-3 rounded-xl border transition-all resize-none ${
+                      descriptionError
+                        ? "border-rose-400 bg-rose-50/20 focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500"
+                        : "border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0A54B1]/20 focus:border-[#0A54B1]"
+                    }`}
                   />
+                  {descriptionError && (
+                    <p className="text-[11px] font-semibold text-rose-500 mt-1.5 flex items-center gap-1.5 animate-in fade-in-50 duration-200">
+                      <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                      <span>{descriptionError}</span>
+                    </p>
+                  )}
                 </div>
 
                 {/* Submit Action */}

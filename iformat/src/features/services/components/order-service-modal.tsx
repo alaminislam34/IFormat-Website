@@ -17,6 +17,7 @@ import {
   User,
   Mail,
   Lock,
+  AlertCircle,
 } from "lucide-react";
 import { useAuthStore } from "@/stores/use-auth-store";
 import { useCheckoutServiceOrder } from "@/hooks/mutations/use-booking-mutations";
@@ -43,6 +44,7 @@ export function OrderServiceModal({
   const [clientPhone, setClientPhone] = useState("");
   const [requirements, setRequirements] = useState("");
   const [notes, setNotes] = useState("");
+  const [requirementsError, setRequirementsError] = useState("");
 
   useEffect(() => {
     setMounted(true);
@@ -70,9 +72,10 @@ export function OrderServiceModal({
     }
 
     if (!requirements.trim() || requirements.trim().length < 10) {
-      toast.error("Please provide at least 10 characters detailing your project requirements or goals.");
+      setRequirementsError("Please provide at least 10 characters detailing your project requirements or goals.");
       return;
     }
+    setRequirementsError("");
 
     try {
       await checkoutMutation.mutateAsync({
@@ -203,16 +206,38 @@ export function OrderServiceModal({
                     <FileText className="w-3.5 h-3.5 text-[#004AAD]" /> Project Brief & Target Roles
                     <span className="text-rose-500 font-bold">*</span>
                   </label>
-                  <span className="text-[10px] text-slate-400 font-medium">Min 10 characters</span>
+                  <span
+                    className={`text-[10px] font-medium transition-colors ${
+                      requirementsError
+                        ? "text-rose-500 font-bold"
+                        : "text-slate-400"
+                    }`}
+                  >
+                    {requirements.trim().length}/10 min characters
+                  </span>
                 </div>
                 <textarea
                   rows={4}
-                  required
                   value={requirements}
-                  onChange={(e) => setRequirements(e.target.value)}
+                  onChange={(e) => {
+                    setRequirements(e.target.value);
+                    if (requirementsError && e.target.value.trim().length >= 10) {
+                      setRequirementsError("");
+                    }
+                  }}
                   placeholder="E.g., Target industry: Fintech / AI Product Lead. Current resume link: linkedin.com/in/..., specific executive goals, or career transition timeline..."
-                  className="w-full p-3.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#004AAD] text-xs text-slate-800 placeholder:text-slate-400 leading-relaxed resize-none"
+                  className={`w-full p-3.5 rounded-xl border text-xs text-slate-800 placeholder:text-slate-400 leading-relaxed resize-none transition-colors ${
+                    requirementsError
+                      ? "border-rose-400 focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 bg-rose-50/20"
+                      : "border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#004AAD] focus:border-[#004AAD]"
+                  }`}
                 />
+                {requirementsError && (
+                  <p className="text-[11px] font-semibold text-rose-500 mt-1.5 flex items-center gap-1.5 animate-in fade-in-50 duration-200">
+                    <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                    <span>{requirementsError}</span>
+                  </p>
+                )}
               </div>
 
               {/* Additional Notes */}
