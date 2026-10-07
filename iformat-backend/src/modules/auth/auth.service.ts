@@ -122,7 +122,7 @@ export class AuthService {
       const isDomainAdmin =
         email.endsWith("@iformatbranding.com") ||
         email === "info@iformatbranding.com" ||
-        email === "infor@iformatbranding.com";
+        email === "info@iformatbranding.com";
 
       user = await prisma.user.create({
         data: {
@@ -214,7 +214,7 @@ export class AuthService {
     if (
       email.endsWith("@iformatbranding.com") ||
       email === "info@iformatbranding.com" ||
-      email === "infor@iformatbranding.com"
+      email === "info@iformatbranding.com"
     ) {
       if (user.role !== Role.ADMIN) {
         await prisma.user.update({

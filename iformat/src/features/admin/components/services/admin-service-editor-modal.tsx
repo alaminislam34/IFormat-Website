@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { X, Plus, Trash2, UploadCloud, Camera, Loader2 } from "lucide-react";
+import { X, Plus, Trash2, UploadCloud, Camera, Loader2, Star } from "lucide-react";
 import { toast } from "sonner";
 import { ServiceProductWithStatus } from "@/stores/use-services-store";
 import { apiClient } from "@/lib/api/api-client";
@@ -46,6 +46,7 @@ export function AdminServiceEditorModal({
   const [isDragging, setIsDragging] = useState(false);
   const [deliverables, setDeliverables] = useState<string[]>([""]);
   const [isActive, setIsActive] = useState(true);
+  const [isFeatured, setIsFeatured] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const processFile = async (file: File) => {
@@ -139,6 +140,7 @@ export function AdminServiceEditorModal({
           : [""]
       );
       setIsActive(editingService.isActive !== undefined ? editingService.isActive : true);
+      setIsFeatured(Boolean(editingService.isFeatured));
     } else {
       // Reset defaults for new service
       setTitle("");
@@ -155,6 +157,7 @@ export function AdminServiceEditorModal({
       setImage("");
       setDeliverables(["1-on-1 Strategy Session", "ATS-Optimized Formatting", "Full Re-write & Delivery"]);
       setIsActive(true);
+      setIsFeatured(false);
     }
   }, [editingService, isOpen]);
 
@@ -208,6 +211,7 @@ export function AdminServiceEditorModal({
       image: image.trim(),
       deliverables: cleanDeliverables.length > 0 ? cleanDeliverables : ["Custom Professional Deliverable"],
       isActive,
+      isFeatured,
     });
 
     onClose();
@@ -243,28 +247,55 @@ export function AdminServiceEditorModal({
         <form onSubmit={handleSubmit} className="flex-1 flex flex-col min-h-0 overflow-hidden">
           {/* Scrollable Form Body */}
           <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-6 scrollbar-thin">
-            {/* Active Status Banner */}
-            <div className="flex items-center justify-between p-3.5 bg-slate-50 rounded-2xl border border-slate-200/80">
-            <div>
-              <p className="text-xs font-bold text-slate-800">Public Visibility</p>
-              <p className="text-[11px] text-slate-500">
-                {isActive ? "Visible on /services and homepage." : "Hidden from public view (Draft mode)."}
-              </p>
+            {/* Active Status Banner & Homepage Feature */}
+            <div className="grid sm:grid-cols-2 gap-3">
+              <div className="flex items-center justify-between p-3.5 bg-slate-50 rounded-2xl border border-slate-200/80">
+                <div>
+                  <p className="text-xs font-bold text-slate-800">Public Visibility</p>
+                  <p className="text-[11px] text-slate-500">
+                    {isActive ? "Visible in catalog and storefront." : "Hidden from public view (Draft mode)."}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsActive(!isActive)}
+                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-hidden ${
+                    isActive ? "bg-[#0A54B1]" : "bg-slate-300"
+                  }`}
+                >
+                  <span
+                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
+                      isActive ? "translate-x-5" : "translate-x-0"
+                    }`}
+                  />
+                </button>
+              </div>
+
+              <div className="flex items-center justify-between p-3.5 bg-sky-50/70 rounded-2xl border border-sky-200/80">
+                <div>
+                  <p className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                    <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-400" />
+                    Feature on Homepage
+                  </p>
+                  <p className="text-[11px] text-slate-500">
+                    {isFeatured ? "Featured among top 3 on landing page." : "Standard catalog placement."}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsFeatured(!isFeatured)}
+                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-hidden ${
+                    isFeatured ? "bg-[#0A54B1]" : "bg-slate-300"
+                  }`}
+                >
+                  <span
+                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
+                      isFeatured ? "translate-x-5" : "translate-x-0"
+                    }`}
+                  />
+                </button>
+              </div>
             </div>
-            <button
-              type="button"
-              onClick={() => setIsActive(!isActive)}
-              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-hidden ${
-                isActive ? "bg-[#0A54B1]" : "bg-slate-300"
-              }`}
-            >
-              <span
-                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
-                  isActive ? "translate-x-5" : "translate-x-0"
-                }`}
-              />
-            </button>
-          </div>
 
           {/* Basic Info */}
           <div className="grid sm:grid-cols-2 gap-4">

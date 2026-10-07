@@ -11,8 +11,14 @@ function decodePdfLiteral(raw: string): string {
     .replace(/\\\(/g, "(")
     .replace(/\\\)/g, ")")
     .replace(/\\\\/g, "\\")
-    .replace(/\\(\d{1,3})/g, (_match, oct) => String.fromCharCode(parseInt(oct, 8)))
-    .replace(/#([0-9A-Fa-f]{2})/g, (_match, hex) => String.fromCharCode(parseInt(hex, 16)));
+    .replace(/\\(\d{1,3})/g, (_match, oct) => {
+      const code = parseInt(oct, 8);
+      return code === 0 ? "" : String.fromCharCode(code);
+    })
+    .replace(/#([0-9A-Fa-f]{2})/g, (_match, hex) => {
+      const code = parseInt(hex, 16);
+      return code === 0 ? "" : String.fromCharCode(code);
+    });
 }
 
 function stringsFromContentStream(decoded: string): string[] {
@@ -109,6 +115,8 @@ export function extractPdfTextSync(buffer: Buffer): string {
 
   return collected
     .join(" ")
+    .replace(/\0/g, "")
+    .replace(/[\u0000-\u0008\u000B-\u000C\u000E-\u001F]/g, "")
     .replace(/\s+/g, " ")
     .trim();
 }

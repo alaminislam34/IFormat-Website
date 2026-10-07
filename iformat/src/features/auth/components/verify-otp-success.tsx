@@ -4,6 +4,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { CheckCircle2, ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useAuthStore } from "@/stores/use-auth-store";
 
 interface VerifyOtpSuccessProps {
   redirectUrl?: string;
@@ -11,14 +12,56 @@ interface VerifyOtpSuccessProps {
 
 export function VerifyOtpSuccess({ redirectUrl }: VerifyOtpSuccessProps) {
   const router = useRouter();
+  const { user } = useAuthStore();
+  const [countdown, setCountdown] = React.useState(3);
+
+  // Compute the correct destination for the verified user
+  const getDestination = React.useCallback(() => {
+    if (redirectUrl && redirectUrl.startsWith("/") && redirectUrl !== "/account-type") {
+      return redirectUrl;
+    }
+    const role = user?.role?.toUpperCase();
+    if (role === "ADMIN") {
+      return "/admin";
+    }
+    if (role === "EMPLOYER") {
+      return user?.companyName?.trim() ? "/dashboard" : "/company-details";
+    }
+    return "/job-portal";
+  }, [redirectUrl, user]);
+
+  const targetUrl = getDestination();
+  const role = user?.role?.toUpperCase();
+  const isEmployer = role === "EMPLOYER";
+  const isAdmin = role === "ADMIN";
+
+  const actionLabel =
+    redirectUrl && redirectUrl.startsWith("/") && redirectUrl !== "/account-type"
+      ? "Continue"
+      : isAdmin
+      ? "Go to Admin Dashboard"
+      : isEmployer
+      ? "Go to Employer Dashboard"
+      : "Go to Job Portal";
 
   const handleNext = () => {
-    if (redirectUrl && redirectUrl.startsWith("/")) {
-      router.push(`/account-type?redirect=${encodeURIComponent(redirectUrl)}`);
-    } else {
-      router.push("/account-type");
-    }
+    router.push(targetUrl);
   };
+
+  React.useEffect(() => {
+    const timer = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          router.push(targetUrl);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [router, targetUrl]);
 
   return (
     <motion.div
@@ -32,7 +75,11 @@ export function VerifyOtpSuccess({ redirectUrl }: VerifyOtpSuccessProps) {
       <div className="space-y-2">
         <h3 className="text-2xl font-black text-slate-900 tracking-tight">Email Verified!</h3>
         <p className="text-sm text-slate-500 leading-relaxed max-w-sm">
-          Your account has been verified. Let&apos;s select your account type to customize your experience.
+          {isEmployer
+            ? "Your employer account has been successfully verified. Welcome to iFormat!"
+            : isAdmin
+            ? "Your administrator account has been successfully verified."
+            : "Your candidate account has been successfully verified. Welcome to iFormat!"}
         </p>
       </div>
       <div className="w-full pt-2">
@@ -40,7 +87,7 @@ export function VerifyOtpSuccess({ redirectUrl }: VerifyOtpSuccessProps) {
           onClick={handleNext}
           className="w-full h-12 bg-[#0A54B1] hover:bg-[#08428c] text-white text-sm font-bold rounded-xl flex items-center justify-center gap-2 shadow-md shadow-blue-500/20 hover:opacity-95 transition-all active:scale-[0.98] cursor-pointer"
         >
-          <span>Choose Account Type</span>
+          <span>{actionLabel} ({countdown}s)</span>
           <ArrowRight className="w-4 h-4" />
         </button>
       </div>

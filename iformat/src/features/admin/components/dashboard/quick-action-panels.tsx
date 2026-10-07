@@ -1,4 +1,3 @@
-import React from "react";
 import Link from "next/link";
 import { Briefcase, Users, CreditCard, ArrowUpRight } from "lucide-react";
 import { AdminMetricsDTO } from "@/services/admin.service";

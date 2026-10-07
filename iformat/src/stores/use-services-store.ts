@@ -6,6 +6,7 @@ import { apiClient } from "@/lib/api/api-client";
 
 export interface ServiceProductWithStatus extends ServiceProduct {
   isActive?: boolean;
+  isFeatured?: boolean;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -22,6 +23,9 @@ interface ServicesState {
   updateService: (id: string, updated: Partial<ServiceProductWithStatus>) => void;
   deleteService: (id: string) => void;
   toggleServiceStatus: (id: string) => void;
+  moveService: (id: string, direction: "up" | "down") => void;
+  pinToTop: (id: string) => void;
+  reorderTop3: (newTop3Ids: string[]) => void;
   resetToDefaults: () => void;
   syncWithBackend: () => Promise<void>;
   saveToBackend: () => Promise<void>;
@@ -110,6 +114,55 @@ export const useServicesStore = create<ServicesState>()(
               : service
           ),
         }));
+        get().saveToBackend();
+      },
+
+      moveService: (id, direction) => {
+        set((state) => {
+          const index = state.services.findIndex((s) => s.id === id);
+          if (index === -1) return state;
+          const targetIndex = direction === "up" ? index - 1 : index + 1;
+          if (targetIndex < 0 || targetIndex >= state.services.length) return state;
+
+          const updated = [...state.services];
+          const [moved] = updated.splice(index, 1);
+          updated.splice(targetIndex, 0, moved);
+
+          return { services: updated };
+        });
+        get().saveToBackend();
+      },
+
+      pinToTop: (id) => {
+        set((state) => {
+          const index = state.services.findIndex((s) => s.id === id);
+          if (index <= 0) return state;
+          const updated = [...state.services];
+          const [moved] = updated.splice(index, 1);
+          updated.unshift(moved);
+          return { services: updated };
+        });
+        get().saveToBackend();
+      },
+
+      reorderTop3: (newTop3Ids) => {
+        set((state) => {
+          const topItems: ServiceProductWithStatus[] = [];
+          const remaining: ServiceProductWithStatus[] = [];
+
+          newTop3Ids.forEach((id) => {
+            const item = state.services.find((s) => s.id === id);
+            if (item) topItems.push(item);
+          });
+
+          state.services.forEach((s) => {
+            if (!newTop3Ids.includes(s.id)) {
+              remaining.push(s);
+            }
+          });
+
+          return { services: [...topItems, ...remaining] };
+        });
         get().saveToBackend();
       },
 

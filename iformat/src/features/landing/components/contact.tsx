@@ -15,7 +15,7 @@ export function Contact() {
   const [contactInfo, setContactInfo] = useState({
     location: "8350 North Dallas, Rockwall, Texas, 57087",
     phone: "+27 76 744 8050",
-    email: "infor@iformatbranding.com",
+    email: "info@iformatbranding.com",
   });
 
   const {
@@ -36,7 +36,7 @@ export function Contact() {
           setContactInfo({
             location: data.location || "8350 North Dallas, Rockwall, Texas, 57087",
             phone: data.phone || "+27 76 744 8050",
-            email: data.email || "infor@iformatbranding.com",
+            email: data.email || "info@iformatbranding.com",
           });
         }
       })

@@ -33,7 +33,7 @@ function LoginContent() {
       if (token) {
         syncAuthCookies(token, refreshToken);
       }
-      if (redirectUrl && redirectUrl.startsWith("/")) {
+      if (redirectUrl && redirectUrl.startsWith("/") && redirectUrl !== "/account-type") {
         router.replace(redirectUrl);
         return;
       }
@@ -73,13 +73,17 @@ function LoginContent() {
           setIsLoading(false);
           if (res.user.emailVerified === false || res.requiresEmailVerification) {
             toast.info("Please verify your email address to complete sign in. A new verification code has been sent.");
-            router.push(`/verify-otp?email=${encodeURIComponent(data.email)}`);
+            const safeRedirect =
+              redirectUrl && redirectUrl !== "/account-type"
+                ? `&redirect=${encodeURIComponent(redirectUrl)}`
+                : "";
+            router.push(`/verify-otp?email=${encodeURIComponent(data.email)}${safeRedirect}`);
             return;
           }
 
           toast.success(`Welcome back, ${res.user.name}!`);
 
-          if (redirectUrl && redirectUrl.startsWith("/")) {
+          if (redirectUrl && redirectUrl.startsWith("/") && redirectUrl !== "/account-type") {
             router.push(redirectUrl);
             return;
           }

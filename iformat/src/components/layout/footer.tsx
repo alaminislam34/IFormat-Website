@@ -21,7 +21,7 @@ export function Footer() {
         if (data && (data.location || data.email || data.phone)) {
           setContactInfo({
             location: data.location || "8350 North Dallas, Rockwall, Texas, 57087",
-            email: data.email || "infor@iformatbranding.com",
+            email: data.email || "info@iformatbranding.com",
             phone: data.phone || "+27 76 744 8050",
           });
         }

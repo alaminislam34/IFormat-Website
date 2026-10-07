@@ -22,6 +22,10 @@ import {
   X,
   Loader2,
   ImageIcon,
+  ShoppingBag,
+  Star,
+  ArrowLeft,
+  ArrowRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getMediaUrl } from "@/lib/utils";
@@ -32,6 +36,7 @@ import {
   DEFAULT_VIDEO_SETTINGS,
   DEFAULT_LEADERS_SETTINGS,
 } from "@/stores/use-landing-content-store";
+import { useServicesStore } from "@/stores/use-services-store";
 import { apiClient } from "@/lib/api/api-client";
 import { toast } from "sonner";
 
@@ -55,15 +60,38 @@ export default function AdminHomepageContentPage() {
     isHydrated,
   } = useLandingContentStore();
 
-  const [activeTab, setActiveTab] = useState<"video" | "leaders">(
-    tabParam === "leaders" ? "leaders" : "video"
+  const {
+    services: allServices,
+    moveService,
+    reorderTop3,
+    syncWithBackend: syncServices,
+  } = useServicesStore();
+
+  const [activeTab, setActiveTab] = useState<"video" | "leaders" | "products">(
+    tabParam === "leaders"
+      ? "leaders"
+      : tabParam === "products"
+      ? "products"
+      : "video"
   );
 
   useEffect(() => {
-    if (tabParam === "leaders" || tabParam === "video") {
+    if (tabParam === "leaders" || tabParam === "video" || tabParam === "products") {
       setActiveTab(tabParam);
     }
   }, [tabParam]);
+
+  useEffect(() => {
+    syncServices();
+  }, [syncServices]);
+
+  const activeServices = React.useMemo(() => {
+    return allServices.filter((s) => s.isActive !== false);
+  }, [allServices]);
+
+  const top3HomepageServices = React.useMemo(() => {
+    return activeServices.slice(0, 3);
+  }, [activeServices]);
 
   // Local Form States for Video
   const [videoUrl, setVideoUrl] = useState(videoSettings.videoUrl);
@@ -279,6 +307,18 @@ export default function AdminHomepageContentPage() {
         >
           <Users className="w-4 h-4" />
           <span>Executive Leadership Team ({leadersSettings.members.length})</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab("products")}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
+            activeTab === "products"
+              ? "bg-[#0A54B1] text-white shadow-xs"
+              : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+          }`}
+        >
+          <ShoppingBag className="w-4 h-4" />
+          <span>Top 3 Products ({top3HomepageServices.length}/3)</span>
         </button>
       </div>
 
@@ -641,6 +681,193 @@ export default function AdminHomepageContentPage() {
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 3: PRODUCTS SELECTION */}
+      {activeTab === "products" && (
+        <div className="space-y-6">
+          <div className="bg-white border border-slate-200/80 rounded-3xl p-6 sm:p-8 shadow-xs space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-5">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+                  <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                    <Star className="w-4 h-4 text-amber-500 fill-amber-400" />
+                    Top 3 Products on Homepage
+                  </h3>
+                </div>
+                <p className="text-xs text-slate-500 mt-1 max-w-xl">
+                  Choose which 3 products appear in the &quot;Individual Services&quot; section on the public homepage. You can assign any service to Slot #1, #2, or #3, or reorder them using the arrow controls.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Link
+                  href="/admin/services"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-white border border-slate-200 text-slate-700 hover:text-sky-600 hover:bg-sky-50 shadow-2xs transition-colors"
+                >
+                  <ShoppingBag className="w-3.5 h-3.5 text-sky-600" />
+                  <span>Full Services Catalog</span>
+                </Link>
+
+                <Link
+                  href="/#services"
+                  target="_blank"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-[#0A54B1] hover:bg-[#08438e] text-white shadow-xs transition-colors"
+                >
+                  <span>View Live</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </Link>
+              </div>
+            </div>
+
+            {/* 3 Slots Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {[0, 1, 2].map((slotIdx) => {
+                const currentSlotService = top3HomepageServices[slotIdx];
+
+                return (
+                  <div
+                    key={`slot-${slotIdx}`}
+                    className="p-5 rounded-3xl border-2 border-sky-100 bg-linear-to-b from-sky-50/50 via-white to-white flex flex-col justify-between shadow-xs space-y-4 relative"
+                  >
+                    {/* Slot Header */}
+                    <div className="flex items-center justify-between">
+                      <span className="px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-linear-to-r from-sky-500 to-[#0A54B1] text-white shadow-xs flex items-center gap-1">
+                        <Star className="w-3 h-3 fill-white" /> Slot #{slotIdx + 1}
+                      </span>
+
+                      {/* Reorder Arrows */}
+                      <div className="flex items-center gap-1 bg-white rounded-xl p-1 border border-slate-200 shadow-2xs">
+                        <button
+                          type="button"
+                          disabled={slotIdx === 0 || !currentSlotService}
+                          onClick={() => {
+                            if (currentSlotService) {
+                              moveService(currentSlotService.id, "up");
+                              toast.success(`Moved to Slot #${slotIdx}`);
+                            }
+                          }}
+                          className="p-1 rounded-lg text-slate-500 hover:text-sky-700 hover:bg-slate-100 disabled:opacity-30 disabled:hover:bg-transparent transition-colors cursor-pointer"
+                          title="Move Left / Higher Priority"
+                        >
+                          <ArrowLeft className="w-4 h-4" />
+                        </button>
+                        <button
+                          type="button"
+                          disabled={slotIdx === 2 || !currentSlotService}
+                          onClick={() => {
+                            if (currentSlotService) {
+                              moveService(currentSlotService.id, "down");
+                              toast.success(`Moved to Slot #${slotIdx + 2}`);
+                            }
+                          }}
+                          className="p-1 rounded-lg text-slate-500 hover:text-sky-700 hover:bg-slate-100 disabled:opacity-30 disabled:hover:bg-transparent transition-colors cursor-pointer"
+                          title="Move Right / Lower Priority"
+                        >
+                          <ArrowRight className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Slot Product Selector */}
+                    <div className="space-y-1.5">
+                      <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                        Assigned Service Product
+                      </label>
+                      <select
+                        value={currentSlotService?.id || ""}
+                        onChange={(e) => {
+                          const targetId = e.target.value;
+                          if (!targetId) return;
+
+                          // Construct new top 3 array
+                          const currentIds = [
+                            top3HomepageServices[0]?.id || "",
+                            top3HomepageServices[1]?.id || "",
+                            top3HomepageServices[2]?.id || "",
+                          ];
+                          // If targetId is already in another slot, swap them
+                          const existingIndex = currentIds.indexOf(targetId);
+                          if (existingIndex !== -1) {
+                            currentIds[existingIndex] = currentSlotService?.id || "";
+                          }
+                          currentIds[slotIdx] = targetId;
+
+                          reorderTop3(currentIds.filter(Boolean));
+                          toast.success(`Slot #${slotIdx + 1} updated successfully.`);
+                        }}
+                        className="w-full text-xs font-semibold px-3 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-hidden focus:border-[#0A54B1] cursor-pointer shadow-2xs"
+                      >
+                        {activeServices.map((service) => (
+                          <option key={service.id} value={service.id}>
+                            {service.title} ({service.price})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Card Preview */}
+                    {currentSlotService ? (
+                      <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xs space-y-3">
+                        <div className="h-32 rounded-xl bg-slate-900 overflow-hidden relative shadow-inner">
+                          {currentSlotService.image ? (
+                            <Image
+                              src={currentSlotService.image}
+                              alt={currentSlotService.title}
+                              fill
+                              unoptimized
+                              className="object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-sky-400 bg-slate-900">
+                              <ShoppingBag className="w-8 h-8" />
+                            </div>
+                          )}
+                          <div className="absolute top-2 left-2">
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-white/95 text-slate-900 shadow-xs">
+                              {currentSlotService.category}
+                            </span>
+                          </div>
+                          <div className="absolute bottom-2 right-2">
+                            <span className="px-2.5 py-0.5 rounded-lg text-xs font-black bg-[#0A54B1] text-white shadow-xs">
+                              {currentSlotService.price}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div>
+                          <h4 className="text-xs font-bold text-slate-900 line-clamp-1">
+                            {currentSlotService.title}
+                          </h4>
+                          <p className="text-[11px] text-slate-500 line-clamp-2 mt-0.5 leading-snug">
+                            {currentSlotService.tagline || currentSlotService.description}
+                          </p>
+                        </div>
+
+                        <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px]">
+                          <span className="text-slate-500 font-medium">
+                            {currentSlotService.deliveryTime}
+                          </span>
+                          <Link
+                            href="/admin/services"
+                            className="font-bold text-[#0A54B1] hover:underline"
+                          >
+                            Edit details →
+                          </Link>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="p-6 text-center text-xs text-slate-400 bg-white rounded-2xl border border-dashed border-slate-200">
+                        No product assigned to this slot yet.
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>

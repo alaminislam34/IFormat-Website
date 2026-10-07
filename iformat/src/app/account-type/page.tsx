@@ -18,11 +18,50 @@ function AccountTypeContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectUrl = searchParams.get("redirect");
-  const setRole = useAuthStore((state) => state.setRole);
+  const { user, isAuthenticated, setRole } = useAuthStore();
   const [selectedRole, setSelectedRole] = useState<RoleType>("candidate");
   const [isLoading, setIsLoading] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+
+  // CRITICAL MISMATCH PREVENTION GUARD:
+  // If user is already authenticated and already has an assigned role (CANDIDATE, EMPLOYER, or ADMIN),
+  // they must NEVER be allowed to accidentally overwrite their role or be prompted with this page.
+  // Immediately redirect them to their dedicated portal.
+  React.useEffect(() => {
+    if (isAuthenticated && user?.role) {
+      const roleUpper = user.role.toUpperCase();
+      let target = "/job-portal";
+      if (redirectUrl && redirectUrl.startsWith("/") && redirectUrl !== "/account-type") {
+        target = redirectUrl;
+      } else if (roleUpper === "ADMIN") {
+        target = "/admin";
+      } else if (roleUpper === "EMPLOYER") {
+        target = user.companyName?.trim() ? "/dashboard" : "/company-details";
+      } else {
+        target = "/job-portal";
+      }
+      router.replace(target);
+      return;
+    }
+    setIsCheckingAuth(false);
+  }, [isAuthenticated, user, router, redirectUrl]);
+
+  if (isCheckingAuth && isAuthenticated && user?.role) {
+    return <LoadingScreen message="Checking account status..." />;
+  }
 
   const handleContinue = async () => {
+    // If not authenticated, route them to signup with the chosen role
+    if (!isAuthenticated) {
+      const targetSignup = `/signup?role=${selectedRole}${
+        redirectUrl && redirectUrl !== "/account-type"
+          ? `&redirect=${encodeURIComponent(redirectUrl)}`
+          : ""
+      }`;
+      router.push(targetSignup);
+      return;
+    }
+
     try {
       setIsLoading(true);
       const roleUpper = selectedRole.toUpperCase() as "CANDIDATE" | "EMPLOYER";
@@ -30,7 +69,7 @@ function AccountTypeContent() {
       await apiClient.post("/users/role", { role: roleUpper });
       setRole(selectedRole);
 
-      if (redirectUrl && redirectUrl.startsWith("/")) {
+      if (redirectUrl && redirectUrl.startsWith("/") && redirectUrl !== "/account-type") {
         router.push(redirectUrl);
         return;
       }
@@ -100,7 +139,13 @@ function AccountTypeContent() {
           onClick={handleContinue}
           className="w-full h-12 bg-linear-to-r from-[#52CEDE] to-[#0A54B1] text-white text-sm font-bold rounded-xl shadow-lg shadow-blue-500/20 hover:opacity-95 hover:shadow-xl transition-all duration-200 active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer"
         >
-          {selectedRole === "candidate" ? "Apply as Candidate" : "Continue as Employer"}{" "}
+          {selectedRole === "candidate"
+            ? isAuthenticated
+              ? "Apply as Candidate"
+              : "Join as Candidate"
+            : isAuthenticated
+            ? "Continue as Employer"
+            : "Join as Employer"}{" "}
           <ArrowRight className="w-4 h-4" />
         </button>
 

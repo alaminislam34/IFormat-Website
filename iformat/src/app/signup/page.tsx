@@ -28,11 +28,17 @@ function SignupContent() {
 
   React.useEffect(() => {
     if (isAuthenticated && user) {
-      if (redirectUrl && redirectUrl.startsWith("/")) {
+      if (redirectUrl && redirectUrl.startsWith("/") && redirectUrl !== "/account-type") {
         router.replace(redirectUrl);
         return;
       }
-      const dest = user.role?.toUpperCase() === "ADMIN" ? "/admin" : "/job-portal";
+      const role = user.role?.toLowerCase();
+      let dest = "/job-portal";
+      if (role === "admin") {
+        dest = "/admin";
+      } else if (role === "employer") {
+        dest = user.companyName?.trim() ? "/dashboard" : "/company-details";
+      }
       router.replace(dest);
     }
   }, [isAuthenticated, user, router, redirectUrl]);
@@ -58,11 +64,15 @@ function SignupContent() {
     setIsLoading(true);
     setLoadingMessage("Creating your account...");
 
+    const roleParam = searchParams.get("role")?.toUpperCase();
+    const roleToRegister = roleParam === "EMPLOYER" ? "EMPLOYER" : "CANDIDATE";
+
     registerMutation.mutate(
       {
         name: data.fullName,
         email: data.email,
         password: data.password,
+        role: roleToRegister,
       },
       {
         onSuccess: (res) => {
@@ -71,9 +81,11 @@ function SignupContent() {
             localStorage.setItem(`otp_resend_until_${data.email}`, String(Date.now() + 60000));
           } catch {}
           toast.success(`Account created! Welcome, ${res.user.name}`);
-          const verifyUrl = `/verify-otp?email=${encodeURIComponent(data.email)}${
-            redirectUrl ? `&redirect=${encodeURIComponent(redirectUrl)}` : ""
-          }`;
+          const safeRedirect =
+            redirectUrl && redirectUrl !== "/account-type"
+              ? `&redirect=${encodeURIComponent(redirectUrl)}`
+              : "";
+          const verifyUrl = `/verify-otp?email=${encodeURIComponent(data.email)}${safeRedirect}`;
           router.push(verifyUrl);
         },
         onError: (err) => {

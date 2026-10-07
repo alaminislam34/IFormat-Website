@@ -79,10 +79,11 @@ export function AuthPromptModal({
           if (res.user.emailVerified === false || res.requiresEmailVerification) {
             toast.info("Please verify your email address to complete sign in.");
             onClose();
+            const safeRedirect = redirectUrl && redirectUrl !== "/account-type" ? redirectUrl : "";
             router.push(
-              `/verify-otp?email=${encodeURIComponent(loginEmail.trim())}&redirect=${encodeURIComponent(
-                redirectUrl
-              )}`
+              `/verify-otp?email=${encodeURIComponent(loginEmail.trim())}${
+                safeRedirect ? `&redirect=${encodeURIComponent(safeRedirect)}` : ""
+              }`
             );
             return;
           }
@@ -145,10 +146,11 @@ export function AuthPromptModal({
           } catch {}
           toast.success(`Account created! Welcome, ${res.user.name}`);
           onClose();
+          const safeRedirect = redirectUrl && redirectUrl !== "/account-type" ? redirectUrl : "";
           router.push(
-            `/verify-otp?email=${encodeURIComponent(
-              registerEmail.trim()
-            )}&redirect=${encodeURIComponent(redirectUrl)}`
+            `/verify-otp?email=${encodeURIComponent(registerEmail.trim())}${
+              safeRedirect ? `&redirect=${encodeURIComponent(safeRedirect)}` : ""
+            }`
           );
         },
         onError: (err: any) => {

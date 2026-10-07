@@ -50,8 +50,19 @@ function AuthCallbackContent() {
 
         toast.success(`Welcome back, ${userData.name || "User"}!`);
 
-        // Navigate to appropriate destination (e.g. /account-type or /dashboard)
-        router.replace(redirectPath);
+        // Navigate to appropriate destination based on role and redirect intent
+        let finalDest = redirectPath;
+        if (!finalDest || finalDest === "/account-type" || finalDest === "/dashboard") {
+          const roleUpper = userData.role?.toUpperCase();
+          if (roleUpper === "ADMIN") {
+            finalDest = "/admin";
+          } else if (roleUpper === "EMPLOYER") {
+            finalDest = userData.companyName?.trim() ? "/dashboard" : "/company-details";
+          } else {
+            finalDest = "/job-portal";
+          }
+        }
+        router.replace(finalDest);
       } catch (err: any) {
         console.error("❌ OAuth callback synchronization error:", err);
         if (isMounted) {

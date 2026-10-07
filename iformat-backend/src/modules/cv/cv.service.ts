@@ -99,6 +99,12 @@ export class CVService {
       };
     }
 
+    // Ensure rawText is completely clean of null bytes or PostgreSQL-incompatible characters
+    const sanitizedText = (rawText || "")
+      .replace(/\0/g, "")
+      .replace(/[\u0000-\u0008\u000B-\u000C\u000E-\u001F]/g, "")
+      .trim();
+
     try {
       return await this.createCV(userId, {
         title: options.title || `Resume: ${file.originalname || "Uploaded PDF"}`,
@@ -110,12 +116,30 @@ export class CVService {
           fileUrl: stored.url,
           uploadedAt: new Date().toISOString(),
           parseStatus: "extracted",
-          raw_text: rawText,
+          raw_text: sanitizedText,
         },
       });
     } catch (dbErr: any) {
-      logger.error("Database error saving uploaded CV record:", dbErr);
-      throw new BadRequestError("Unable to save resume profile. Please try again.");
+      logger.warn("Primary CV save failed, retrying with safe fallback payload:", dbErr?.message || dbErr);
+      try {
+        // Fallback: Store clean minimal payload so user application is never blocked
+        return await this.createCV(userId, {
+          title: options.title || `Resume: ${file.originalname || "Uploaded PDF"}`,
+          content: {
+            source: "pdf_upload",
+            fileName: file.originalname,
+            fileSize: file.size,
+            fileType: file.mimetype,
+            fileUrl: stored.url,
+            uploadedAt: new Date().toISOString(),
+            parseStatus: "manual_review",
+            raw_text: `Uploaded Resume: ${file.originalname || "PDF"}`,
+          },
+        });
+      } catch (fallbackErr: any) {
+        logger.error("Database error saving uploaded CV record:", fallbackErr);
+        throw new BadRequestError("Unable to save resume profile. Please try again.");
+      }
     }
   }
 

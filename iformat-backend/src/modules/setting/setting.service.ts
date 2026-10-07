@@ -11,7 +11,7 @@ const DEFAULT_SYSTEM_SETTINGS: Record<string, string> = {
   DEFAULT_MATCH_THRESHOLD: "75",
   CONTACT_LOCATION: "8350 North Dallas, Rockwall, Texas, 57087",
   CONTACT_PHONE: "+27 76 744 8050",
-  CONTACT_EMAIL: "infor@iformatbranding.com",
+  CONTACT_EMAIL: "info@iformatbranding.com",
 };
 
 function mapS3ToCloudFront(val: any): any {

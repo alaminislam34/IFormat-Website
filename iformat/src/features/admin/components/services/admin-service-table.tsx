@@ -17,6 +17,9 @@ import {
   AlertTriangle,
   Globe,
   EyeOff,
+  ArrowUp,
+  ArrowDown,
+  Star,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -31,16 +34,22 @@ import { ServiceProductWithStatus } from "@/stores/use-services-store";
 
 interface AdminServiceTableProps {
   services: ServiceProductWithStatus[];
+  allActiveServices?: ServiceProductWithStatus[];
   onEdit: (service: ServiceProductWithStatus) => void;
   onDelete: (id: string) => void;
   onToggleStatus: (id: string) => void;
+  onMove?: (id: string, direction: "up" | "down") => void;
+  onPinToTop?: (id: string) => void;
 }
 
 export function AdminServiceTable({
   services,
+  allActiveServices = [],
   onEdit,
   onDelete,
   onToggleStatus,
+  onMove,
+  onPinToTop,
 }: AdminServiceTableProps) {
   // Dropdown states
   const [activeStatusDropdown, setActiveStatusDropdown] = useState<{
@@ -162,6 +171,7 @@ export function AdminServiceTable({
                 const isActionOpen = activeActionDropdown?.id === service.id;
                 const isActionUpwards =
                   activeActionDropdown?.id === service.id && activeActionDropdown.openUpwards;
+                const top3Slot = allActiveServices.findIndex((s) => s.id === service.id);
 
                 return (
                   <TableRow
@@ -190,10 +200,15 @@ export function AdminServiceTable({
                         </div>
 
                         <div className="min-w-0">
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 flex-wrap">
                             <p className="font-bold text-slate-900 text-xs sm:text-sm truncate">
                               {service.title}
                             </p>
+                            {isActive && top3Slot >= 0 && top3Slot < 3 && (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-sky-100 text-[#0A54B1] border border-sky-200 shadow-2xs shrink-0">
+                                <Star className="w-2.5 h-2.5 fill-[#0A54B1]" /> Homepage #{top3Slot + 1}
+                              </span>
+                            )}
                             {service.badge && (
                               <span className="hidden sm:inline-flex px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-wider bg-linear-to-r from-sky-500 to-[#0A54B1] text-white shrink-0">
                                 {service.badge}
@@ -392,6 +407,48 @@ export function AdminServiceTable({
                               <Edit2 className="w-3.5 h-3.5 text-slate-400" />
                               <span>Edit Service</span>
                             </button>
+
+                            {/* Reorder / Pin to Homepage */}
+                            {onPinToTop && top3Slot !== 0 && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  onPinToTop(service.id);
+                                  setActiveActionDropdown(null);
+                                }}
+                                className="w-full text-left px-2.5 py-2 rounded-xl text-xs font-semibold text-sky-700 hover:bg-sky-50 flex items-center gap-2 transition-colors cursor-pointer"
+                              >
+                                <Star className="w-3.5 h-3.5 text-sky-600 fill-sky-600" />
+                                <span>Pin to Homepage #1</span>
+                              </button>
+                            )}
+
+                            {onMove && (
+                              <div className="flex items-center gap-1 pt-1 pb-1">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    onMove(service.id, "up");
+                                    setActiveActionDropdown(null);
+                                  }}
+                                  className="flex-1 py-1 rounded-lg text-[11px] font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                                  title="Move Up"
+                                >
+                                  <ArrowUp className="w-3 h-3" /> Move Up
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    onMove(service.id, "down");
+                                    setActiveActionDropdown(null);
+                                  }}
+                                  className="flex-1 py-1 rounded-lg text-[11px] font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                                  title="Move Down"
+                                >
+                                  <ArrowDown className="w-3 h-3" /> Move Down
+                                </button>
+                              </div>
+                            )}
 
                             <div className="my-1 border-t border-slate-100" />
 

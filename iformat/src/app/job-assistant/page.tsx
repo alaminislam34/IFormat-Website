@@ -67,8 +67,8 @@ function JobAssistantContent() {
     <main className="min-h-screen bg-[#F8FAFC] flex flex-col justify-between print:p-0 print:m-0 print:bg-white print:min-h-0">
       <div className="w-full flex-1 flex flex-col print:p-0 print:m-0">
         {/* Unified AI Suite Header Bar */}
-        <div className="bg-white border-b border-slate-200/80 pt-24 sm:pt-28 pb-6 px-4 sm:px-8 w-full shadow-xs print:hidden no-print">
-          <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div className="bg-white border-b border-slate-200/80 pt-24 sm:pt-28 pb-6 w-full shadow-xs print:hidden no-print">
+          <div className="max-w-360 w-11/12 mx-auto flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div className="space-y-1">
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-sky-50 text-[#0A54B1] border border-sky-100">
                 <Sparkles className="w-3.5 h-3.5 text-[#52CEDE]" />
@@ -125,7 +125,7 @@ function JobAssistantContent() {
         </div>
 
         {/* Content Area - Always Interactive */}
-        <div className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 py-8 print:p-0 print:m-0 print:max-w-none print:w-full">
+        <div className="flex-1 w-full max-w-360 w-11/12 mx-auto py-8 print:p-0 print:m-0 print:max-w-none print:w-full">
           <AnimatePresence mode="wait">
             <motion.div
               key={activeTab}

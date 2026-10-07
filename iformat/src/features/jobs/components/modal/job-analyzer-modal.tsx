@@ -15,9 +15,12 @@ import {
   Brain,
   ShieldCheck,
   Briefcase,
+  UploadCloud,
+  FileUp,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { aiService } from "@/services/ai.service";
+import { cvService } from "@/services/cv.service";
 import { JobFitAnalysisDTO } from "@/types/api";
 import { toast } from "sonner";
 import { UpgradeModal } from "@/components/ui/upgrade-modal";
@@ -46,6 +49,92 @@ export function JobAnalyzerModal({
   const [analysis, setAnalysis] = useState<JobFitAnalysisDTO | null>(null);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [upgradeMessage, setUpgradeMessage] = useState<string | null>(null);
+
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [isDragOver, setIsDragOver] = useState(false);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  const handleFileUpload = async (file: File) => {
+    if (!file) return;
+
+    const isPdf =
+      file.type === "application/pdf" ||
+      file.name.toLowerCase().endsWith(".pdf");
+
+    if (!isPdf) {
+      toast.error("Please upload a PDF file (.pdf).");
+      setUploadError("Only PDF resumes are supported.");
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("File is too large. Maximum PDF size is 10MB.");
+      setUploadError("File size exceeds 10MB limit.");
+      return;
+    }
+
+    setUploadError(null);
+    setIsUploading(true);
+
+    try {
+      toast.loading("Uploading and parsing resume with AI...", { id: "resume-upload" });
+
+      const uploadedCv = await cvService.uploadPdf(
+        file,
+        file.name.replace(/\.[^/.]+$/, "") || "Uploaded Resume"
+      );
+
+      toast.loading("Running candidate job fit evaluation...", { id: "resume-upload" });
+
+      const analysisResult = await aiService.analyzeJobFit({
+        jobId: job.id,
+        cvId: uploadedCv.id,
+      });
+
+      setAnalysis(analysisResult);
+      toast.success("Resume analyzed successfully!", { id: "resume-upload" });
+    } catch (err: any) {
+      console.error("Resume upload & analysis error:", err);
+      const errMsg =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Failed to upload or analyze resume. Please try again.";
+      setUploadError(errMsg);
+      toast.error(errMsg, { id: "resume-upload" });
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
+  };
+
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      handleFileUpload(file);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      handleFileUpload(file);
+    }
+  };
 
   useEffect(() => {
     if (!isOpen || !job?.id) return;
@@ -171,32 +260,139 @@ export function JobAnalyzerModal({
                   </div>
                 </div>
               ) : !analysis?.hasResume ? (
-                /* Missing Resume State */
-                <div className="p-6 rounded-2xl bg-amber-50/70 border border-amber-200/80 space-y-4 text-center">
-                  <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center mx-auto">
-                    <FileText className="w-6 h-6" />
+                /* Missing Resume State with Dual Options */
+                <div className="space-y-5">
+                  <div className="p-5 rounded-2xl bg-amber-50/80 border border-amber-200/80 flex items-start gap-3.5">
+                    <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+                      <FileText className="w-5 h-5" />
+                    </div>
+                    <div className="space-y-1">
+                      <h4 className="text-sm font-extrabold text-amber-950">
+                        Resume Profile Required for AI Evaluation
+                      </h4>
+                      <p className="text-xs text-amber-900/80 leading-relaxed">
+                        To calculate your candidate match score against this position, our AI engine needs your resume. You can quickly upload an existing PDF resume or build one step-by-step.
+                      </p>
+                    </div>
                   </div>
-                  <div className="space-y-1">
-                    <h4 className="text-base font-extrabold text-amber-900">
-                      Resume Profile Required
-                    </h4>
-                    <p className="text-xs text-amber-800/80 max-w-md mx-auto leading-relaxed">
-                      {analysis?.summary ||
-                        "Please create or upload a resume in the AI Career Assistant so our engine can evaluate your profile against this role."}
-                    </p>
+
+                  {/* Dual-Action Cards Grid */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {/* Option 1: Direct Resume Upload */}
+                    <div
+                      onDragOver={handleDragOver}
+                      onDragLeave={handleDragLeave}
+                      onDrop={handleDrop}
+                      onClick={() => !isUploading && fileInputRef.current?.click()}
+                      className={`relative p-6 rounded-2xl border-2 border-dashed transition-all cursor-pointer flex flex-col items-center justify-center text-center space-y-3 group ${
+                        isDragOver
+                          ? "border-[#0A54B1] bg-sky-50/60 scale-[1.01]"
+                          : isUploading
+                          ? "border-slate-200 bg-slate-50/80 cursor-wait"
+                          : "border-slate-200 hover:border-[#0A54B1] hover:bg-sky-50/30 bg-white"
+                      }`}
+                    >
+                      <input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handleFileInputChange}
+                        accept=".pdf,application/pdf"
+                        className="hidden"
+                        disabled={isUploading}
+                      />
+
+                      <div className="w-12 h-12 rounded-2xl bg-sky-50 text-[#0A54B1] flex items-center justify-center group-hover:scale-105 transition-transform">
+                        {isUploading ? (
+                          <Loader2 className="w-6 h-6 animate-spin text-[#0A54B1]" />
+                        ) : (
+                          <UploadCloud className="w-6 h-6 text-[#0A54B1]" />
+                        )}
+                      </div>
+
+                      <div className="space-y-1">
+                        <h5 className="text-sm font-extrabold text-slate-900 group-hover:text-[#0A54B1] transition-colors">
+                          {isUploading ? "Uploading & Analyzing..." : "Upload Resume (PDF)"}
+                        </h5>
+                        <p className="text-xs text-slate-500">
+                          {isUploading
+                            ? "Extracting skills and evaluating match..."
+                            : "Drag & drop or browse from device"}
+                        </p>
+                      </div>
+
+                      <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-400 bg-slate-100 px-2.5 py-1 rounded-full">
+                        PDF up to 10MB
+                      </span>
+                    </div>
+
+                    {/* Option 2: AI Resume Builder */}
+                    <div className="p-6 rounded-2xl border border-slate-200 bg-white hover:border-slate-300 transition-all flex flex-col justify-between space-y-4">
+                      <div className="space-y-3">
+                        <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                          <Sparkles className="w-6 h-6 text-indigo-600" />
+                        </div>
+                        <div className="space-y-1">
+                          <h5 className="text-sm font-extrabold text-slate-900">
+                            Build in AI Assistant
+                          </h5>
+                          <p className="text-xs text-slate-500 leading-relaxed">
+                            Don&apos;t have a ready resume? Create an ATS-tailored resume step-by-step using our interactive builder.
+                          </p>
+                        </div>
+                      </div>
+
+                      <Link href="/job-assistant" onClick={onClose} className="w-full">
+                        <Button
+                          variant="outline"
+                          className="w-full h-10 rounded-xl text-xs font-bold border-slate-200 hover:bg-slate-50 text-slate-800 cursor-pointer flex items-center justify-center gap-1.5"
+                        >
+                          <span>Open Resume Builder</span>
+                          <ArrowRight className="w-3.5 h-3.5" />
+                        </Button>
+                      </Link>
+                    </div>
                   </div>
-                  <div className="pt-2">
-                    <Link href="/job-assistant" onClick={onClose}>
-                      <Button className="bg-[#0A54B1] hover:bg-[#08428C] text-white font-bold text-xs rounded-xl shadow-md cursor-pointer">
-                        <Sparkles className="w-3.5 h-3.5 mr-1.5" />
-                        Create Resume in AI Assistant
-                      </Button>
-                    </Link>
-                  </div>
+
+                  {uploadError && (
+                    <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-600 font-medium flex items-center gap-2">
+                      <AlertTriangle className="w-4 h-4 shrink-0 text-red-500" />
+                      <span>{uploadError}</span>
+                    </div>
+                  )}
                 </div>
               ) : (
                 /* Analysis Result */
                 <div className="space-y-6">
+                  {/* Hidden input for re-uploading */}
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileInputChange}
+                    accept=".pdf,application/pdf"
+                    className="hidden"
+                    disabled={isUploading}
+                  />
+
+                  {/* Active Resume Bar & Re-upload Trigger */}
+                  <div className="flex flex-wrap items-center justify-between gap-2 bg-slate-50/80 px-4 py-2.5 rounded-2xl border border-slate-100">
+                    <div className="text-xs font-bold text-slate-600 flex items-center gap-1.5">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>Evaluated against your active resume</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => !isUploading && fileInputRef.current?.click()}
+                      disabled={isUploading}
+                      className="text-xs font-bold text-[#0A54B1] hover:text-[#08428C] flex items-center gap-1.5 hover:underline cursor-pointer disabled:opacity-50"
+                    >
+                      {isUploading ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <FileUp className="w-3.5 h-3.5" />
+                      )}
+                      <span>{isUploading ? "Analyzing..." : "Upload Different Resume"}</span>
+                    </button>
+                  </div>
                   {/* Score & Recommendation Banner */}
                   <div className="p-6 rounded-3xl bg-slate-900 text-white flex flex-col sm:flex-row items-center gap-6 shadow-lg border border-slate-800">
                     <div
