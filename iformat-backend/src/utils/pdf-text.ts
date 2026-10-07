@@ -1,4 +1,5 @@
 import zlib from "node:zlib";
+import { PDFParse } from "pdf-parse";
 import { logger } from "./logger.js";
 
 const MIN_USABLE_CHARS = 80;
@@ -94,8 +95,7 @@ function extractStreamPayloads(source: string): Buffer[] {
 }
 
 /**
- * Lightweight PDF text extraction (Length-accurate streams + FlateDecode + Tj/TJ literals).
- * Used so uploaded resumes can be scored without a native parser package.
+ * Lightweight fallback PDF text extraction (Length-accurate streams + FlateDecode + Tj/TJ literals).
  */
 export function extractPdfTextSync(buffer: Buffer): string {
   const source = buffer.toString("latin1");
@@ -121,7 +121,40 @@ export function extractPdfTextSync(buffer: Buffer): string {
     .trim();
 }
 
+/**
+ * High-fidelity asynchronous PDF text extraction.
+ * Uses Mozilla PDF.js via pdf-parse for standard CMap/ToUnicode decoding,
+ * with stream-level flate fallback.
+ */
 export async function extractPdfText(buffer: Buffer): Promise<string> {
+  // 1. Primary: Industrial-grade PDF.js parsing (properly decodes CID fonts, ToUnicode tables, Word/Canva exports)
+  try {
+    const parser = new PDFParse({ data: buffer });
+    const parsed = await parser.getText();
+    if (typeof parser.destroy === "function") {
+      try {
+        await parser.destroy();
+      } catch {
+        // ignore destructor error
+      }
+    }
+
+    if (parsed && typeof parsed.text === "string") {
+      const cleaned = parsed.text
+        .replace(/-- \d+ of \d+ --/g, "")
+        .replace(/\0/g, "")
+        .replace(/[\u0000-\u0008\u000B-\u000C\u000E-\u001F]/g, "")
+        .trim();
+
+      if (isExtractedTextUsable(cleaned)) {
+        return cleaned;
+      }
+    }
+  } catch (primaryErr: any) {
+    logger.warn(`Primary PDFParse extraction note (falling back to stream decoder): ${primaryErr?.message || primaryErr}`);
+  }
+
+  // 2. Secondary fallback: Stream regex decoder
   try {
     const text = extractPdfTextSync(buffer);
     if (isExtractedTextUsable(text)) {
