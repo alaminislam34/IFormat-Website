@@ -26,6 +26,8 @@ interface ServicesState {
   moveService: (id: string, direction: "up" | "down") => void;
   pinToTop: (id: string) => void;
   reorderTop3: (newTop3Ids: string[]) => void;
+  setHomepageSlot: (id: string, slotNumber: 1 | 2 | 3 | null) => void;
+  toggleHomepageFeature: (id: string) => void;
   resetToDefaults: () => void;
   syncWithBackend: () => Promise<void>;
   saveToBackend: () => Promise<void>;
@@ -166,6 +168,78 @@ export const useServicesStore = create<ServicesState>()(
         get().saveToBackend();
       },
 
+      setHomepageSlot: (id: string, slotNumber: 1 | 2 | 3 | null) => {
+        set((state) => {
+          // If the service is inactive, make it active so it displays on the homepage
+          const servicesWithActive = state.services.map((s) =>
+            s.id === id && s.isActive === false ? { ...s, isActive: true } : s
+          );
+
+          const activeServices = servicesWithActive.filter((s) => s.isActive !== false);
+          const currentTop3Ids = activeServices.slice(0, 3).map((s) => s.id);
+
+          if (slotNumber === null) {
+            // Remove from top 3: find another active service not in currentTop3
+            const otherActive = activeServices.filter(
+              (s) => !currentTop3Ids.includes(s.id) && s.id !== id
+            );
+            const remainingTop3 = currentTop3Ids.filter((x) => x !== id);
+            if (otherActive.length > 0 && remainingTop3.length < 3) {
+              remainingTop3.push(otherActive[0].id);
+            }
+
+            const topObjects = remainingTop3
+              .map((topId) => servicesWithActive.find((s) => s.id === topId))
+              .filter(Boolean) as ServiceProductWithStatus[];
+            const removedObj = servicesWithActive.find((s) => s.id === id);
+            const remainingObjects = servicesWithActive.filter(
+              (s) => !remainingTop3.includes(s.id) && s.id !== id
+            );
+
+            return {
+              services: [
+                ...topObjects,
+                ...(removedObj ? [removedObj] : []),
+                ...remainingObjects,
+              ],
+            };
+          }
+
+          const slotIdx = slotNumber - 1; // 0, 1, or 2
+          const newTop3 = [...currentTop3Ids];
+
+          // If target is already in another slot in top 3, swap
+          const existingSlot = newTop3.indexOf(id);
+          if (existingSlot !== -1) {
+            newTop3[existingSlot] = newTop3[slotIdx];
+          }
+          newTop3[slotIdx] = id;
+
+          const topObjects = newTop3
+            .map((topId) => servicesWithActive.find((s) => s.id === topId))
+            .filter(Boolean) as ServiceProductWithStatus[];
+          const remainingObjects = servicesWithActive.filter(
+            (s) => !newTop3.includes(s.id)
+          );
+
+          return { services: [...topObjects, ...remainingObjects] };
+        });
+        get().saveToBackend();
+      },
+
+      toggleHomepageFeature: (id: string) => {
+        const state = get();
+        const activeServices = state.services.filter((s) => s.isActive !== false);
+        const currentTop3Ids = activeServices.slice(0, 3).map((s) => s.id);
+        const isCurrentlyTop3 = currentTop3Ids.includes(id);
+
+        if (isCurrentlyTop3) {
+          get().setHomepageSlot(id, null);
+        } else {
+          get().setHomepageSlot(id, 1);
+        }
+      },
+
       resetToDefaults: () => {
         const resetServices = SERVICES_DATA.map((s) => ({
           ...s,
@@ -245,7 +319,7 @@ export const useServicesStore = create<ServicesState>()(
               return {
                 ...s,
                 id: "executive-strategic-cv-linkedin",
-                title: "Executive Strategic CV and Linkedin",
+                title: "Strategic Executive CV & LinkedIn",
                 image: finalImage,
               };
             }

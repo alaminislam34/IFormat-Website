@@ -25,7 +25,7 @@ export const SERVICES_DATA: ServiceProduct[] = [
   },
   {
     id: "executive-strategic-cv-linkedin",
-    title: "Executive Strategic CV and Linkedin",
+    title: "Strategic Executive CV & LinkedIn",
     price: "$249",
     priceNum: 249,
     deliveryTime: "4-6 Business Days",

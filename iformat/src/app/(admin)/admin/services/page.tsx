@@ -40,6 +40,8 @@ export default function AdminServicesPage() {
     toggleServiceStatus,
     moveService,
     pinToTop,
+    setHomepageSlot,
+    toggleHomepageFeature,
     resetToDefaults,
     syncWithBackend,
   } = useServicesStore();
@@ -505,6 +507,25 @@ export default function AdminServicesPage() {
           onPinToTop={(id) => {
             pinToTop(id);
             toast.success("Product pinned as Homepage #1.");
+          }}
+          onSetHomepageSlot={(id, slot) => {
+            const service = services.find((s) => s.id === id);
+            setHomepageSlot(id, slot);
+            if (slot === null) {
+              toast.success(`Removed "${service?.title || "Product"}" from Homepage.`);
+            } else {
+              toast.success(`"${service?.title || "Product"}" set to Homepage Slot #${slot}.`);
+            }
+          }}
+          onToggleHomepageFeature={(id) => {
+            const service = services.find((s) => s.id === id);
+            const isCurrentlyTop3 = activeServices.slice(0, 3).some((s) => s.id === id);
+            toggleHomepageFeature(id);
+            if (isCurrentlyTop3) {
+              toast.success(`Removed "${service?.title || "Product"}" from Homepage.`);
+            } else {
+              toast.success(`"${service?.title || "Product"}" added to Homepage as Slot #1.`);
+            }
           }}
         />
       ) : filteredServices.length > 0 ? (

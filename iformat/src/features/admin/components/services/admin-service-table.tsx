@@ -40,6 +40,8 @@ interface AdminServiceTableProps {
   onToggleStatus: (id: string) => void;
   onMove?: (id: string, direction: "up" | "down") => void;
   onPinToTop?: (id: string) => void;
+  onSetHomepageSlot?: (id: string, slot: 1 | 2 | 3 | null) => void;
+  onToggleHomepageFeature?: (id: string) => void;
 }
 
 export function AdminServiceTable({
@@ -50,6 +52,8 @@ export function AdminServiceTable({
   onToggleStatus,
   onMove,
   onPinToTop,
+  onSetHomepageSlot,
+  onToggleHomepageFeature,
 }: AdminServiceTableProps) {
   // Dropdown states
   const [activeStatusDropdown, setActiveStatusDropdown] = useState<{
@@ -138,6 +142,12 @@ export function AdminServiceTable({
               <TableHead>Price</TableHead>
               <TableHead>Turnaround</TableHead>
               <TableHead>Badge</TableHead>
+              <TableHead className="min-w-44 text-center">
+                <span className="flex items-center justify-center gap-1.5">
+                  <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-400" />
+                  Show on Home
+                </span>
+              </TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
@@ -145,7 +155,7 @@ export function AdminServiceTable({
           <TableBody>
             {services.length === 0 ? (
               <TableRow className="hover:bg-transparent">
-                <TableCell colSpan={7} className="p-0 border-none">
+                <TableCell colSpan={8} className="p-0 border-none">
                   <div className="py-16 px-6 text-center space-y-3 flex flex-col items-center justify-center">
                     <div className="w-12 h-12 rounded-2xl bg-slate-100 border border-slate-200/60 text-slate-400 flex items-center justify-center shadow-xs">
                       <ShoppingBag className="w-6 h-6" />
@@ -260,6 +270,63 @@ export function AdminServiceTable({
                       ) : (
                         <span className="text-slate-300 text-xs">—</span>
                       )}
+                    </TableCell>
+
+                    {/* Show on Home Selector */}
+                    <TableCell>
+                      {(() => {
+                        const isCurrentlyOnHome = isActive && top3Slot >= 0 && top3Slot < 3;
+                        return (
+                          <div className="flex items-center justify-center gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (onToggleHomepageFeature) {
+                                  onToggleHomepageFeature(service.id);
+                                }
+                              }}
+                              className={`p-1.5 rounded-xl border transition-all cursor-pointer ${
+                                isCurrentlyOnHome
+                                  ? "bg-amber-50 border-amber-300 text-amber-500 shadow-2xs hover:bg-amber-100"
+                                  : "bg-white border-slate-200 text-slate-300 hover:text-amber-400 hover:border-amber-200"
+                              }`}
+                              title={
+                                isCurrentlyOnHome
+                                  ? `Click to remove "${service.title}" from Homepage`
+                                  : `Click to show "${service.title}" on Homepage`
+                              }
+                            >
+                              <Star
+                                className={`w-3.5 h-3.5 ${
+                                  isCurrentlyOnHome ? "fill-amber-400 text-amber-500" : ""
+                                }`}
+                              />
+                            </button>
+
+                            <select
+                              value={isCurrentlyOnHome ? String(top3Slot + 1) : "none"}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                if (val === "none") {
+                                  onSetHomepageSlot?.(service.id, null);
+                                } else {
+                                  onSetHomepageSlot?.(service.id, Number(val) as 1 | 2 | 3);
+                                }
+                              }}
+                              className={`text-xs font-bold px-2 py-1.5 rounded-xl border transition-all cursor-pointer shadow-2xs ${
+                                isCurrentlyOnHome
+                                  ? "bg-sky-50 text-[#0A54B1] border-sky-300 font-extrabold"
+                                  : "bg-white text-slate-500 border-slate-200 hover:border-slate-300"
+                              }`}
+                            >
+                              <option value="none">Off Home</option>
+                              <option value="1">⭐ Slot #1 (Home)</option>
+                              <option value="2">⭐ Slot #2 (Home)</option>
+                              <option value="3">⭐ Slot #3 (Home)</option>
+                            </select>
+                          </div>
+                        );
+                      })()}
                     </TableCell>
 
                     {/* Status Dropdown */}
