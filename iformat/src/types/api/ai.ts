@@ -131,6 +131,12 @@ export interface AnalyzeJobFitRequest {
   cvId?: string;
 }
 
+export interface ScreeningEvidenceDTO {
+  category: "skills" | "experience" | "education" | "domain_match" | string;
+  finding: string;
+  source: string;
+}
+
 export interface JobFitAnalysisDTO {
   hasResume: boolean;
   score: number;
@@ -144,7 +150,9 @@ export interface JobFitAnalysisDTO {
     education: number;
     domainMatch: number;
   };
+  evidence?: ScreeningEvidenceDTO[];
   jobTitle?: string;
   company?: string;
   model?: string;
+  tokensUsed?: number;
 }

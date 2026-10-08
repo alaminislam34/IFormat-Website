@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -12,11 +12,10 @@ import {
   FileText,
   ArrowRight,
   TrendingUp,
-  Brain,
-  ShieldCheck,
   Briefcase,
   UploadCloud,
   FileUp,
+  ShieldCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { aiService } from "@/services/ai.service";
@@ -28,12 +27,7 @@ import { UpgradeModal } from "@/components/ui/upgrade-modal";
 interface JobAnalyzerModalProps {
   isOpen: boolean;
   onClose: () => void;
-  job: {
-    id: string;
-    title: string;
-    company: string;
-    description?: string;
-  };
+  job: { id: string; title: string; company: string; description?: string };
   onApplyNow?: () => void;
   onRequireUpgrade?: (message?: string) => void;
 }
@@ -46,512 +40,378 @@ export function JobAnalyzerModal({
   onRequireUpgrade,
 }: JobAnalyzerModalProps) {
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [analysis, setAnalysis] = useState<JobFitAnalysisDTO | null>(null);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [upgradeMessage, setUpgradeMessage] = useState<string | null>(null);
-
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
-  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileUpload = async (file: File) => {
+  const fetchAnalysis = () => {
+    if (!job?.id) return;
+    setLoading(true);
+    setLoadError(null);
+    setAnalysis(null);
+
+    aiService.analyzeJobFit({ jobId: job.id })
+      .then((data) => {
+        setAnalysis(data);
+        setLoading(false);
+      })
+      .catch((err: any) => {
+        setLoading(false);
+        const isQuota = err?.code === "SUBSCRIPTION_REQUIRED" || [403].includes(err?.statusCode || err?.status) ||
+          /(quota|limit|Upgrade to Pro|SUBSCRIPTION_REQUIRED)/i.test(err?.message || "");
+
+        if (isQuota) {
+          const msg = err?.message || "You have reached your free monthly limit. Upgrade to Pro for unlimited job match analysis.";
+          setUpgradeMessage(msg);
+          onRequireUpgrade ? onRequireUpgrade(msg) : setShowUpgradeModal(true);
+        } else {
+          const msg = err?.response?.data?.message || err?.message || "AI job fit analysis is temporarily unavailable. Please try again shortly.";
+          setLoadError(msg);
+        }
+      });
+  };
+
+  const handleFileUpload = async (file?: File) => {
     if (!file) return;
-
-    const isPdf =
-      file.type === "application/pdf" ||
-      file.name.toLowerCase().endsWith(".pdf");
-
-    if (!isPdf) {
+    if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
       toast.error("Please upload a PDF file (.pdf).");
-      setUploadError("Only PDF resumes are supported.");
-      return;
+      return setUploadError("Only PDF resumes are supported.");
     }
-
     if (file.size > 10 * 1024 * 1024) {
       toast.error("File is too large. Maximum PDF size is 10MB.");
-      setUploadError("File size exceeds 10MB limit.");
-      return;
+      return setUploadError("File size exceeds 10MB limit.");
     }
 
     setUploadError(null);
     setIsUploading(true);
-
     try {
       toast.loading("Uploading and parsing resume with AI...", { id: "resume-upload" });
-
-      const uploadedCv = await cvService.uploadPdf(
-        file,
-        file.name.replace(/\.[^/.]+$/, "") || "Uploaded Resume"
-      );
-
+      const uploadedCv = await cvService.uploadPdf(file, file.name.replace(/\.[^/.]+$/, "") || "Uploaded Resume");
       toast.loading("Running candidate job fit evaluation...", { id: "resume-upload" });
-
-      const analysisResult = await aiService.analyzeJobFit({
-        jobId: job.id,
-        cvId: uploadedCv.id,
-      });
-
+      const analysisResult = await aiService.analyzeJobFit({ jobId: job.id, cvId: uploadedCv.id });
       setAnalysis(analysisResult);
       toast.success("Resume analyzed successfully!", { id: "resume-upload" });
     } catch (err: any) {
-      console.error("Resume upload & analysis error:", err);
-      const errMsg =
-        err?.response?.data?.message ||
-        err?.message ||
-        "Failed to upload or analyze resume. Please try again.";
+      const errMsg = err?.response?.data?.message || err?.message || "Failed to analyze resume.";
       setUploadError(errMsg);
       toast.error(errMsg, { id: "resume-upload" });
     } finally {
       setIsUploading(false);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
-    }
-  };
-
-  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      handleFileUpload(file);
-    }
-  };
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragOver(true);
-  };
-
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragOver(false);
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragOver(false);
-    const file = e.dataTransfer.files?.[0];
-    if (file) {
-      handleFileUpload(file);
+      if (fileInputRef.current) fileInputRef.current.value = "";
     }
   };
 
   useEffect(() => {
     if (!isOpen || !job?.id) return;
-
-    let isMounted = true;
-    setLoading(true);
-    setAnalysis(null);
-
-    aiService
-      .analyzeJobFit({ jobId: job.id })
-      .then((data) => {
-        if (isMounted) {
-          setAnalysis(data);
-          setLoading(false);
-        }
-      })
-      .catch((err: any) => {
-        if (!isMounted) return;
-        setLoading(false);
-
-        const isQuotaOrSubError =
-          err?.code === "SUBSCRIPTION_REQUIRED" ||
-          err?.statusCode === 403 ||
-          err?.status === 403 ||
-          err?.message?.includes("free monthly limit") ||
-          err?.message?.includes("SUBSCRIPTION_REQUIRED") ||
-          err?.message?.includes("Upgrade to Pro") ||
-          err?.message?.includes("quota") ||
-          err?.message?.includes("limit");
-
-        if (isQuotaOrSubError) {
-          const message =
-            err?.message ||
-            "You have reached your free monthly limit of 5 AI generations. Upgrade to Pro for unlimited real-time job match analysis, tailored cover letters, and resume optimization.";
-
-          setUpgradeMessage(message);
-
-          if (onRequireUpgrade) {
-            onRequireUpgrade(message);
-          } else {
-            setShowUpgradeModal(true);
-          }
-        } else {
-          toast.error(err?.message || "Failed to analyze job fit. Please try again.");
-          onClose();
-        }
-      });
-
-    return () => {
-      isMounted = false;
-    };
-  }, [isOpen, job?.id, onClose, onRequireUpgrade]);
+    fetchAnalysis();
+  }, [isOpen, job?.id]);
 
   const score = analysis?.score ?? 0;
-  const scoreColor =
-    score >= 75
-      ? "text-emerald-500 border-emerald-500/30 bg-emerald-500/10"
-      : score >= 50
-      ? "text-amber-500 border-amber-500/30 bg-amber-500/10"
-      : "text-rose-500 border-rose-500/30 bg-rose-500/10";
+  const scoreTheme = score >= 75
+    ? { label: "Strong Match", badge: "bg-emerald-50 text-emerald-700 border-emerald-200" }
+    : score >= 50
+    ? { label: "Moderate Fit", badge: "bg-blue-50 text-[#0A54B1] border-blue-200" }
+    : { label: "Tailoring Needed", badge: "bg-amber-50 text-amber-700 border-amber-200" };
 
   return (
     <>
       <AnimatePresence>
         {isOpen && (
-          <div className="fixed inset-0 z-100000 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
-            {/* Backdrop Click-away */}
+          <div className="fixed inset-0 z-100000 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
             <div className="absolute inset-0" onClick={onClose} />
-
             <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              initial={{ opacity: 0, scale: 0.96, y: 12 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              exit={{ opacity: 0, scale: 0.96, y: 12 }}
               onClick={(e) => e.stopPropagation()}
-              className="relative z-10 w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-100 flex flex-col max-h-[90vh]"
+              className="relative z-10 w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-200/90 flex flex-col max-h-[90vh]"
             >
-            {/* Header */}
-            <div className="p-6 border-b border-slate-100 flex items-start justify-between gap-4 bg-linear-to-r from-slate-50 to-sky-50/40">
-              <div className="space-y-1">
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-sky-100 text-[#0A54B1]">
-                  <Sparkles className="w-3.5 h-3.5 text-[#0A54B1]" />
-                  AI Candidate Fit & Match Report
+              {/* Header */}
+              <div className="px-6 py-4.5 border-b border-slate-100 flex items-start justify-between gap-4 bg-white">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[11px] font-semibold bg-blue-50 text-[#0A54B1] border border-blue-100">
+                      <Sparkles className="w-3 h-3 text-[#0A54B1]" />
+                      Role Fit Analysis
+                    </span>
+                    {analysis?.model && (
+                      <span className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-100 text-slate-600 border border-slate-200/60 font-mono">
+                        {analysis.model.includes("bedrock") ? "Bedrock AI" : analysis.model}
+                      </span>
+                    )}
+                  </div>
+                  <h3 className="text-lg font-bold text-slate-900 tracking-tight">{job.title}</h3>
+                  <p className="text-xs text-slate-500 flex items-center gap-1.5 font-medium">
+                    <Briefcase className="w-3.5 h-3.5 text-slate-400" />
+                    <span>{job.company}</span>
+                  </p>
                 </div>
-                <h3 className="text-xl font-extrabold text-slate-900 tracking-tight">
-                  {job.title}
-                </h3>
-                <p className="text-xs font-semibold text-slate-500 flex items-center gap-1.5">
-                  <Briefcase className="w-3.5 h-3.5 text-slate-400" />
-                  <span>{job.company}</span>
-                </p>
+                <button onClick={onClose} className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer" aria-label="Close">
+                  <X className="w-4 h-4" />
+                </button>
               </div>
 
-              <button
-                onClick={onClose}
-                className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
-                aria-label="Close"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Body */}
-            <div className="p-6 overflow-y-auto space-y-6 flex-1">
-              {loading ? (
-                /* Scanning Loading State */
-                <div className="py-16 flex flex-col items-center justify-center text-center space-y-4">
-                  <div className="relative w-20 h-20 rounded-3xl bg-sky-50 flex items-center justify-center border border-sky-100 shadow-inner">
-                    <Brain className="w-10 h-10 text-[#0A54B1] animate-pulse" />
-                    <span className="absolute inset-0 rounded-3xl border-2 border-sky-400 animate-ping opacity-25" />
-                  </div>
-                  <div className="space-y-1.5 max-w-sm">
-                    <h4 className="text-base font-extrabold text-slate-900">
-                      Analyzing Your Profile & Resume...
-                    </h4>
-                    <p className="text-xs text-slate-500 leading-relaxed">
-                      Our AI engine is evaluating your technical skills, work experience, and domain
-                      alignment against the requirements of {job.company}.
-                    </p>
-                  </div>
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold text-slate-400 bg-slate-50">
-                    <Loader2 className="w-3.5 h-3.5 animate-spin text-[#0A54B1]" />
-                    <span>Processing live LLM evaluation</span>
-                  </div>
-                </div>
-              ) : !analysis?.hasResume ? (
-                /* Missing Resume State with Dual Options */
-                <div className="space-y-5">
-                  <div className="p-5 rounded-2xl bg-amber-50/80 border border-amber-200/80 flex items-start gap-3.5">
-                    <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
-                      <FileText className="w-5 h-5" />
+              {/* Body */}
+              <div className="p-6 overflow-y-auto space-y-4.5 flex-1">
+                {loadError ? (
+                  <div className="py-12 flex flex-col items-center justify-center text-center space-y-4">
+                    <div className="w-12 h-12 rounded-xl bg-amber-50 border border-amber-200/80 flex items-center justify-center text-amber-600">
+                      <AlertTriangle className="w-6 h-6" />
                     </div>
-                    <div className="space-y-1">
-                      <h4 className="text-sm font-extrabold text-amber-950">
-                        Resume Profile Required for AI Evaluation
-                      </h4>
-                      <p className="text-xs text-amber-900/80 leading-relaxed">
-                        To calculate your candidate match score against this position, our AI engine needs your resume. You can quickly upload an existing PDF resume or build one step-by-step.
-                      </p>
+                    <div className="space-y-1.5 max-w-sm">
+                      <h4 className="text-sm font-bold text-slate-900">AI Service Temporarily Unavailable</h4>
+                      <p className="text-xs text-slate-500 leading-relaxed">{loadError}</p>
+                    </div>
+                    <div className="flex items-center gap-2 pt-1">
+                      <Button
+                        onClick={fetchAnalysis}
+                        className="h-9 px-4 rounded-lg bg-[#0A54B1] hover:bg-[#08428C] text-white text-xs font-semibold cursor-pointer shadow-xs transition-colors"
+                      >
+                        Retry Analysis
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={onClose}
+                        className="h-9 px-3.5 rounded-lg text-xs font-medium border-slate-200 hover:bg-slate-50 text-slate-600 cursor-pointer"
+                      >
+                        Dismiss
+                      </Button>
                     </div>
                   </div>
-
-                  {/* Dual-Action Cards Grid */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {/* Option 1: Direct Resume Upload */}
-                    <div
-                      onDragOver={handleDragOver}
-                      onDragLeave={handleDragLeave}
-                      onDrop={handleDrop}
-                      onClick={() => !isUploading && fileInputRef.current?.click()}
-                      className={`relative p-6 rounded-2xl border-2 border-dashed transition-all cursor-pointer flex flex-col items-center justify-center text-center space-y-3 group ${
-                        isDragOver
-                          ? "border-[#0A54B1] bg-sky-50/60 scale-[1.01]"
-                          : isUploading
-                          ? "border-slate-200 bg-slate-50/80 cursor-wait"
-                          : "border-slate-200 hover:border-[#0A54B1] hover:bg-sky-50/30 bg-white"
-                      }`}
-                    >
-                      <input
-                        type="file"
-                        ref={fileInputRef}
-                        onChange={handleFileInputChange}
-                        accept=".pdf,application/pdf"
-                        className="hidden"
-                        disabled={isUploading}
-                      />
-
-                      <div className="w-12 h-12 rounded-2xl bg-sky-50 text-[#0A54B1] flex items-center justify-center group-hover:scale-105 transition-transform">
-                        {isUploading ? (
-                          <Loader2 className="w-6 h-6 animate-spin text-[#0A54B1]" />
-                        ) : (
-                          <UploadCloud className="w-6 h-6 text-[#0A54B1]" />
-                        )}
+                ) : loading ? (
+                  <div className="py-12 flex flex-col items-center justify-center text-center space-y-3">
+                    <div className="w-11 h-11 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-[#0A54B1]">
+                      <Loader2 className="w-5 h-5 animate-spin text-[#0A54B1]" />
+                    </div>
+                    <div className="space-y-1 max-w-sm">
+                      <h4 className="text-sm font-bold text-slate-900">Evaluating Candidate Alignment</h4>
+                      <p className="text-xs text-slate-500">Cross-referencing technical qualifications against requirements for {job.company}.</p>
+                    </div>
+                    <div className="w-full max-w-xs pt-1 space-y-1.5">
+                      <div className="h-1 bg-slate-100 rounded-full overflow-hidden">
+                        <div className="h-full bg-[#0A54B1] w-2/3 rounded-full animate-pulse" />
                       </div>
-
-                      <div className="space-y-1">
-                        <h5 className="text-sm font-extrabold text-slate-900 group-hover:text-[#0A54B1] transition-colors">
-                          {isUploading ? "Uploading & Analyzing..." : "Upload Resume (PDF)"}
-                        </h5>
-                        <p className="text-xs text-slate-500">
-                          {isUploading
-                            ? "Extracting skills and evaluating match..."
-                            : "Drag & drop or browse from device"}
-                        </p>
+                      <span className="text-[11px] text-slate-400">Analyzing skills & domain fit...</span>
+                    </div>
+                  </div>
+                ) : !analysis?.hasResume ? (
+                  <div className="space-y-4">
+                    <div className="p-3.5 rounded-xl bg-amber-50/70 border border-amber-200/60 flex items-start gap-2.5">
+                      <FileText className="w-4 h-4 text-amber-700 mt-0.5 shrink-0" />
+                      <div className="space-y-0.5">
+                        <h4 className="text-xs font-semibold text-amber-900">Resume Profile Required</h4>
+                        <p className="text-xs text-amber-800/80">Upload your PDF resume or create one in the AI Assistant to calculate match score.</p>
                       </div>
-
-                      <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-400 bg-slate-100 px-2.5 py-1 rounded-full">
-                        PDF up to 10MB
-                      </span>
                     </div>
 
-                    {/* Option 2: AI Resume Builder */}
-                    <div className="p-6 rounded-2xl border border-slate-200 bg-white hover:border-slate-300 transition-all flex flex-col justify-between space-y-4">
-                      <div className="space-y-3">
-                        <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
-                          <Sparkles className="w-6 h-6 text-indigo-600" />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div
+                        onDragOver={(e) => { e.preventDefault(); setIsDragOver(true); }}
+                        onDragLeave={() => setIsDragOver(false)}
+                        onDrop={(e) => { e.preventDefault(); setIsDragOver(false); handleFileUpload(e.dataTransfer.files?.[0]); }}
+                        onClick={() => !isUploading && fileInputRef.current?.click()}
+                        className={`p-5 rounded-xl border border-dashed transition-all cursor-pointer flex flex-col items-center justify-center text-center space-y-2 ${
+                          isDragOver ? "border-[#0A54B1] bg-blue-50/50" : "border-slate-300 hover:border-[#0A54B1] hover:bg-slate-50/60 bg-white"
+                        }`}
+                      >
+                        <input type="file" ref={fileInputRef} onChange={(e) => handleFileUpload(e.target.files?.[0])} accept=".pdf,application/pdf" className="hidden" disabled={isUploading} />
+                        <div className="w-9 h-9 rounded-lg bg-blue-50 text-[#0A54B1] flex items-center justify-center">
+                          {isUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <UploadCloud className="w-4 h-4" />}
                         </div>
-                        <div className="space-y-1">
-                          <h5 className="text-sm font-extrabold text-slate-900">
-                            Build in AI Assistant
-                          </h5>
-                          <p className="text-xs text-slate-500 leading-relaxed">
-                            Don&apos;t have a ready resume? Create an ATS-tailored resume step-by-step using our interactive builder.
-                          </p>
+                        <div>
+                          <h5 className="text-xs font-bold text-slate-900">{isUploading ? "Uploading..." : "Upload Resume (PDF)"}</h5>
+                          <p className="text-[11px] text-slate-500">Drag & drop or browse (up to 10MB)</p>
                         </div>
                       </div>
 
-                      <Link href="/job-assistant" onClick={onClose} className="w-full">
-                        <Button
-                          variant="outline"
-                          className="w-full h-10 rounded-xl text-xs font-bold border-slate-200 hover:bg-slate-50 text-slate-800 cursor-pointer flex items-center justify-center gap-1.5"
-                        >
-                          <span>Open Resume Builder</span>
-                          <ArrowRight className="w-3.5 h-3.5" />
-                        </Button>
-                      </Link>
-                    </div>
-                  </div>
-
-                  {uploadError && (
-                    <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-600 font-medium flex items-center gap-2">
-                      <AlertTriangle className="w-4 h-4 shrink-0 text-red-500" />
-                      <span>{uploadError}</span>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                /* Analysis Result */
-                <div className="space-y-6">
-                  {/* Hidden input for re-uploading */}
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    onChange={handleFileInputChange}
-                    accept=".pdf,application/pdf"
-                    className="hidden"
-                    disabled={isUploading}
-                  />
-
-                  {/* Active Resume Bar & Re-upload Trigger */}
-                  <div className="flex flex-wrap items-center justify-between gap-2 bg-slate-50/80 px-4 py-2.5 rounded-2xl border border-slate-100">
-                    <div className="text-xs font-bold text-slate-600 flex items-center gap-1.5">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                      <span>Evaluated against your active resume</span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => !isUploading && fileInputRef.current?.click()}
-                      disabled={isUploading}
-                      className="text-xs font-bold text-[#0A54B1] hover:text-[#08428C] flex items-center gap-1.5 hover:underline cursor-pointer disabled:opacity-50"
-                    >
-                      {isUploading ? (
-                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      ) : (
-                        <FileUp className="w-3.5 h-3.5" />
-                      )}
-                      <span>{isUploading ? "Analyzing..." : "Upload Different Resume"}</span>
-                    </button>
-                  </div>
-                  {/* Score & Recommendation Banner */}
-                  <div className="p-6 rounded-3xl bg-slate-900 text-white flex flex-col sm:flex-row items-center gap-6 shadow-lg border border-slate-800">
-                    <div
-                      className={`w-24 h-24 rounded-3xl border-2 flex flex-col items-center justify-center shrink-0 ${scoreColor}`}
-                    >
-                      <span className="text-3xl font-black tracking-tight">{score}%</span>
-                      <span className="text-[10px] font-extrabold uppercase tracking-wider mt-0.5">
-                        Match Score
-                      </span>
-                    </div>
-
-                    <div className="space-y-2 text-center sm:text-left flex-1">
-                      <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-black uppercase tracking-wider bg-white/10 text-sky-300">
-                        <ShieldCheck className="w-3 h-3" />
-                        Recommendation
-                      </div>
-                      <h4 className="text-sm font-extrabold text-white leading-snug">
-                        {analysis.recommendation}
-                      </h4>
-                      <p className="text-xs text-slate-300 leading-relaxed line-clamp-3">
-                        {analysis.summary}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* 4 Pillars Score Breakdown */}
-                  {analysis.scoreBreakdown && (
-                    <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100 space-y-3">
-                      <div className="text-xs font-black uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
-                        <TrendingUp className="w-3.5 h-3.5 text-sky-600" />
-                        <span>Core Evaluation Pillars</span>
-                      </div>
-
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                        <div className="bg-white rounded-xl p-3 border border-slate-100 text-center space-y-1">
-                          <span className="text-[11px] font-bold text-slate-400">Skills Match</span>
-                          <div className="text-lg font-black text-slate-900">
-                            {analysis.scoreBreakdown.skills}%
+                      <div className="p-5 rounded-xl border border-slate-200 bg-white flex flex-col justify-between space-y-3">
+                        <div className="space-y-1.5">
+                          <div className="w-9 h-9 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                            <Sparkles className="w-4 h-4" />
                           </div>
+                          <h5 className="text-xs font-bold text-slate-900">Build in AI Assistant</h5>
+                          <p className="text-[11px] text-slate-500">Create an ATS-tailored resume step-by-step.</p>
                         </div>
-
-                        <div className="bg-white rounded-xl p-3 border border-slate-100 text-center space-y-1">
-                          <span className="text-[11px] font-bold text-slate-400">Experience</span>
-                          <div className="text-lg font-black text-slate-900">
-                            {analysis.scoreBreakdown.experience}%
-                          </div>
-                        </div>
-
-                        <div className="bg-white rounded-xl p-3 border border-slate-100 text-center space-y-1">
-                          <span className="text-[11px] font-bold text-slate-400">Education</span>
-                          <div className="text-lg font-black text-slate-900">
-                            {analysis.scoreBreakdown.education}%
-                          </div>
-                        </div>
-
-                        <div className="bg-white rounded-xl p-3 border border-slate-100 text-center space-y-1">
-                          <span className="text-[11px] font-bold text-slate-400">Domain Fit</span>
-                          <div className="text-lg font-black text-slate-900">
-                            {analysis.scoreBreakdown.domainMatch}%
-                          </div>
-                        </div>
+                        <Link href="/job-assistant" onClick={onClose}>
+                          <Button variant="outline" className="w-full h-8 rounded-lg text-xs font-medium border-slate-200 hover:bg-slate-50 cursor-pointer flex items-center justify-center gap-1">
+                            <span>Open Builder</span>
+                            <ArrowRight className="w-3 h-3" />
+                          </Button>
+                        </Link>
                       </div>
                     </div>
-                  )}
 
-                  {/* Strengths & Missing Keywords */}
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    {/* Strengths */}
-                    <div className="p-4 rounded-2xl bg-emerald-50/50 border border-emerald-100 space-y-2.5">
-                      <div className="flex items-center gap-1.5 text-xs font-extrabold text-emerald-800 uppercase tracking-wide">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                        <span>Profile Strengths ({analysis.strengths.length})</span>
+                    {uploadError && (
+                      <div className="p-2.5 bg-red-50 border border-red-200 rounded-lg text-xs text-red-600 flex items-center gap-2">
+                        <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                        <span>{uploadError}</span>
                       </div>
-                      <ul className="space-y-1.5">
-                        {analysis.strengths.map((str, idx) => (
-                          <li
-                            key={idx}
-                            className="text-xs text-slate-700 flex items-start gap-1.5 leading-snug"
-                          >
-                            <span className="text-emerald-500 font-bold">•</span>
-                            <span>{str}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-
-                    {/* Gaps / Advice */}
-                    <div className="p-4 rounded-2xl bg-amber-50/50 border border-amber-100 space-y-2.5">
-                      <div className="flex items-center gap-1.5 text-xs font-extrabold text-amber-800 uppercase tracking-wide">
-                        <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
-                        <span>Recommended Improvements ({analysis.gaps.length})</span>
-                      </div>
-                      <ul className="space-y-1.5">
-                        {analysis.gaps.map((gap, idx) => (
-                          <li
-                            key={idx}
-                            className="text-xs text-slate-700 flex items-start gap-1.5 leading-snug"
-                          >
-                            <span className="text-amber-500 font-bold">•</span>
-                            <span>{gap}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
+                    )}
                   </div>
-                </div>
-              )}
-            </div>
+                ) : (
+                  <div className="space-y-4">
+                    <input type="file" ref={fileInputRef} onChange={(e) => handleFileUpload(e.target.files?.[0])} accept=".pdf,application/pdf" className="hidden" disabled={isUploading} />
 
-            {/* Footer Actions */}
-            {analysis?.hasResume && (
-              <div className="p-5 border-t border-slate-100 bg-slate-50 flex flex-col sm:flex-row items-center justify-between gap-3">
-                <Link
-                  href={`/job-assistant?tab=cover-letter&role=${encodeURIComponent(
-                    job.title
-                  )}&company=${encodeURIComponent(job.company)}`}
-                  onClick={onClose}
-                  className="w-full sm:w-auto"
-                >
-                  <Button
-                    variant="outline"
-                    className="w-full sm:w-auto h-11 rounded-xl text-xs font-bold border-slate-200 hover:bg-white cursor-pointer"
-                  >
-                    <Sparkles className="w-3.5 h-3.5 mr-1.5 text-[#0A54B1]" />
-                    Generate Tailored Cover Letter
-                  </Button>
-                </Link>
+                    {/* Active Resume Bar */}
+                    <div className="flex flex-wrap items-center justify-between gap-2 bg-slate-50 px-3.5 py-2 rounded-xl border border-slate-200/70 text-xs">
+                      <div className="font-medium text-slate-600 flex items-center gap-1.5">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>Evaluated against active profile resume</span>
+                      </div>
+                      <button type="button" onClick={() => !isUploading && fileInputRef.current?.click()} disabled={isUploading} className="font-semibold text-[#0A54B1] hover:text-[#08428C] flex items-center gap-1 hover:underline cursor-pointer disabled:opacity-50">
+                        {isUploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <FileUp className="w-3.5 h-3.5" />}
+                        <span>{isUploading ? "Analyzing..." : "Upload New Resume"}</span>
+                      </button>
+                    </div>
 
-                {onApplyNow && (
-                  <Button
-                    onClick={() => {
-                      onClose();
-                      onApplyNow();
-                    }}
-                    className="w-full sm:w-auto h-11 px-6 rounded-xl bg-linear-to-r from-[#52CEDE] to-[#0A54B1] hover:opacity-95 text-white font-extrabold text-xs shadow-md shadow-blue-500/15 cursor-pointer flex items-center justify-center gap-1.5"
-                  >
-                    <span>Proceed to Apply</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </Button>
+                    {/* Score & Recommendation Banner */}
+                    <div className="p-4.5 rounded-xl bg-slate-50/80 border border-slate-200/80 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-2xl font-black text-slate-900 tracking-tight">{score}%</span>
+                          <span className={`px-2 py-0.5 rounded-md text-[11px] font-semibold border ${scoreTheme.badge}`}>
+                            {scoreTheme.label}
+                          </span>
+                        </div>
+                        <span className="text-[11px] font-medium text-slate-400">Match Score</span>
+                      </div>
+                      <div>
+                        <h4 className="text-xs font-semibold text-slate-800">{analysis.recommendation}</h4>
+                        <p className="text-xs text-slate-600 leading-relaxed mt-0.5">{analysis.summary}</p>
+                      </div>
+                    </div>
+
+                    {/* 4 Pillars Progress Bars */}
+                    {analysis.scoreBreakdown && (
+                      <div className="p-4 rounded-xl border border-slate-200/80 bg-white space-y-2.5">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-semibold text-slate-800 flex items-center gap-1.5">
+                            <TrendingUp className="w-3.5 h-3.5 text-[#0A54B1]" />
+                            <span>Evaluation Pillars</span>
+                          </span>
+                          <span className="text-[11px] text-slate-400 font-medium">Weighted Criteria</span>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-2.5">
+                          {[
+                            { label: "Skills Match", value: analysis.scoreBreakdown.skills },
+                            { label: "Experience Level", value: analysis.scoreBreakdown.experience },
+                            { label: "Education & Credentials", value: analysis.scoreBreakdown.education },
+                            { label: "Domain Alignment", value: analysis.scoreBreakdown.domainMatch },
+                          ].map((item, idx) => (
+                            <div key={idx} className="space-y-1">
+                              <div className="flex justify-between text-xs">
+                                <span className="text-slate-500">{item.label}</span>
+                                <span className="font-semibold text-slate-800">{item.value}%</span>
+                              </div>
+                              <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                                <div className="h-full bg-[#0A54B1] rounded-full" style={{ width: `${Math.min(Math.max(item.value, 0), 100)}%` }} />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Strengths & Improvements */}
+                    <div className="grid sm:grid-cols-2 gap-3">
+                      <div className="p-3.5 rounded-xl border border-slate-200/80 bg-white space-y-2">
+                        <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-900">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                          <span>Key Strengths ({analysis.strengths.length})</span>
+                        </div>
+                        <ul className="space-y-1">
+                          {analysis.strengths.map((str, idx) => (
+                            <li key={idx} className="text-xs text-slate-600 flex items-start gap-1.5 leading-snug">
+                              <span className="text-emerald-600 mt-0.5 shrink-0 font-bold">•</span>
+                              <span>{str}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      <div className="p-3.5 rounded-xl border border-slate-200/80 bg-white space-y-2">
+                        <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-900">
+                          <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                          <span>Suggested Improvements ({analysis.gaps.length})</span>
+                        </div>
+                        <ul className="space-y-1">
+                          {analysis.gaps.map((gap, idx) => (
+                            <li key={idx} className="text-xs text-slate-600 flex items-start gap-1.5 leading-snug">
+                              <span className="text-amber-500 mt-0.5 shrink-0 font-bold">•</span>
+                              <span>{gap}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+
+                    {/* Verified Evidence & Citations */}
+                    {analysis.evidence && analysis.evidence.length > 0 && (
+                      <div className="p-3.5 rounded-xl border border-slate-200/80 bg-white space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-semibold text-slate-800 flex items-center gap-1.5">
+                            <ShieldCheck className="w-3.5 h-3.5 text-[#0A54B1]" />
+                            <span>Verified Resume Evidence ({analysis.evidence.length})</span>
+                          </span>
+                          <span className="text-[11px] text-slate-400 font-medium">Citations</span>
+                        </div>
+                        <div className="space-y-1.5">
+                          {analysis.evidence.map((item, idx) => (
+                            <div key={idx} className="p-2.5 rounded-lg bg-slate-50 border border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                              <div className="flex items-start gap-2">
+                                <span className="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-white border border-slate-200 text-slate-600 shrink-0 mt-0.5 sm:mt-0">
+                                  {item.category.replace(/_/g, " ")}
+                                </span>
+                                <span className="text-slate-700 leading-snug">{item.finding}</span>
+                              </div>
+                              {item.source && (
+                                <span className="text-[11px] font-medium text-slate-400 shrink-0 italic">
+                                  {item.source}
+                                </span>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
-            )}
-          </motion.div>
-        </div>
+
+              {/* Footer */}
+              {analysis?.hasResume && (
+                <div className="px-6 py-3.5 border-t border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row items-center justify-between gap-3">
+                  <Link href={`/job-assistant?tab=cover-letter&role=${encodeURIComponent(job.title)}&company=${encodeURIComponent(job.company)}`} onClick={onClose} className="w-full sm:w-auto">
+                    <Button variant="outline" className="w-full sm:w-auto h-9 px-3.5 rounded-lg text-xs font-medium border-slate-200 hover:bg-white text-slate-700 cursor-pointer">
+                      <Sparkles className="w-3.5 h-3.5 mr-1.5 text-[#0A54B1]" />
+                      Generate Tailored Cover Letter
+                    </Button>
+                  </Link>
+
+                  {onApplyNow && (
+                    <Button onClick={() => { onClose(); onApplyNow(); }} className="w-full sm:w-auto h-9 px-4 rounded-lg bg-[#0A54B1] hover:bg-[#08428C] text-white font-semibold text-xs shadow-xs cursor-pointer flex items-center justify-center gap-1.5 transition-colors">
+                      <span>Proceed to Apply</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </Button>
+                  )}
+                </div>
+              )}
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
 
       <UpgradeModal
         isOpen={showUpgradeModal}
-        onClose={() => {
-          setShowUpgradeModal(false);
-          onClose();
-        }}
+        onClose={() => { setShowUpgradeModal(false); onClose(); }}
         role="candidate"
         title="AI Career Assistant Quota Reached"
-        message={
-          upgradeMessage ||
-          "You have reached your free monthly limit of 5 AI generations. Upgrade to Pro for unlimited real-time job match analysis, tailored cover letters, and resume optimization."
-        }
+        message={upgradeMessage || "You have reached your free monthly limit. Upgrade to Pro for unlimited job match analysis."}
       />
     </>
   );

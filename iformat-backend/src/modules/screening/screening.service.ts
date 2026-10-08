@@ -1,7 +1,7 @@
 import { prisma } from "../../lib/prisma.js";
 import { ApplicationStatus } from "@prisma/client";
 import { AIClient } from "../../lib/ai-client.js";
-import { NotFoundError } from "../../errors/index.js";
+import { NotFoundError, InternalServerError } from "../../errors/index.js";
 import { logger } from "../../utils/logger.js";
 import {
   buildScreeningCvJson,
@@ -103,24 +103,14 @@ export class ScreeningService {
           cv_json: cvData as Record<string, any>,
           job_description: jobDescription,
         });
-      } catch (error) {
+      } catch (error: any) {
         logger.error(
-          `AI Microservice screening failed for application ${applicationId}, using fallback:`,
+          `AI Microservice screening failed for application ${applicationId}:`,
           error
         );
-        result = {
-          score: 85,
-          recommendation: "RECOMMEND",
-          summary: `${application.candidateName} meets primary baseline requirements for ${application.job.title}.`,
-          strengths: ["Relevant background and experience", "Good baseline alignment"],
-          gaps: ["Evaluation pending live interview"],
-          scoreBreakdown: { skills: 85, experience: 85, education: 80, domainMatch: 85 },
-          evidence: [
-            { category: "skills", finding: "Matches standard requirements", source: "Candidate Profile" },
-          ],
-          model: "bedrock-fallback",
-          tokensUsed: 0,
-        };
+        throw new InternalServerError(
+          "AI candidate screening is temporarily unavailable. Please try again shortly."
+        );
       }
     }
 

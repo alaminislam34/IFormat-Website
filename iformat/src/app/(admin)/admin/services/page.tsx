@@ -84,10 +84,6 @@ export default function AdminServicesPage() {
     return services.filter((s) => s.isActive !== false);
   }, [services]);
 
-  const top3HomepageServices = useMemo(() => {
-    return activeServices.slice(0, 3);
-  }, [activeServices]);
-
   // Filtered Services
   const filteredServices = useMemo(() => {
     return services.filter((service) => {
@@ -172,7 +168,6 @@ export default function AdminServicesPage() {
 
   return (
     <div className="space-y-6 w-full pb-16">
-      {/* Top Header */}
       <AdminPageHeader
         title="Service Products Management"
         description="Configure career branding services, adjust pricing, manage deliverables, and update visibility."
@@ -201,129 +196,6 @@ export default function AdminServicesPage() {
           </Button>
         </div>
       </AdminPageHeader>
-
-      {/* Top 3 Homepage Products Management Showcase */}
-      <div className="bg-white rounded-3xl border border-slate-200/90 p-5 sm:p-6 shadow-xs space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-              <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
-                <Star className="w-4 h-4 text-amber-500 fill-amber-400" />
-                Live on Homepage — Top 3 Products
-              </h3>
-            </div>
-            <p className="text-xs text-slate-500 mt-0.5">
-              These are the exact 3 products displayed on the homepage under &quot;Individual Services&quot;. Use the arrows to reorder them or pin other products from the catalog below.
-            </p>
-          </div>
-          <Link
-            href="/#services"
-            target="_blank"
-            className="text-xs font-bold text-[#0A54B1] hover:underline flex items-center gap-1.5 self-start sm:self-auto bg-sky-50 hover:bg-sky-100 border border-sky-200/80 px-3 py-1.5 rounded-xl transition-colors"
-          >
-            <span>View Live on Homepage</span>
-            <ExternalLink className="w-3.5 h-3.5" />
-          </Link>
-        </div>
-
-        {top3HomepageServices.length === 0 ? (
-          <div className="p-6 text-center text-xs text-slate-400 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
-            No active products found. Activate products in the catalog below to display them on the homepage.
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {top3HomepageServices.map((service, slotIdx) => (
-              <div
-                key={service.id}
-                className="p-4 rounded-2xl border border-sky-200/80 bg-linear-to-b from-sky-50/60 to-white flex flex-col justify-between relative group hover:border-[#0A54B1]/40 hover:shadow-md transition-all"
-              >
-                <div>
-                  <div className="flex items-center justify-between gap-2 mb-3">
-                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-linear-to-r from-sky-500 to-[#0A54B1] text-white shadow-xs flex items-center gap-1">
-                      <Star className="w-2.5 h-2.5 fill-white" /> Slot #{slotIdx + 1}
-                    </span>
-
-                    <div className="flex items-center gap-1 bg-white rounded-lg p-0.5 border border-slate-200 shadow-2xs">
-                      {slotIdx > 0 && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            moveService(service.id, "up");
-                            toast.success(`Moved "${service.title}" to Slot #${slotIdx}`);
-                          }}
-                          className="p-1 rounded text-slate-500 hover:text-sky-700 hover:bg-slate-100 transition-colors cursor-pointer"
-                          title="Move Left / Higher Priority"
-                        >
-                          <ArrowLeft className="w-3.5 h-3.5" />
-                        </button>
-                      )}
-                      {slotIdx < top3HomepageServices.length - 1 && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            moveService(service.id, "down");
-                            toast.success(`Moved "${service.title}" to Slot #${slotIdx + 2}`);
-                          }}
-                          className="p-1 rounded text-slate-500 hover:text-sky-700 hover:bg-slate-100 transition-colors cursor-pointer"
-                          title="Move Right / Lower Priority"
-                        >
-                          <ArrowRight className="w-3.5 h-3.5" />
-                        </button>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3">
-                    <div className="w-14 h-14 rounded-xl bg-slate-900 overflow-hidden relative shrink-0 shadow-2xs">
-                      {service.image ? (
-                        <Image
-                          src={service.image}
-                          alt={service.title}
-                          fill
-                          unoptimized
-                          className="object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-sky-400 bg-slate-900">
-                          <ShoppingBag className="w-6 h-6" />
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="min-w-0 flex-1">
-                      <p className="text-xs font-bold text-slate-900 truncate">
-                        {service.title}
-                      </p>
-                      <p className="text-[11px] text-slate-500 truncate mt-0.5">
-                        {service.category}
-                      </p>
-                      <p className="text-xs font-extrabold text-[#0A54B1] mt-1">
-                        {service.price}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between">
-                  <span className="text-[10px] text-emerald-600 font-bold flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                    Live on Homepage
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => handleOpenEditModal(service)}
-                    className="text-[11px] font-bold text-slate-600 hover:text-sky-700 cursor-pointer"
-                  >
-                    Edit Product
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
       {/* Metrics Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="bg-white p-4.5 rounded-2xl border border-slate-200/80 shadow-xs flex items-center justify-between">

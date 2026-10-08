@@ -1,7 +1,7 @@
 import { AIClient } from "../../lib/ai-client.js";
 import { prisma } from "../../lib/prisma.js";
 import { logger } from "../../utils/logger.js";
-import { NotFoundError } from "../../errors/index.js";
+import { NotFoundError, InternalServerError } from "../../errors/index.js";
 import { isUsableResumeContent, buildScreeningCvJson } from "../cv/cv-content.js";
 import {
   GenerateCoverLetterInput,
@@ -341,29 +341,17 @@ export class AIService {
           education: 0,
           domainMatch: 0,
         },
+        evidence: result.evidence || [],
         jobTitle: job.title,
         company: job.company,
         model: result.model || "bedrock-screen",
+        tokensUsed: result.tokensUsed || 0,
       };
     } catch (err: any) {
       logger.error(`AI screening microservice error during job fit analysis: ${err.message}`);
-      return {
-        hasResume: true,
-        score: 82,
-        recommendation: "Strong baseline technical match",
-        summary: `Your profile demonstrates solid alignment with the requirements for ${job.title} at ${job.company}. Review the key strengths and tailoring suggestions below.`,
-        strengths: [
-          "Demonstrates direct experience relevant to core job requirements.",
-          "Strong background alignment with industry standards.",
-        ],
-        gaps: [
-          "Ensure your cover letter highlights key accomplishments aligned with this position.",
-        ],
-        scoreBreakdown: { skills: 85, experience: 80, education: 80, domainMatch: 85 },
-        jobTitle: job.title,
-        company: job.company,
-        model: "bedrock-fallback",
-      };
+      throw new InternalServerError(
+        "AI job fit analysis is temporarily unavailable. Please try again shortly."
+      );
     }
   }
 }

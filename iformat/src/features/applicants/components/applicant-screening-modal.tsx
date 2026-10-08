@@ -182,6 +182,35 @@ export function ApplicantScreeningModal({
           </div>
         </div>
 
+        {/* Verified Resume Evidence */}
+        {Boolean((applicant.screeningResult?.rawAiResponse as any)?.evidence?.length) && (
+          <div className="space-y-2 p-4 rounded-2xl bg-slate-50 border border-slate-200/80">
+            <div className="flex items-center justify-between">
+              <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+                Verified Resume Citations
+              </h4>
+              <span className="text-[10px] text-slate-400 font-medium">Ground Truth</span>
+            </div>
+            <div className="space-y-1.5 pt-1">
+              {((applicant.screeningResult?.rawAiResponse as any).evidence as any[]).map((ev, i) => (
+                <div key={i} className="p-2.5 rounded-xl bg-white border border-slate-200/60 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
+                  <div className="flex items-start gap-2">
+                    <span className="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-600 border border-slate-200 shrink-0">
+                      {ev.category?.replace(/_/g, " ")}
+                    </span>
+                    <span className="text-slate-700 leading-snug">{ev.finding}</span>
+                  </div>
+                  {ev.source && (
+                    <span className="text-[11px] font-medium text-slate-400 shrink-0 italic">
+                      {ev.source}
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Quick Status Action Footer (Employer Only) */}
         {onUpdateStatus && (
           <div className="pt-2 flex items-center justify-between border-t border-slate-100 gap-3 flex-wrap">
