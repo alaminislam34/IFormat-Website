@@ -1,3 +1,6 @@
+import fs from "fs";
+import path from "path";
+import { Response } from "express";
 import { prisma } from "../../lib/prisma.js";
 import { ApplicationStatus, JobStatus, Role } from "@prisma/client";
 import {
@@ -205,13 +208,31 @@ export class ApplicationService {
               modelUsed: true,
             },
           },
+          cv: {
+            include: {
+              versions: {
+                orderBy: { versionNumber: "desc" },
+                take: 1,
+              },
+            },
+          },
         },
       }),
       prisma.application.count({ where }),
     ]);
 
+    const formattedApplications = applications.map((app: any) => {
+      const versionContent = app.cv?.versions?.[0]?.content as any;
+      const fileUrl = versionContent?.fileUrl || versionContent?.url || null;
+      return {
+        ...app,
+        resumeUrl: fileUrl || `/api/v1/applications/${app.id}/cv/download`,
+        cvFileUrl: fileUrl,
+      };
+    });
+
     const meta = createPaginationMeta(total, page, limit);
-    return { applications, meta };
+    return { applications: formattedApplications, meta };
   }
 
   /**
@@ -284,17 +305,33 @@ export class ApplicationService {
       prisma.application.count({ where }),
     ]);
 
+    const formatApplicant = (app: any) => {
+      const versionContent = app.cv?.versions?.[0]?.content as any;
+      const fileUrl = versionContent?.fileUrl || versionContent?.url || null;
+      const resumeUrl = fileUrl || `/api/v1/applications/${app.id}/cv/download`;
+
+      return {
+        ...app,
+        resumeUrl,
+        cvFileUrl: fileUrl,
+        cvTitle: app.cv?.title || "Candidate Resume",
+      };
+    };
+
     const applications = unmasked
-      ? rawApplications
-      : rawApplications.map((app) => ({
-          ...app,
-          candidateEmail: app.candidateEmail.replace(/(.{2})(.*)(@.*)/, "$1***$3"),
-          candidate: {
-            ...app.candidate,
-            email: app.candidate.email.replace(/(.{2})(.*)(@.*)/, "$1***$3"),
-            phone: app.candidate.phone ? "***-***-****" : null,
-          },
-        }));
+      ? rawApplications.map(formatApplicant)
+      : rawApplications.map((app) => {
+          const formatted = formatApplicant(app);
+          return {
+            ...formatted,
+            candidateEmail: app.candidateEmail.replace(/(.{2})(.*)(@.*)/, "$1***$3"),
+            candidate: {
+              ...app.candidate,
+              email: app.candidate.email.replace(/(.{2})(.*)(@.*)/, "$1***$3"),
+              phone: app.candidate.phone ? "***-***-****" : null,
+            },
+          };
+        });
 
     const meta = createPaginationMeta(total, page, limit);
     return { applications, meta };
@@ -472,4 +509,95 @@ export class ApplicationService {
       );
     }
   }
+
+  /**
+   * Serve/download the actual uploaded CV for an application
+   */
+  static async downloadApplicationCv(
+    applicationId: string,
+    userId: string,
+    userRole?: Role,
+    res?: Response
+  ) {
+    const application = await prisma.application.findUnique({
+      where: { id: applicationId },
+      include: {
+        job: true,
+        cv: {
+          include: {
+            versions: {
+              orderBy: { versionNumber: "desc" },
+              take: 1,
+            },
+          },
+        },
+      },
+    });
+
+    if (!application) {
+      throw new NotFoundError("Application", applicationId);
+    }
+
+    const isOwner = application.candidateId === userId;
+    const isEmployer = application.job.employerId === userId;
+    const isAdmin = userRole === Role.ADMIN;
+
+    if (!isOwner && !isEmployer && !isAdmin) {
+      throw new ForbiddenError("You do not have permission to download this resume");
+    }
+
+    const cv = application.cv;
+    const latestVersion = cv?.versions?.[0];
+    const content = latestVersion?.content as any;
+    const fileUrl: string | undefined = content?.fileUrl || content?.url;
+    const safeCandidateName = (application.candidateName || "Candidate").replace(/[^a-zA-Z0-9_\-]/g, "_");
+    const safeFileName = content?.fileName || `${safeCandidateName}_CV.pdf`;
+
+    // 1. Data URI (Base64)
+    if (fileUrl && fileUrl.startsWith("data:")) {
+      const [header, base64Data] = fileUrl.split(",");
+      const mimeMatch = header.match(/data:([^;]+)/);
+      const mimeType = mimeMatch ? mimeMatch[1] : "application/pdf";
+      const buffer = Buffer.from(base64Data, "base64");
+      if (res) {
+        res.setHeader("Content-Type", mimeType);
+        res.setHeader("Content-Disposition", `attachment; filename="${safeFileName}"`);
+        return res.send(buffer);
+      }
+      return { buffer, mimeType, fileName: safeFileName };
+    }
+
+    // 2. Local uploads folder
+    if (fileUrl) {
+      let storedName = path.basename(fileUrl).split("?")[0];
+      const localPath = path.resolve(process.cwd(), "uploads", storedName);
+      if (fs.existsSync(localPath)) {
+        if (res) {
+          return res.download(localPath, safeFileName);
+        }
+      }
+
+      // If remote HTTP/HTTPS URL (CloudFront, S3, or external)
+      if (fileUrl.startsWith("http://") || fileUrl.startsWith("https://")) {
+        if (res) {
+          return res.redirect(fileUrl);
+        }
+      }
+    }
+
+    // 3. Fallback: deliver extracted candidate CV text content
+    const rawText =
+      content?.raw_text ||
+      `Candidate Resume Profile\n\nName: ${application.candidateName}\nEmail: ${application.candidateEmail}\nApplied For: ${application.job.title} (${application.job.company})\nApplied Date: ${new Date(application.createdAt).toLocaleDateString()}\n`;
+
+    if (res) {
+      res.setHeader("Content-Type", "text/plain; charset=utf-8");
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename="${safeFileName.replace(/\.pdf$/i, ".txt")}"`
+      );
+      return res.send(rawText);
+    }
+  }
 }
+

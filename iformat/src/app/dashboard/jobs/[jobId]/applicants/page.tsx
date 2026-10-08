@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Loader2, User, AlertCircle, RefreshCw, Sparkles, CheckCheck, X, CheckCircle2, Video } from "lucide-react";
+import { Loader2, User, AlertCircle, RefreshCw, Sparkles, CheckCheck, X, CheckCircle2, Video, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useAuthStore } from "@/stores/use-auth-store";
@@ -38,6 +38,7 @@ export default function JobApplicantsPage() {
   const [selectedIds, setSelectedIds] = React.useState<Set<string>>(new Set());
   const [isBulkScreening, setIsBulkScreening] = React.useState(false);
   const [bulkProgress, setBulkProgress] = React.useState({ current: 0, total: 0 });
+  const [isBulkDownloading, setIsBulkDownloading] = React.useState(false);
 
   const [isRerunning, setIsRerunning] = React.useState<Record<string, boolean>>({});
   const [isUpdatingStatus, setIsUpdatingStatus] = React.useState<Record<string, boolean>>({});
@@ -219,6 +220,50 @@ export default function JobApplicantsPage() {
     }
   };
 
+  // Bulk Download CVs (Selected or All)
+  const handleDownloadCVs = async (targetList: JobApplicantDTO[]) => {
+    if (!targetList || targetList.length === 0) {
+      toast.info("No candidates to download CVs for.");
+      return;
+    }
+
+    setIsBulkDownloading(true);
+    let successCount = 0;
+    try {
+      for (const applicant of targetList) {
+        if (!applicant.id) continue;
+        const candidateName = applicant.candidateName || applicant.candidate?.name || "candidate";
+        try {
+          await jobsService.downloadApplicationCv(applicant.id, candidateName, applicant.resumeUrl);
+          successCount++;
+          // Stagger slightly if multiple downloads to avoid browser block
+          if (targetList.length > 1) {
+            await new Promise((r) => setTimeout(r, 400));
+          }
+        } catch (err) {
+          console.error(`Failed to download CV for ${candidateName}:`, err);
+        }
+      }
+
+      if (successCount > 0) {
+        toast.success(`Successfully downloaded ${successCount} CV(s)!`);
+      } else {
+        toast.error("Could not download CVs. Please try again.");
+      }
+    } finally {
+      setIsBulkDownloading(false);
+    }
+  };
+
+  const handleDownloadSelectedCVs = () => {
+    const selectedList = applicants.filter((app) => app.id && selectedIds.has(app.id));
+    handleDownloadCVs(selectedList);
+  };
+
+  const handleDownloadAllCVs = () => {
+    handleDownloadCVs(filteredApplicants);
+  };
+
   // Filter & Sort Applicants
   const filteredApplicants = applicants
     .filter((app) => {
@@ -264,6 +309,8 @@ export default function JobApplicantsPage() {
           totalApplicants={applicants.length}
           loading={loading}
           onRefresh={loadData}
+          onDownloadAllCVs={handleDownloadAllCVs}
+          isDownloadingAll={isBulkDownloading}
         />
 
         {error && (
@@ -360,6 +407,27 @@ export default function JobApplicantsPage() {
                   className="border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100 text-xs h-8 rounded-xl cursor-pointer"
                 >
                   Decline Selected
+                </Button>
+
+                {/* Bulk Download CVs */}
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={isBulkDownloading}
+                  onClick={handleDownloadSelectedCVs}
+                  className="border-blue-200 bg-blue-50 text-[#0A54B1] hover:bg-blue-100 text-xs h-8 rounded-xl cursor-pointer font-medium"
+                >
+                  {isBulkDownloading ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin text-[#0A54B1]" />
+                      Downloading...
+                    </>
+                  ) : (
+                    <>
+                      <Download className="w-3.5 h-3.5 mr-1.5 text-[#0A54B1]" />
+                      Download CVs ({selectedIds.size})
+                    </>
+                  )}
                 </Button>
 
                 {/* Deselect All */}

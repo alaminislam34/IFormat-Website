@@ -322,6 +322,54 @@ class ApiClient {
   delete<T>(endpoint: string, options?: RequestOptions): Promise<T> {
     return this.request<T>(endpoint, { ...options, method: "DELETE" });
   }
+
+  async downloadFile(endpoint: string, fallbackFileName: string): Promise<void> {
+    const authToken = this.getAuthToken();
+    const headers: Record<string, string> = {};
+    if (authToken) {
+      headers["Authorization"] = `Bearer ${authToken}`;
+    }
+
+    const url = endpoint.startsWith("http://") || endpoint.startsWith("https://")
+      ? endpoint
+      : this.buildUrl(endpoint);
+
+    const response = await fetch(url, {
+      method: "GET",
+      credentials: "include",
+      headers,
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      let msg = `Download failed (${response.status})`;
+      try {
+        const parsed = JSON.parse(errText);
+        if (parsed.message) msg = parsed.message;
+      } catch {}
+      throw new Error(msg);
+    }
+
+    const blob = await response.blob();
+    const disposition = response.headers.get("content-disposition");
+    let fileName = fallbackFileName;
+    if (disposition && disposition.includes("filename=")) {
+      const match = disposition.match(/filename="?([^";]+)"?/);
+      if (match?.[1]) {
+        fileName = match[1];
+      }
+    }
+
+    const objectUrl = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = objectUrl;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setTimeout(() => window.URL.revokeObjectURL(objectUrl), 1000);
+  }
 }
+
 
 export const apiClient = new ApiClient();

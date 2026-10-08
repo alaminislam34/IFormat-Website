@@ -7,6 +7,8 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { Applicant } from "../job-card";
 
+import { jobsService } from "@/services/jobs.service";
+
 interface JobDetailsApplicantsProps {
   applicants: Applicant[];
   isLoading?: boolean;
@@ -22,27 +24,55 @@ export function JobDetailsApplicants({
   const [downloadAllState, setDownloadAllState] = useState<"idle" | "loading" | "success">("idle");
   const [downloadedApplicants, setDownloadedApplicants] = useState<Record<string, boolean>>({});
 
-  const handleDownloadCV = (applicantName: string) => {
-    setDownloadingId(applicantName);
-    setTimeout(() => {
-      setDownloadingId(null);
+  const handleDownloadCV = async (applicant: Applicant) => {
+    const applicantName =
+      applicant.name || applicant.candidateName || applicant.candidate?.name || "Candidate";
+    const appId = applicant.id;
+    if (!appId) {
+      toast.error("Application record not found.");
+      return;
+    }
+
+    try {
+      setDownloadingId(applicantName);
+      await jobsService.downloadApplicationCv(appId, applicantName, applicant.resumeUrl);
       setDownloadedApplicants((prev) => ({ ...prev, [applicantName]: true }));
       toast.success(`Downloaded CV for ${applicantName}`);
-    }, 1200);
+    } catch (err: any) {
+      toast.error(err?.message || `Failed to download CV for ${applicantName}`);
+    } finally {
+      setDownloadingId(null);
+    }
   };
 
-  const handleDownloadAll = () => {
+  const handleDownloadAll = async () => {
+    if (applicants.length === 0) return;
     setDownloadAllState("loading");
-    setTimeout(() => {
+    let downloadedCount = 0;
+
+    for (const app of applicants) {
+      const applicantName =
+        app.name || app.candidateName || app.candidate?.name || "Candidate";
+      const appId = app.id;
+      if (!appId) continue;
+
+      try {
+        await jobsService.downloadApplicationCv(appId, applicantName, app.resumeUrl);
+        downloadedCount++;
+        setDownloadedApplicants((prev) => ({ ...prev, [applicantName]: true }));
+      } catch (err: any) {
+        console.warn(`Failed to download CV for ${applicantName}:`, err);
+      }
+    }
+
+    if (downloadedCount > 0) {
       setDownloadAllState("success");
-      const newDownloads: Record<string, boolean> = {};
-      applicants.forEach((app) => {
-        const key = app.name || app.candidateName || "Candidate";
-        newDownloads[key] = true;
-      });
-      setDownloadedApplicants(newDownloads);
-      toast.success(`Downloaded all ${applicants.length} candidate CVs!`);
-    }, 1800);
+      toast.success(`Downloaded ${downloadedCount} of ${applicants.length} CVs!`);
+      setTimeout(() => setDownloadAllState("idle"), 4000);
+    } else {
+      setDownloadAllState("idle");
+      toast.error("Could not download CVs. Please try downloading individually.");
+    }
   };
 
   if (isLoading) {
@@ -215,8 +245,8 @@ export function JobDetailsApplicants({
               {/* Actions */}
               <div className="flex items-center gap-1.5 shrink-0 ml-2">
                 <button
-                  onClick={() => handleDownloadCV(candidateDisplayName)}
-                  disabled={isDownloading || isDownloaded}
+                  onClick={() => handleDownloadCV(applicant)}
+                  disabled={isDownloading}
                   className={cn(
                     "flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer",
                     isDownloaded
@@ -227,11 +257,11 @@ export function JobDetailsApplicants({
                   {isDownloading ? (
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
                   ) : isDownloaded ? (
-                    <Check className="w-3.5 h-3.5" />
+                    <Check className="w-3.5 h-3.5 text-emerald-600" />
                   ) : (
                     <Download className="w-3.5 h-3.5" />
                   )}
-                  <span>{isDownloading ? "Saving..." : isDownloaded ? "Saved" : "CV"}</span>
+                  <span>{isDownloading ? "Downloading..." : isDownloaded ? "Downloaded" : "CV"}</span>
                 </button>
               </div>
             </div>

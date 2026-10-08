@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { ArrowLeft, Building, RefreshCw } from "lucide-react";
+import { ArrowLeft, Building, Download, Loader2, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { JobDTO } from "@/types/api";
 
@@ -12,6 +12,8 @@ interface ApplicantsHeaderProps {
   totalApplicants: number;
   loading: boolean;
   onRefresh: () => void;
+  onDownloadAllCVs?: () => void;
+  isDownloadingAll?: boolean;
 }
 
 export function ApplicantsHeader({
@@ -20,6 +22,8 @@ export function ApplicantsHeader({
   totalApplicants,
   loading,
   onRefresh,
+  onDownloadAllCVs,
+  isDownloadingAll,
 }: ApplicantsHeaderProps) {
   return (
     <div className="space-y-8">
@@ -70,6 +74,27 @@ export function ApplicantsHeader({
         </div>
 
         <div className="flex items-center gap-3">
+          {totalApplicants > 0 && onDownloadAllCVs && (
+            <Button
+              onClick={onDownloadAllCVs}
+              variant="outline"
+              disabled={loading || isDownloadingAll}
+              className="border-blue-200 bg-blue-50/60 hover:bg-blue-100 text-[#0A54B1] text-xs h-10 px-4 rounded-xl shadow-xs cursor-pointer font-semibold"
+            >
+              {isDownloadingAll ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 mr-2 animate-spin text-[#0A54B1]" />
+                  Downloading All CVs...
+                </>
+              ) : (
+                <>
+                  <Download className="w-3.5 h-3.5 mr-2 text-[#0A54B1]" />
+                  Download All CVs
+                </>
+              )}
+            </Button>
+          )}
+
           <Button
             onClick={onRefresh}
             variant="outline"

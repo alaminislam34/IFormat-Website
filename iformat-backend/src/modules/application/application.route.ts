@@ -55,6 +55,13 @@ router.get(
   catchAsync(ApplicationController.listJobApplications)
 );
 
+// Download applicant CV/resume (Candidate owner, Job employer, or Admin)
+router.get(
+  "/:id/cv/download",
+  requireAuth,
+  catchAsync(ApplicationController.downloadCv)
+);
+
 // Candidate replaces resume on an existing application (fixes unreadable / wrong CV data)
 router.post(
   "/:id/resume",

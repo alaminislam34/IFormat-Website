@@ -1,8 +1,10 @@
 "use client";
 
-import React from "react";
-import { Mail, Calendar, Sparkles, AlertCircle, Loader2, Video } from "lucide-react";
+import React, { useState } from "react";
+import { Mail, Calendar, Sparkles, AlertCircle, Loader2, Video, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import { jobsService } from "@/services/jobs.service";
 import { ApplicationStatus, JobApplicantDTO, isInsufficientResumeScreening } from "@/types/api";
 
 interface ApplicantCardRowProps {
@@ -15,6 +17,7 @@ interface ApplicantCardRowProps {
   onRerunScreening: (id: string, e?: React.MouseEvent) => void;
   onUpdateStatus: (id: string, newStatus: ApplicationStatus, e?: React.MouseEvent) => void;
   onScheduleInterview?: (app: JobApplicantDTO, e?: React.MouseEvent) => void;
+  onDownloadCV?: (app: JobApplicantDTO, e?: React.MouseEvent) => void;
 }
 
 export function ApplicantCardRow({
@@ -27,7 +30,10 @@ export function ApplicantCardRow({
   onRerunScreening,
   onUpdateStatus,
   onScheduleInterview,
+  onDownloadCV,
 }: ApplicantCardRowProps) {
+  const [isDownloadingCv, setIsDownloadingCv] = useState(false);
+
   const name = app.candidateName || app.candidate?.name || "Candidate";
   const email = app.candidateEmail || app.candidate?.email || "No email available";
   const score = app.screeningResult?.score;
@@ -35,6 +41,27 @@ export function ApplicantCardRow({
   const insufficient = isInsufficientResumeScreening(app.screeningResult);
   const recommendation = app.screeningResult?.recommendation || "RECOMMEND";
   const appId = app.id || "";
+
+  const handleDownloadCV = async (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    if (onDownloadCV) {
+      onDownloadCV(app, e);
+      return;
+    }
+    if (!app.id) {
+      toast.error("Application record not found.");
+      return;
+    }
+    try {
+      setIsDownloadingCv(true);
+      await jobsService.downloadApplicationCv(app.id, name, app.resumeUrl);
+      toast.success(`Downloaded CV for ${name}`);
+    } catch (err: any) {
+      toast.error(err?.message || `Failed to download CV for ${name}`);
+    } finally {
+      setIsDownloadingCv(false);
+    }
+  };
 
   return (
     <div
@@ -172,6 +199,23 @@ export function ApplicantCardRow({
               <span>Interview</span>
             </Button>
           )}
+
+          {/* Download CV Button */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={(e) => handleDownloadCV(e)}
+            disabled={isDownloadingCv}
+            className="border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs h-9 rounded-xl font-medium shadow-xs cursor-pointer"
+            title="Download Candidate CV / Resume"
+          >
+            {isDownloadingCv ? (
+              <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin text-[#0A54B1]" />
+            ) : (
+              <Download className="w-3.5 h-3.5 mr-1 text-[#0A54B1]" />
+            )}
+            <span>{isDownloadingCv ? "Downloading..." : "CV"}</span>
+          </Button>
 
           {hasScreening ? (
             <Button

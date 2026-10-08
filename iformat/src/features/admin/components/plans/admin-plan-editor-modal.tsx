@@ -177,12 +177,12 @@ export function AdminPlanEditorModal({
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label className="block text-xs font-semibold text-slate-700">Billing Interval</label>
-                {editingPlan && (
+                {editingPlan?.code === "FREE_TIER" && (
                   <span className="text-[9px] font-medium text-amber-600">Locked</span>
                 )}
               </div>
               <select
-                disabled={!!editingPlan}
+                disabled={editingPlan?.code === "FREE_TIER"}
                 value={formData.billingInterval}
                 onChange={(e) =>
                   setFormData({ ...formData, billingInterval: e.target.value as PlanBillingInterval })
@@ -197,9 +197,11 @@ export function AdminPlanEditorModal({
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label className="block text-xs font-semibold text-slate-700">Price ($ USD)</label>
-                {editingPlan && (
-                  <span className="text-[9px] font-medium text-amber-600">
-                    {editingPlan.code?.toUpperCase().includes("ENTERPRISE") ? "Custom Quoted" : "Stripe Managed"}
+                {editingPlan?.code === "FREE_TIER" ? (
+                  <span className="text-[9px] font-medium text-slate-500">Free Tier</span>
+                ) : (
+                  <span className="text-[9px] font-semibold text-emerald-600 flex items-center gap-0.5">
+                    ● Auto-syncs Stripe
                   </span>
                 )}
               </div>
@@ -207,13 +209,22 @@ export function AdminPlanEditorModal({
                 type="number"
                 min="0"
                 step="1"
-                disabled={!!editingPlan}
+                disabled={editingPlan?.code === "FREE_TIER"}
                 value={formData.priceInDollars}
                 onChange={(e) => setFormData({ ...formData, priceInDollars: Number(e.target.value) })}
                 className="w-full px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs focus:outline-hidden focus:border-sky-500 disabled:opacity-50 disabled:cursor-not-allowed"
               />
             </div>
           </div>
+
+          {editingPlan?.code !== "FREE_TIER" && (
+            <div className="p-3 bg-sky-50/80 border border-sky-200/70 rounded-2xl text-[11px] text-sky-900 flex items-start gap-2.5">
+              <span className="text-sm leading-none mt-0.5">💳</span>
+              <p className="leading-relaxed">
+                <strong>Stripe Synchronization:</strong> Changing the price or billing interval will automatically create a new live Price in Stripe, archive the previous price, and update all future checkouts and recurring cycles.
+              </p>
+            </div>
+          )}
 
           {/* Quotas & Limitations */}
           <div className="space-y-3 pt-2 border-t border-slate-100">

@@ -1,8 +1,10 @@
 "use client";
 
-import React from "react";
-import { X, Sparkles, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
+import React, { useState } from "react";
+import { X, Sparkles, Loader2, CheckCircle2, AlertCircle, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import { jobsService } from "@/services/jobs.service";
 import { ApplicationStatus, JobApplicantDTO, isInsufficientResumeScreening } from "@/types/api";
 
 interface ApplicantScreeningModalProps {
@@ -20,6 +22,8 @@ export function ApplicantScreeningModal({
   onRerunScreening,
   onUpdateStatus,
 }: ApplicantScreeningModalProps) {
+  const [isDownloadingCv, setIsDownloadingCv] = useState(false);
+
   if (!applicant) return null;
 
   const candidateDisplayName = applicant.candidateName || applicant.candidate?.name || "Candidate Evaluation";
@@ -27,6 +31,22 @@ export function ApplicantScreeningModal({
   const score = applicant.screeningResult?.score || 0;
   const insufficient = isInsufficientResumeScreening(applicant.screeningResult);
   const recommendation = applicant.screeningResult?.recommendation || "RECOMMEND";
+
+  const handleDownloadCV = async () => {
+    if (!applicant.id) {
+      toast.error("Application ID not found.");
+      return;
+    }
+    try {
+      setIsDownloadingCv(true);
+      await jobsService.downloadApplicationCv(applicant.id, candidateDisplayName, applicant.resumeUrl);
+      toast.success(`Downloaded CV for ${candidateDisplayName}`);
+    } catch (err: any) {
+      toast.error(err?.message || `Failed to download CV for ${candidateDisplayName}`);
+    } finally {
+      setIsDownloadingCv(false);
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-60 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
@@ -46,13 +66,30 @@ export function ApplicantScreeningModal({
             <p className="text-xs text-slate-500">{candidateEmail}</p>
           </div>
 
-          <button
-            onClick={onClose}
-            className="w-8 h-8 rounded-full bg-slate-100 text-slate-500 hover:text-slate-900 hover:bg-slate-200 flex items-center justify-center transition-colors cursor-pointer"
-          >
-            <X className="w-4 h-4" />
-          </button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleDownloadCV}
+              disabled={isDownloadingCv}
+              className="border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs h-8 rounded-xl font-medium shadow-xs cursor-pointer"
+            >
+              {isDownloadingCv ? (
+                <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin text-[#0A54B1]" />
+              ) : (
+                <Download className="w-3.5 h-3.5 mr-1.5 text-[#0A54B1]" />
+              )}
+              <span>{isDownloadingCv ? "Downloading..." : "Download Resume"}</span>
+            </Button>
+            <button
+              onClick={onClose}
+              className="w-8 h-8 rounded-full bg-slate-100 text-slate-500 hover:text-slate-900 hover:bg-slate-200 flex items-center justify-center transition-colors cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
         </div>
+
 
         {/* ATS Alignment Purpose Clarification */}
         <div className={`p-3.5 rounded-2xl border flex items-center gap-2.5 text-xs ${

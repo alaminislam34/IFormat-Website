@@ -110,4 +110,29 @@ export const jobsService = {
     formData.append("file", file);
     return apiClient.post<JobApplicantDTO>(`/applications/${applicationId}/resume`, formData);
   },
+
+  /**
+   * Download applicant's CV file
+   */
+  async downloadApplicationCv(applicationId: string, candidateName: string, directUrl?: string): Promise<void> {
+    const safeName = `${candidateName.replace(/[^a-zA-Z0-9_\-]/g, "_")}_CV.pdf`;
+
+    // If data URI
+    if (directUrl && (directUrl.startsWith("data:") || directUrl.startsWith("blob:"))) {
+      const link = document.createElement("a");
+      link.href = directUrl;
+      link.download = safeName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      return;
+    }
+
+    const endpoint = directUrl && (directUrl.startsWith("http://") || directUrl.startsWith("https://"))
+      ? directUrl
+      : `/applications/${applicationId}/cv/download`;
+
+    await apiClient.downloadFile(endpoint, safeName);
+  },
 };
+

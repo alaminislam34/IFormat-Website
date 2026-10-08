@@ -87,12 +87,17 @@ export function AdminPlanCard({ plan, onEdit, onToggleActive }: AdminPlanCardPro
         </div>
 
         {/* Stripe Sync Badge */}
-        {plan.stripePriceId && (
+        {!isFree && (
           <div className="mb-4 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-sky-50 border border-sky-200 text-xs font-medium text-sky-700">
-            <span className="w-1.5 h-1.5 rounded-full bg-sky-500 animate-pulse" />
-            <span>Stripe Live: {plan.stripePriceId}</span>
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            <span>
+              {plan.stripePriceId
+                ? `Stripe Live: ${plan.stripePriceId}`
+                : "Stripe: Syncs on save"}
+            </span>
           </div>
         )}
+
 
         {/* Entitlements & Features Checklist */}
         <div className="space-y-2.5 pt-4 border-t border-slate-100 text-xs">

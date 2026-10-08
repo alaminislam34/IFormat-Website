@@ -72,4 +72,14 @@ export class ApplicationController {
       result
     );
   }
+
+  static async downloadCv(req: Request, res: Response) {
+    await ApplicationService.downloadApplicationCv(
+      req.params.id,
+      req.user!.id,
+      req.user?.role,
+      res
+    );
+  }
 }
+

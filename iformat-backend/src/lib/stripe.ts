@@ -7,6 +7,14 @@ export const stripe = new Stripe(env.STRIPE_SECRET_KEY || "sk_test_mock", {
   typescript: true,
 });
 
+export const isMockStripe = (): boolean => {
+  return (
+    !env.STRIPE_SECRET_KEY ||
+    env.STRIPE_SECRET_KEY === "sk_test_mock_stripe_key" ||
+    env.STRIPE_SECRET_KEY === "sk_test_mock"
+  );
+};
+
 export const constructStripeEvent = (payload: string | Buffer, signature: string) => {
   if (!env.STRIPE_WEBHOOK_SECRET) {
     logger.warn("⚠️ STRIPE_WEBHOOK_SECRET is not set. Skipping signature verification in dev.");
@@ -19,3 +27,4 @@ export const constructStripeEvent = (payload: string | Buffer, signature: string
     env.STRIPE_WEBHOOK_SECRET
   );
 };
+

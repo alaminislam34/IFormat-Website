@@ -1,5 +1,7 @@
 import { prisma } from "../../lib/prisma.js";
 import { env } from "../../config/env.js";
+import { stripe, isMockStripe } from "../../lib/stripe.js";
+import { logger } from "../../utils/logger.js";
 import { CreatePlanDto, UpdatePlanDto, PlanFilterQuery } from "./plan.types.js";
 import { ConflictError, NotFoundError } from "../../errors/index.js";
 import { PlanAudience, PlanBillingInterval, Role } from "@prisma/client";
@@ -239,6 +241,188 @@ export class PlanService {
   }
 
   /**
+   * Synchronize plan with Stripe (Product and Price).
+   * Ensures that Stripe product exists, creates a new immutable Price in Stripe if price/interval changed,
+   * archives previous price, and migrates existing active subscriptions.
+   */
+  private static async syncStripeForPlan(params: {
+    planId: string;
+    code: string;
+    name: string;
+    description?: string | null;
+    priceInCents: number;
+    currency: string;
+    billingInterval: PlanBillingInterval;
+    existingProductId?: string | null;
+    existingPriceId?: string | null;
+    updateActiveSubscriptions?: boolean;
+  }): Promise<{ stripeProductId: string | null; stripePriceId: string | null }> {
+    // 1. Free tier or 0-price does not require a Stripe recurring price
+    if (params.priceInCents <= 0) {
+      return { stripeProductId: null, stripePriceId: null };
+    }
+
+    // 2. Mock mode for testing/dev without Stripe credentials
+    if (isMockStripe()) {
+      return {
+        stripeProductId: params.existingProductId || `prod_mock_${params.code.toLowerCase()}`,
+        stripePriceId: params.existingPriceId || `price_mock_${Date.now()}`,
+      };
+    }
+
+    try {
+      // 3. Ensure Stripe Product exists
+      let productId = params.existingProductId || null;
+      if (productId) {
+        try {
+          await stripe.products.update(productId, {
+            name: params.name,
+            description: params.description || undefined,
+          });
+        } catch (err: any) {
+          logger.warn(`Stripe product update warning: ${err.message}`);
+        }
+      } else {
+        // Try searching if product with this code already exists in Stripe
+        try {
+          const list = await stripe.products.list({ limit: 100 });
+          const matched = list.data.find(
+            (p) =>
+              p.metadata?.code === params.code ||
+              p.name.toLowerCase() === params.name.toLowerCase()
+          );
+          if (matched) {
+            productId = matched.id;
+          }
+        } catch (listErr: any) {
+          logger.warn(`Failed searching Stripe products: ${listErr.message}`);
+        }
+
+        if (!productId) {
+          const createdProduct = await stripe.products.create({
+            name: params.name,
+            description: params.description || undefined,
+            metadata: {
+              code: params.code,
+              planId: params.planId,
+            },
+          });
+          productId = createdProduct.id;
+        }
+      }
+
+      // 4. Check if existing price in Stripe already matches the requested price & interval
+      const stripeInterval =
+        params.billingInterval === PlanBillingInterval.YEARLY ? "year" : "month";
+      let priceMatches = false;
+
+      if (params.existingPriceId) {
+        try {
+          const currentPrice = await stripe.prices.retrieve(params.existingPriceId);
+          if (
+            currentPrice.active &&
+            currentPrice.unit_amount === params.priceInCents &&
+            currentPrice.currency.toLowerCase() === params.currency.toLowerCase() &&
+            currentPrice.recurring?.interval === stripeInterval
+          ) {
+            priceMatches = true;
+          }
+        } catch (retrieveErr: any) {
+          logger.warn(`Stripe price retrieve warning: ${retrieveErr.message}`);
+          priceMatches = false;
+        }
+      }
+
+      if (priceMatches && params.existingPriceId) {
+        return {
+          stripeProductId: productId,
+          stripePriceId: params.existingPriceId,
+        };
+      }
+
+      // 5. Create new immutable Stripe Price
+      const newPrice = await stripe.prices.create({
+        product: productId!,
+        unit_amount: params.priceInCents,
+        currency: params.currency.toLowerCase(),
+        recurring: {
+          interval: stripeInterval,
+        },
+        metadata: {
+          planCode: params.code,
+          planId: params.planId,
+        },
+      });
+
+      logger.info(
+        `💳 [Stripe Sync] Created new Price ${newPrice.id} ($${(params.priceInCents / 100).toFixed(2)}) for Product ${productId} (${params.name})`
+      );
+
+      // 6. Archive old price in Stripe if different
+      if (params.existingPriceId && params.existingPriceId !== newPrice.id) {
+        try {
+          await stripe.prices.update(params.existingPriceId, { active: false });
+          logger.info(`💳 [Stripe Sync] Archived previous Stripe Price ${params.existingPriceId}`);
+        } catch (err: any) {
+          logger.warn(`Failed to archive old Stripe price ${params.existingPriceId}: ${err.message}`);
+        }
+      }
+
+      // 7. Migrate active subscriptions if requested or on price updates
+      if (params.updateActiveSubscriptions && params.existingPriceId) {
+        try {
+          const activeSubscriptions = await prisma.subscription.findMany({
+            where: {
+              planId: params.planId,
+              status: "ACTIVE",
+              stripeSubscriptionId: { not: null },
+            },
+          });
+
+          for (const sub of activeSubscriptions) {
+            if (
+              sub.stripeSubscriptionId &&
+              !sub.stripeSubscriptionId.startsWith("sub_mock_") &&
+              !sub.stripeSubscriptionId.startsWith("sub_comped_")
+            ) {
+              try {
+                const stripeSub = await stripe.subscriptions.retrieve(sub.stripeSubscriptionId);
+                if (stripeSub && stripeSub.items.data.length > 0) {
+                  const itemId = stripeSub.items.data[0].id;
+                  await stripe.subscriptions.update(sub.stripeSubscriptionId, {
+                    items: [{ id: itemId, price: newPrice.id }],
+                    proration_behavior: "none",
+                  });
+                  logger.info(
+                    `🔄 [Stripe Sync] Migrated active subscription ${sub.stripeSubscriptionId} to new price ${newPrice.id}`
+                  );
+                }
+              } catch (subErr: any) {
+                logger.warn(
+                  `Could not migrate subscription ${sub.stripeSubscriptionId} to new price: ${subErr.message}`
+                );
+              }
+            }
+          }
+        } catch (subListErr: any) {
+          logger.warn(`Failed migrating active subscriptions: ${subListErr.message}`);
+        }
+      }
+
+      return {
+        stripeProductId: productId,
+        stripePriceId: newPrice.id,
+      };
+    } catch (err: any) {
+      logger.error(`❌ [Stripe Sync Error] Failed to sync Stripe product/price: ${err.message}`);
+      return {
+        stripeProductId: params.existingProductId || null,
+        stripePriceId: params.existingPriceId || null,
+      };
+    }
+  }
+
+  /**
    * Admin: Create a new plan
    */
   static async createPlan(data: CreatePlanDto) {
@@ -250,17 +434,39 @@ export class PlanService {
       throw new ConflictError(`Plan with code '${data.code}' already exists`);
     }
 
+    const currency = data.currency || "USD";
+    const billingInterval = data.billingInterval || PlanBillingInterval.MONTHLY;
+
+    let stripeProductId = data.stripeProductId || null;
+    let stripePriceId = data.stripePriceId || null;
+
+    if (data.priceInCents > 0 && (!stripeProductId || !stripePriceId)) {
+      const synced = await this.syncStripeForPlan({
+        planId: `temp-${data.code.toLowerCase()}`,
+        code: data.code,
+        name: data.name,
+        description: data.description,
+        priceInCents: data.priceInCents,
+        currency,
+        billingInterval,
+        existingProductId: stripeProductId,
+        existingPriceId: stripePriceId,
+      });
+      stripeProductId = synced.stripeProductId;
+      stripePriceId = synced.stripePriceId;
+    }
+
     return prisma.plan.create({
       data: {
         code: data.code,
         name: data.name,
         description: data.description,
         priceInCents: data.priceInCents,
-        currency: data.currency || "USD",
-        billingInterval: data.billingInterval || PlanBillingInterval.MONTHLY,
+        currency,
+        billingInterval,
         targetAudience: data.targetAudience || PlanAudience.EMPLOYER,
-        stripePriceId: data.stripePriceId,
-        stripeProductId: data.stripeProductId,
+        stripePriceId,
+        stripeProductId,
         maxActiveJobs: data.maxActiveJobs,
         maxApplicationsPerMonth: data.maxApplicationsPerMonth,
         aiScreeningEnabled: data.aiScreeningEnabled || false,
@@ -281,12 +487,57 @@ export class PlanService {
       throw new NotFoundError("Plan", id);
     }
 
-    // Update all plan fields as requested by admin (Item 6)
+    // Protect Free Tier
+    if (existing.code === "FREE_TIER") {
+      data.priceInCents = 0;
+      data.stripePriceId = undefined;
+      data.stripeProductId = undefined;
+    } else {
+      const effectivePrice =
+        data.priceInCents !== undefined ? data.priceInCents : existing.priceInCents;
+      const effectiveInterval = data.billingInterval || existing.billingInterval;
+      const effectiveCurrency = data.currency || existing.currency || "USD";
+      const effectiveName = data.name || existing.name;
+      const effectiveDescription =
+        data.description !== undefined ? data.description : existing.description;
+
+      const priceOrIntervalChanged =
+        (data.priceInCents !== undefined && data.priceInCents !== existing.priceInCents) ||
+        (data.billingInterval !== undefined && data.billingInterval !== existing.billingInterval) ||
+        (data.currency !== undefined &&
+          data.currency.toLowerCase() !== existing.currency.toLowerCase()) ||
+        !existing.stripePriceId;
+
+      if (effectivePrice > 0 && priceOrIntervalChanged) {
+        const synced = await this.syncStripeForPlan({
+          planId: existing.id,
+          code: existing.code,
+          name: effectiveName,
+          description: effectiveDescription,
+          priceInCents: effectivePrice,
+          currency: effectiveCurrency,
+          billingInterval: effectiveInterval,
+          existingProductId: existing.stripeProductId,
+          existingPriceId: existing.stripePriceId,
+          updateActiveSubscriptions: true,
+        });
+
+        if (synced.stripeProductId) {
+          data.stripeProductId = synced.stripeProductId;
+        }
+        if (synced.stripePriceId) {
+          data.stripePriceId = synced.stripePriceId;
+        }
+      }
+    }
+
+    // Update all plan fields as requested by admin
     return prisma.plan.update({
       where: { id },
       data,
     });
   }
+
 
   /**
    * Seed default plans in database if table is empty
