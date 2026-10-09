@@ -151,7 +151,9 @@ export class PlanService {
 
     where.isDeleted = false;
 
-    if (filters.isActive !== undefined) {
+    if (filters.isActive === "all") {
+      // Admin listing: include inactive plans so they can be re-activated
+    } else if (filters.isActive !== undefined) {
       where.isActive = filters.isActive;
     } else {
       where.isActive = true; // default to active only for public
@@ -553,10 +555,11 @@ export class PlanService {
           continue;
         }
 
+        // Never overwrite existing plans, so admin edits are preserved
         await prisma.plan.upsert({
           where: { code: p.code },
           create: p,
-          update: p,
+          update: {},
         });
       }
     } catch {

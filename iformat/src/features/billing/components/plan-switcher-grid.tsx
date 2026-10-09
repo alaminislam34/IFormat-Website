@@ -5,6 +5,7 @@ import { Check, CheckCircle2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PlanDTO, UserSubscriptionDetailsDTO } from "@/types/api";
 import { BookConsultationModal } from "@/features/services/components/book-consultation-modal";
+import { buildBrandingPlanCards, findDbPlanFor } from "@/features/billing/utils/branding-plans";
 
 interface PlanSwitcherGridProps {
   plans: PlanDTO[];
@@ -13,76 +14,6 @@ interface PlanSwitcherGridProps {
   actionLoading: string | null;
   onUpgradePlan: (planId: string) => void;
 }
-
-const EXACT_BRANDING_PLANS = [
-  {
-    code: "BRANDING_STARTER",
-    name: "Starter",
-    subtitle: "Maintain brand activity and engagement.",
-    price: "$149",
-    priceSuffix: "/month",
-    isPopular: false,
-    buttonText: "Get Started",
-    features: [
-      "Weekly engagement (4)",
-      "Email/Whatsapp support",
-      "Connections Strategy",
-      "Reporting & analytics",
-      "Job market advise",
-    ],
-  },
-  {
-    code: "BRANDING_GROW",
-    name: "Grow",
-    subtitle: "For career pivoters and specialized Brand visibility and job market alignment",
-    price: "$299",
-    priceSuffix: "/month",
-    isPopular: false,
-    buttonText: "Get Started",
-    features: [
-      "Weekly engagement (4)",
-      "Email/Whatsapp support",
-      "Connections Strategy",
-      "Reporting & analytics",
-      "Recruiter messaging",
-      "Quarterly LinkedIn Optimization",
-    ],
-  },
-  {
-    code: "BRANDING_PROFESSIONAL",
-    name: "Professional",
-    subtitle: "High-touch leadership advisory & brand authority",
-    price: "$449",
-    priceSuffix: "/month",
-    isPopular: true,
-    buttonText: "Get Started",
-    features: [
-      "Dedicated consultant",
-      "1:1 Brand Strategy",
-      "Recruiter Engagement",
-      "Brand Updates/Edits",
-      "Interview Coaching",
-      "Salary Negotiation",
-    ],
-  },
-  {
-    code: "BRANDING_ENTERPRISE",
-    name: "Enterprise Solutions",
-    subtitle: "Designed for career changers and niche pros to boost your brand and meet market needs",
-    price: "",
-    isPopular: false,
-    buttonText: "Contact US",
-    isContactUs: true,
-    features: [
-      "Outplacement Support",
-      "Startup Brand Equity",
-      "Stakeholder Brand Equity",
-      "Investor Brand Engagement",
-      "Restructuring",
-      "Workforce Transitions",
-    ],
-  },
-];
 
 export function PlanSwitcherGrid({
   plans,
@@ -122,30 +53,22 @@ export function PlanSwitcherGrid({
           <button
             type="button"
             onClick={() => setCommitmentInterval("12_MONTHS")}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
               commitmentInterval === "12_MONTHS"
                 ? "bg-white text-[#0A54B1] shadow-xs"
                 : "text-slate-500 hover:text-slate-900"
             }`}
           >
-            <span>12 Months</span>
-            <span className="px-1.5 py-0.5 rounded text-[10px] font-extrabold bg-sky-100 text-[#004AAD]">
-              Save 15%
-            </span>
+            12 Months
           </button>
         </div>
       </div>
 
       {/* 4 Cards Exactly Matching Website & Figma Design */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
-        {EXACT_BRANDING_PLANS.map((pkg) => {
+        {buildBrandingPlanCards(plans).map((pkg) => {
           const isPopular = pkg.isPopular;
-          const matchedDbPlan = plans.find(
-            (p) =>
-              p.code === pkg.code ||
-              p.code?.replace("BRANDING_", "") === pkg.code.replace("BRANDING_", "") ||
-              p.name.toLowerCase().trim() === pkg.name.toLowerCase().trim()
-          );
+          const matchedDbPlan = findDbPlanFor(pkg, plans);
 
           const isCurrent = Boolean(
             subscription?.isPaidActive &&
@@ -159,17 +82,8 @@ export function PlanSwitcherGrid({
           const planIdToTrigger = matchedDbPlan?.id || plans.find((p) => p.priceInCents > 0)?.id;
           const isThisLoading = actionLoading === planIdToTrigger || actionLoading === pkg.code;
 
-          let displayPrice = pkg.price;
-          if (pkg.price && !pkg.isContactUs) {
-            const baseNum = parseFloat(pkg.price.replace(/[^0-9.]/g, ""));
-            if (!isNaN(baseNum) && baseNum > 0) {
-              if (commitmentInterval === "12_MONTHS") {
-                displayPrice = `$${Math.round(baseNum * 0.85)}`;
-              } else {
-                displayPrice = `$${baseNum}`;
-              }
-            }
-          }
+          // Same monthly price for 6 and 12 months commitment (admin-managed DB price)
+          const displayPrice = pkg.price;
 
           return (
             <div
@@ -219,7 +133,7 @@ export function PlanSwitcherGrid({
                       </div>
                       <div className="mt-1.5">
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-sky-50 text-[#0A54B1] border border-sky-200/60">
-                          {commitmentInterval === "12_MONTHS" ? "12 Months (Best Value)" : "6 Months Commitment"}
+                          {commitmentInterval === "12_MONTHS" ? "12 Months Commitment" : "6 Months Commitment"}
                         </span>
                       </div>
                     </>

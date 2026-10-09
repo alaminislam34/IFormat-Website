@@ -3,7 +3,7 @@ import { Plan, PlanAudience, PlanBillingInterval } from "@prisma/client";
 export interface PlanFilterQuery {
   audience?: PlanAudience | "ALL";
   interval?: PlanBillingInterval;
-  isActive?: boolean;
+  isActive?: boolean | "all";
 }
 
 export interface CreatePlanDto {

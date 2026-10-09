@@ -9,82 +9,15 @@ import { UserSubscriptionDetailsDTO } from "@/types/api";
 import { PricingHeader } from "./pricing-header";
 import { PricingCard, PricingCardItem } from "./pricing-card";
 import { SubscriptionPhoneModal } from "@/features/billing/components/subscription-phone-modal";
-
-export const DEFAULT_BRANDING_PLANS: PricingCardItem[] = [
-  {
-    code: "BRANDING_STARTER",
-    name: "Starter",
-    subtitle: "Maintain brand activity and engagement.",
-    price: "$149",
-    priceSuffix: "/month",
-    isPopular: false,
-    buttonText: "Get Started",
-    features: [
-      "Weekly engagement (4)",
-      "Email/Whatsapp support",
-      "Connections Strategy",
-      "Reporting & analytics",
-      "Job market advise",
-    ],
-  },
-  {
-    code: "BRANDING_GROW",
-    name: "Grow",
-    subtitle: "For career pivoters and specialized Brand visibility and job market alignment",
-    price: "$299",
-    priceSuffix: "/month",
-    isPopular: false,
-    buttonText: "Get Started",
-    features: [
-      "Weekly engagement (4)",
-      "Email/Whatsapp support",
-      "Connections Strategy",
-      "Reporting & analytics",
-      "Recruiter messaging",
-      "Quarterly LinkedIn Optimization",
-    ],
-  },
-  {
-    code: "BRANDING_PROFESSIONAL",
-    name: "Professional",
-    subtitle: "High-touch leadership advisory & brand authority",
-    price: "$449",
-    priceSuffix: "/month",
-    isPopular: true,
-    buttonText: "Get Started",
-    features: [
-      "Dedicated consultant",
-      "1:1 Brand Strategy",
-      "Recruiter Engagement",
-      "Brand Updates/Edits",
-      "Interview Coaching",
-      "Salary Negotiation",
-    ],
-  },
-  {
-    code: "BRANDING_ENTERPRISE",
-    name: "Enterprise Solutions",
-    subtitle: "Designed for career changers and niche pros to boost your brand and meet market needs",
-    price: "",
-    isPopular: false,
-    buttonText: "Contact US",
-    isContactUs: true,
-    features: [
-      "Outplacement Support",
-      "Startup Brand Equity",
-      "Stakeholder Brand Equity",
-      "Investor Brand Engagement",
-      "Restructuring",
-      "Workforce Transitions",
-    ],
-  },
-];
+import { DEFAULT_BRANDING_PLANS, buildBrandingPlanCards } from "@/features/billing/utils/branding-plans";
 
 export function Pricing() {
   const router = useRouter();
   const { isAuthenticated } = useAuthStore();
   const [commitmentInterval, setCommitmentInterval] = useState<"6_MONTHS" | "12_MONTHS">("6_MONTHS");
   const [plans, setPlans] = useState<PricingCardItem[]>(DEFAULT_BRANDING_PLANS);
+  // Hide cards until admin-managed prices load, so old default prices never flash
+  const [plansLoaded, setPlansLoaded] = useState(false);
   const [loadingPlanCode, setLoadingPlanCode] = useState<string | null>(null);
   const [subscription, setSubscription] = useState<UserSubscriptionDetailsDTO | null>(null);
 
@@ -92,34 +25,11 @@ export function Pricing() {
     try {
       const data = await membershipService.getPlans();
       const rawPlans = Array.isArray(data) ? data : (data as any)?.plans;
-      if (rawPlans && rawPlans.length > 0) {
-        const updated = DEFAULT_BRANDING_PLANS.map((defaultPlan) => {
-          const matched = rawPlans.find(
-            (p: any) =>
-              p.code === defaultPlan.code ||
-              p.name.toLowerCase() === defaultPlan.name.toLowerCase()
-          );
-          if (matched) {
-            const rawFeat = matched.customFeatures as any;
-            const customList = Array.isArray(rawFeat) && rawFeat.length > 0
-              ? rawFeat
-              : Array.isArray(rawFeat?.features) && rawFeat.features.length > 0
-              ? rawFeat.features
-              : null;
-
-            return {
-              ...defaultPlan,
-              id: matched.id,
-              price: matched.priceInCents > 0 ? `$${matched.priceInCents / 100}` : defaultPlan.price,
-              features: customList || defaultPlan.features,
-            };
-          }
-          return defaultPlan;
-        });
-        setPlans(updated);
-      }
+      setPlans(buildBrandingPlanCards(rawPlans));
     } catch {
       setPlans(DEFAULT_BRANDING_PLANS);
+    } finally {
+      setPlansLoaded(true);
     }
   }, []);
 
@@ -215,7 +125,11 @@ export function Pricing() {
           setCommitmentInterval={setCommitmentInterval}
         />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
+        <div
+          className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch transition-opacity duration-300 ${
+            plansLoaded ? "opacity-100" : "opacity-0"
+          }`}
+        >
           {plans.map((item) => {
             const isCurrent = Boolean(
               currentPlan &&
@@ -225,23 +139,18 @@ export function Pricing() {
                   (item.id && currentPlan.id === item.id))
             );
 
-            // Compute price and badge based on 6 vs 12 months commitment
+            // Compute badge based on 6 vs 12 months commitment
             let displayPrice = item.price;
-            let commitmentBadge =
+            const commitmentBadge =
               commitmentInterval === "12_MONTHS"
-                ? "12 Months Commitment (Best Value)"
+                ? "12 Months Commitment"
                 : "6 Months Commitment";
 
             if (item.price && !item.isContactUs) {
+              // Same monthly price for 6 and 12 months commitment (members can cancel anytime)
               const baseNum = parseFloat(item.price.replace(/[^0-9.]/g, ""));
               if (!isNaN(baseNum) && baseNum > 0) {
-                if (commitmentInterval === "12_MONTHS") {
-                  // 15% discount for 12 months commitment
-                  const discounted = Math.round(baseNum * 0.85);
-                  displayPrice = `$${discounted}`;
-                } else {
-                  displayPrice = `$${baseNum}`;
-                }
+                displayPrice = `$${baseNum}`;
               }
             }
 

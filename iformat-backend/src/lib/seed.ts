@@ -36,48 +36,35 @@ export async function seedDatabase() {
         continue;
       }
 
-      await prisma.plan.upsert({
-        where: { code: plan.code },
-        create: {
-          code: plan.code,
-          name: plan.name,
-          description: plan.description,
-          priceInCents: plan.priceInCents,
-          currency: plan.currency,
-          billingInterval: plan.billingInterval as any,
-          targetAudience: plan.targetAudience as any,
-          stripePriceId: plan.stripePriceId,
-          stripeProductId: plan.stripeProductId,
-          maxActiveJobs: plan.maxActiveJobs,
-          maxApplicationsPerMonth: plan.maxApplicationsPerMonth,
-          aiScreeningEnabled: plan.aiScreeningEnabled,
-          featuredJobPlacement: plan.featuredJobPlacement,
-          unmaskedApplicantProfiles: plan.unmaskedApplicantProfiles,
-          unlimitedCvTemplates: plan.unlimitedCvTemplates,
-          customFeatures: plan.customFeatures as any,
-        },
-        update: {
-          name: plan.name,
-          description: plan.description,
-          priceInCents: plan.priceInCents,
-          customFeatures: plan.customFeatures as any,
-          isActive: plan.isActive,
-          stripePriceId: plan.stripePriceId,
-          stripeProductId: plan.stripeProductId,
-        },
-      });
+      // Only create missing defaults. Never overwrite existing plans, so admin edits
+      // (price, name, features, Stripe IDs) survive server restarts/deploys.
+      const existing = await prisma.plan.findUnique({ where: { code: plan.code } });
+      if (!existing) {
+        await prisma.plan.create({
+          data: {
+            code: plan.code,
+            name: plan.name,
+            description: plan.description,
+            priceInCents: plan.priceInCents,
+            currency: plan.currency,
+            billingInterval: plan.billingInterval as any,
+            targetAudience: plan.targetAudience as any,
+            stripePriceId: plan.stripePriceId,
+            stripeProductId: plan.stripeProductId,
+            maxActiveJobs: plan.maxActiveJobs,
+            maxApplicationsPerMonth: plan.maxApplicationsPerMonth,
+            aiScreeningEnabled: plan.aiScreeningEnabled,
+            featuredJobPlacement: plan.featuredJobPlacement,
+            unmaskedApplicantProfiles: plan.unmaskedApplicantProfiles,
+            unlimitedCvTemplates: plan.unlimitedCvTemplates,
+            customFeatures: plan.customFeatures as any,
+          },
+        });
+      }
     }
 
-    // Clean up any obsolete non-branding plans
-    const validCodes = SYSTEM_DEFAULT_PLANS.map((p) => p.code);
-    await prisma.plan.updateMany({
-      where: { code: { notIn: validCodes } },
-      data: { isActive: false, isDeleted: true, deletedAt: new Date() },
-    });
-    await prisma.plan.deleteMany({
-      where: { code: { notIn: validCodes }, subscriptions: { none: {} } },
-    });
-    console.log("✅ Default membership plans seeded successfully and obsolete plans purged.");
+    // Note: plans not in SYSTEM_DEFAULT_PLANS are left alone, since admins can create their own plans.
+    console.log("✅ Default membership plans seeded successfully.");
 
     // 2. Ensure primary Admin users exist (Superadmin, Jessica Founder, Info Desk)
     const adminAccounts = [

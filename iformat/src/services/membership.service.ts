@@ -17,11 +17,14 @@ export class MembershipService {
   static async getPlans(params?: {
     audience?: PlanAudience | "ALL";
     interval?: PlanBillingInterval;
+    /** "all" includes inactive plans (admin listing) */
+    isActive?: "true" | "false" | "all";
   }): Promise<PlanDTO[]> {
     return apiClient.get<PlanDTO[]>("/plans", {
       params: {
         audience: params?.audience,
         interval: params?.interval,
+        isActive: params?.isActive,
       },
     });
   }

@@ -5,9 +5,9 @@ export const queryPlansSchema = z.object({
   audience: z.enum(["EMPLOYER", "CANDIDATE", "BOTH", "ALL"]).optional(),
   interval: z.nativeEnum(PlanBillingInterval).optional(),
   isActive: z
-    .enum(["true", "false"])
+    .enum(["true", "false", "all"])
     .optional()
-    .transform((val) => (val === undefined ? undefined : val === "true")),
+    .transform((val) => (val === undefined || val === "all" ? val : val === "true")),
 });
 
 export const createPlanSchema = z.object({

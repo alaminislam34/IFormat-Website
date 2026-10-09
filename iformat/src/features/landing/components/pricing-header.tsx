@@ -32,16 +32,13 @@ export function PricingHeader({
           <button
             type="button"
             onClick={() => setCommitmentInterval("12_MONTHS")}
-            className={`px-4.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+            className={`px-4.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
               commitmentInterval === "12_MONTHS"
                 ? "bg-white text-[#0A54B1] shadow-xs"
                 : "text-slate-500 hover:text-slate-900"
             }`}
           >
-            <span>12 Months Commitment</span>
-            <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-sky-100 text-[#004AAD]">
-              Save 15%
-            </span>
+            12 Months Commitment
           </button>
         </div>
       </div>

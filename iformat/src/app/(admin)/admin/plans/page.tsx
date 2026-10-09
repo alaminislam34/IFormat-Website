@@ -51,7 +51,7 @@ export default function AdminPlansPage() {
     try {
       setLoading(true);
       setError(null);
-      const res = await membershipService.getPlans();
+      const res = await membershipService.getPlans({ isActive: "all" });
       if (res) setPlans(Array.isArray(res) ? res : (res as any).plans || []);
     } catch (err: any) {
       const msg = err?.message || "Could not load subscription plans.";
@@ -144,7 +144,8 @@ export default function AdminPlansPage() {
     const payload: CreatePlanDTO = {
       name: formData.name.trim(),
       code: formattedCode,
-      description: formData.description.trim() || undefined,
+      // Empty string (not undefined) so the admin can clear an existing description
+      description: formData.description.trim(),
       priceInCents: Math.round(Number(formData.priceInDollars) * 100),
       billingInterval: formData.billingInterval,
       targetAudience: formData.targetAudience,
