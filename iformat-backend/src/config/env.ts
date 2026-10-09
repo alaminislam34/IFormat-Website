@@ -61,8 +61,9 @@ const envSchema = z.object({
   // SMTP (Amazon SES / Mail Manager)
   SMTP_HOST: z.string().default("q84n3pze5dfb.zevm.mail-manager-smtp.amazonaws.com"),
   SMTP_PORT: z.coerce.number().default(587),
-  SMTP_USER: z.string().default("inp-gzlhv5uelqfo3b3qprwdz6aw"),
-  SMTP_PASS: z.string().default("V_^_S7L$_e%.i#-xir+e|axNGHpA6[E?"),
+  // Credentials must come from the environment (.env), never hardcoded
+  SMTP_USER: z.string().default(""),
+  SMTP_PASS: z.string().default(""),
   SMTP_FROM: z.string().default("iFormat <info@iformatbranding.com>"),
   SMTP_REPLY_TO: z.string().default("info@iformatbranding.com"),
 

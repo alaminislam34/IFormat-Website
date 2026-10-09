@@ -20,10 +20,49 @@ env:
 
 jobs:
   # ============================================================================
+  # 0. Typecheck (blocks broken code from reaching production)
+  # ============================================================================
+  verify:
+    name: Typecheck (${{ matrix.target }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target: [iformat, iformat-backend]
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "pnpm"
+          cache-dependency-path: "${{ matrix.target }}/pnpm-lock.yaml"
+
+      - name: Install Dependencies
+        working-directory: ${{ matrix.target }}
+        run: pnpm install --frozen-lockfile --ignore-workspace
+
+      - name: Prisma Client Generation (Backend only)
+        if: matrix.target == 'iformat-backend'
+        working-directory: iformat-backend
+        run: pnpm prisma generate
+
+      - name: TypeScript Compilation Check
+        working-directory: ${{ matrix.target }}
+        run: pnpm exec tsc --noEmit
+
+  # ============================================================================
   # 1. Build & Push Container Images to GHCR (Parallelized High-Speed Matrix)
   # ============================================================================
   build-and-push:
     name: Build & Push (${{ matrix.service }})
+    needs: verify
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -98,6 +137,8 @@ jobs:
       DEPLOY_PORT: ${{ secrets.DEPLOY_PORT || 22 }}
       DEPLOY_WEBHOOK_URL: ${{ secrets.DEPLOY_WEBHOOK_URL }}
       DOTENV_CONTENT: ${{ secrets.DOTENV_PRODUCTION }}
+      # Deploy the exact images built for this commit (enables rollback by tag)
+      IMAGE_TAG: sha-${{ github.sha }}
     steps:
       - name: Checkout Source Code
         uses: actions/checkout@v4
@@ -123,7 +164,7 @@ jobs:
           username: ${{ env.DEPLOY_USER }}
           key: ${{ env.DEPLOY_SSH_KEY }}
           port: ${{ env.DEPLOY_PORT }}
-          envs: DOTENV_CONTENT
+          envs: DOTENV_CONTENT,IMAGE_TAG
           script: |
             set -e
             echo "🚀 Starting Automated Deployment to $(hostname)..."
@@ -141,18 +182,31 @@ jobs:
             # Authenticate to GitHub Container Registry
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
 
-            # Free up server disk space before pulling new layers
-            echo "🧹 Freeing up server disk space (cleaning old images & dangling caches)..."
-            docker system prune -af || true
-            docker builder prune -af || true
+            # Short SHA tag, matching docker/metadata-action (type=sha,format=short)
+            export IMAGE_TAG="$(echo "$IMAGE_TAG" | cut -c1-11)"
+            echo "📦 Deploying image tag: $IMAGE_TAG"
 
-            # Pull new container images
-            docker compose -f docker-compose.prod.yml pull
+            # Pull new images first: if this fails, the running containers are untouched
+            docker compose -f docker-compose.prod.yml pull backend frontend
 
-            # Execute rolling container update
-            docker compose -f docker-compose.prod.yml up -d --remove-orphans
+            # Recreate containers and wait until healthchecks pass (fails the job if unhealthy).
+            # Older Compose versions without --wait-timeout fall back to a plain `up -d`.
+            if docker compose up --help | grep -q -- "--wait-timeout"; then
+              docker compose -f docker-compose.prod.yml up -d --remove-orphans --wait --wait-timeout 180
+            else
+              docker compose -f docker-compose.prod.yml up -d --remove-orphans
+            fi
 
-            echo "✅ Deployment completed successfully with zero manual server editing!"
+            # Remember deployed tags for quick rollback:
+            #   IMAGE_TAG=<previous tag> docker compose -f docker-compose.prod.yml up -d --wait
+            echo "$(date -u +%FT%TZ) $IMAGE_TAG" >> deploy-history.log
+
+            # Free disk space AFTER a successful deploy. Keeps images from the last 7 days
+            # (for rollback) and does not touch other projects' stopped containers/volumes.
+            echo "🧹 Removing unused images older than 7 days..."
+            docker image prune -af --filter "until=168h" || true
+
+            echo "✅ Deployment completed successfully!"
 
       # Optional Webhook deploy fallback (for Coolify, Portainer, CapRover)
       - name: Trigger Webhook Deployment (Optional)
