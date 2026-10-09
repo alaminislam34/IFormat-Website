@@ -44,15 +44,15 @@ jobs:
       - name: Prisma Client Generation (Backend only)
         if: matrix.target == 'iformat-backend'
         working-directory: iformat-backend
-        run: pnpm prisma generate
+        run: ./node_modules/.bin/prisma generate
 
       - name: Linting Check
         working-directory: ${{ matrix.target }}
-        run: pnpm lint
+        run: npm run lint
 
       - name: TypeScript Compilation Check
         working-directory: ${{ matrix.target }}
-        run: pnpm exec tsc --noEmit
+        run: ./node_modules/.bin/tsc --noEmit
 
   # ============================================================================
   # 2. Automated Backend Tests & Migrations
@@ -110,8 +110,8 @@ jobs:
         env:
           DATABASE_URL: postgresql://postgres:testpassword@localhost:5432/iformat_test_db?schema=public
         run: |
-          pnpm prisma generate
-          pnpm prisma db push --skip-generate
+          ./node_modules/.bin/prisma generate
+          ./node_modules/.bin/prisma db push --skip-generate
 
       - name: Run Backend Integration & QA Suites
         working-directory: iformat-backend
@@ -125,7 +125,7 @@ jobs:
           OPENAI_API_KEY: sk-mock-key
         run: |
           if npm run | grep -q "test:qa"; then
-            pnpm test:qa || echo "QA suite executed"
+            npm run test:qa || echo "QA suite executed"
           fi
 
   # ============================================================================
