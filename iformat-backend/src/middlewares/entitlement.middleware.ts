@@ -1,25 +1,21 @@
 import { Request, Response, NextFunction } from "express";
-import { Role, SubscriptionStatus, JobStatus } from "@prisma/client";
+import { Role, JobStatus } from "@prisma/client";
 import { prisma } from "../lib/prisma.js";
-import { ForbiddenError, AuthError } from "../errors/index.js";
+import { AuthError } from "../errors/index.js";
 import { logger } from "../utils/logger.js";
-
-const FREE_TIER_MONTHLY_AI_LIMIT = 5;
-const FREE_TIER_MAX_ACTIVE_JOBS = 1;
-const FREE_TIER_MONTHLY_APPLICATIONS_LIMIT = 10;
-
-/**
- * Get current UTC month start and end timestamps
- */
-function getCurrentBillingCycleUtc() {
-  const now = new Date();
-  const periodStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0, 0));
-  const periodEnd = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 0, 23, 59, 59, 999));
-  return { periodStart, periodEnd };
-}
+import {
+  FREE_TIER_MAX_ACTIVE_JOBS,
+  FREE_TIER_MONTHLY_AI_LIMIT,
+  FREE_TIER_MONTHLY_APPLICATIONS_LIMIT,
+  getCurrentBillingCycleUtc,
+  getEntitledSubscription,
+  getFreeTierPlan,
+  readAiLimit,
+} from "../utils/entitlement.js";
 
 /**
- * Middleware: Enforces subscription entitlements & monthly quota on Candidate AI tools
+ * Middleware: Enforces subscription entitlements & monthly quota on Candidate AI tools.
+ * Quota is checked up front but only consumed once the request succeeds.
  */
 export const requireAiEntitlement = (actionType: string = "AI_GENERATION") => {
   return async (req: Request, res: Response, next: NextFunction) => {
@@ -35,75 +31,32 @@ export const requireAiEntitlement = (actionType: string = "AI_GENERATION") => {
         return next();
       }
 
-      // 2. Check Active Subscription
-      const activeSubscription = await prisma.subscription.findFirst({
-        where: {
-          userId,
-          status: SubscriptionStatus.ACTIVE,
-        },
-        include: {
-          plan: true,
-        },
-      });
+      // 2. Resolve the monthly cap from the user's plan (or the free tier plan)
+      const subscription = await getEntitledSubscription(userId);
+      let maxAiLimit: number | null;
 
-      let maxAiLimit: number | null = null;
-
-      if (activeSubscription) {
-        const customFeat = activeSubscription.plan.customFeatures as any;
-        if (customFeat && typeof customFeat.maxAiGenerations === "number") {
-          maxAiLimit = customFeat.maxAiGenerations;
-        } else if (customFeat && customFeat.maxAiGenerations === null) {
-          maxAiLimit = null; // explicitly unlimited
-        } else {
-          // Default paid subscriber has full unlimited entitlement
-          return next();
-        }
+      if (subscription) {
+        // Paid plans are unlimited unless the admin set an explicit number
+        maxAiLimit = readAiLimit(subscription.plan.customFeatures, null);
       } else {
-        // Free tier: check if admin customized quota on FREE_TIER plan in DB
-        const freePlan = await prisma.plan.findUnique({
-          where: { code: "FREE_TIER" },
-        });
-        const customFeat = freePlan?.customFeatures as any;
-        if (customFeat && typeof customFeat.maxAiGenerations === "number") {
-          maxAiLimit = customFeat.maxAiGenerations;
-        } else {
-          maxAiLimit = FREE_TIER_MONTHLY_AI_LIMIT;
-        }
+        const freePlan = await getFreeTierPlan();
+        maxAiLimit = readAiLimit(freePlan?.customFeatures, FREE_TIER_MONTHLY_AI_LIMIT);
       }
 
       if (maxAiLimit === null) {
         return next();
       }
 
-      // 3. Usage Check & Increment
+      // 3. Usage check (read-only)
       const { periodStart, periodEnd } = getCurrentBillingCycleUtc();
-
-      // Find or create monthly cycle record
-      let usage = await prisma.subscriptionUsage.findUnique({
-        where: {
-          userId_periodStart_periodEnd: {
-            userId,
-            periodStart,
-            periodEnd,
-          },
-        },
+      const usage = await prisma.subscriptionUsage.findUnique({
+        where: { userId_periodStart_periodEnd: { userId, periodStart, periodEnd } },
       });
+      const used = usage?.aiGenerationsCount ?? 0;
 
-      if (!usage) {
-        usage = await prisma.subscriptionUsage.create({
-          data: {
-            userId,
-            periodStart,
-            periodEnd,
-            aiGenerationsCount: 0,
-          },
-        });
-      }
-
-      // Check quota limit
-      if (usage.aiGenerationsCount >= maxAiLimit) {
+      if (used >= maxAiLimit) {
         logger.warn(
-          `🚫 [Entitlement] User ${req.user.email} (${userId}) exceeded AI monthly quota (${usage.aiGenerationsCount}/${maxAiLimit}) on ${actionType}`
+          `🚫 [Entitlement] User ${req.user.email} (${userId}) exceeded AI monthly quota (${used}/${maxAiLimit}) on ${actionType}`
         );
 
         return res.status(403).json({
@@ -112,24 +65,29 @@ export const requireAiEntitlement = (actionType: string = "AI_GENERATION") => {
             code: "SUBSCRIPTION_REQUIRED",
             message: `You have reached your limit of ${maxAiLimit} monthly AI generations. Please upgrade your membership for higher or unlimited generations.`,
             upgradeUrl: "/dashboard/billing",
-            currentUsage: usage.aiGenerationsCount,
+            currentUsage: used,
             maxQuota: maxAiLimit,
             periodEnd,
           },
         });
       }
 
-      // Atomically increment quota
-      await prisma.subscriptionUsage.update({
-        where: { id: usage.id },
-        data: {
-          aiGenerationsCount: { increment: 1 },
-        },
+      // 4. Consume quota only if the AI call actually succeeded
+      res.once("finish", () => {
+        if (res.statusCode >= 400) return;
+        prisma.subscriptionUsage
+          .upsert({
+            where: { userId_periodStart_periodEnd: { userId, periodStart, periodEnd } },
+            create: { userId, periodStart, periodEnd, aiGenerationsCount: 1 },
+            update: { aiGenerationsCount: { increment: 1 } },
+          })
+          .then(() =>
+            logger.info(
+              `🤖 [Entitlement] AI tool ${actionType} used by ${req.user?.email}. Usage: ${used + 1}/${maxAiLimit}`
+            )
+          )
+          .catch((err) => logger.error(`Failed to record AI usage for ${userId}: ${err.message}`));
       });
-
-      logger.info(
-        `🤖 [Entitlement] AI tool ${actionType} granted to ${req.user.email}. Usage: ${usage.aiGenerationsCount + 1}/${maxAiLimit}`
-      );
 
       return next();
     } catch (error) {
@@ -157,15 +115,7 @@ export const requireEmployerAiScreeningEntitlement = async (
     }
 
     // 2. Check Employer active plan with aiScreeningEnabled
-    const activeSubscription = await prisma.subscription.findFirst({
-      where: {
-        userId: req.user.id,
-        status: SubscriptionStatus.ACTIVE,
-      },
-      include: {
-        plan: true,
-      },
-    });
+    const activeSubscription = await getEntitledSubscription(req.user.id);
 
     if (activeSubscription && activeSubscription.plan.aiScreeningEnabled) {
       return next();
@@ -207,17 +157,20 @@ export const requireJobPostingQuota = async (
       return next();
     }
 
-    const activeSubscription = await prisma.subscription.findFirst({
-      where: {
-        userId: req.user.id,
-        status: SubscriptionStatus.ACTIVE,
-      },
-      include: {
-        plan: true,
-      },
-    });
+    const activeSubscription = await getEntitledSubscription(req.user.id);
 
-    const maxAllowed = activeSubscription?.plan?.maxActiveJobs ?? FREE_TIER_MAX_ACTIVE_JOBS;
+    // Paid plan: null means unlimited. No plan: use the admin-editable free tier row.
+    let maxAllowed: number | null;
+    if (activeSubscription) {
+      maxAllowed = activeSubscription.plan.maxActiveJobs;
+    } else {
+      const freePlan = await getFreeTierPlan();
+      maxAllowed = freePlan?.maxActiveJobs ?? FREE_TIER_MAX_ACTIVE_JOBS;
+    }
+
+    if (maxAllowed === null) {
+      return next();
+    }
 
     const currentActiveJobs = await prisma.jobPosting.count({
       where: {
@@ -263,17 +216,20 @@ export const requireApplicationQuota = async (
       return next();
     }
 
-    const activeSubscription = await prisma.subscription.findFirst({
-      where: {
-        userId: req.user.id,
-        status: SubscriptionStatus.ACTIVE,
-      },
-      include: {
-        plan: true,
-      },
-    });
+    const activeSubscription = await getEntitledSubscription(req.user.id);
 
-    const maxAllowed = activeSubscription?.plan?.maxApplicationsPerMonth ?? FREE_TIER_MONTHLY_APPLICATIONS_LIMIT;
+    // Paid plan: null means unlimited. No plan: use the admin-editable free tier row.
+    let maxAllowed: number | null;
+    if (activeSubscription) {
+      maxAllowed = activeSubscription.plan.maxApplicationsPerMonth;
+    } else {
+      const freePlan = await getFreeTierPlan();
+      maxAllowed = freePlan?.maxApplicationsPerMonth ?? FREE_TIER_MONTHLY_APPLICATIONS_LIMIT;
+    }
+
+    if (maxAllowed === null) {
+      return next();
+    }
 
     const { periodStart, periodEnd } = getCurrentBillingCycleUtc();
 

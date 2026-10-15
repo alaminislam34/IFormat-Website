@@ -26,9 +26,7 @@ export default function AdminDashboardPage() {
       setMetrics(m);
       if (logsRes) {
         const rawLogs = Array.isArray(logsRes) ? logsRes : (logsRes as any).logs || [];
-        const filteredLogs = rawLogs.filter(
-          (l: any) => l.admin?.email?.toLowerCase() !== "devamin.bd@gmail.com"
-        );
+        const filteredLogs = rawLogs;
         setRecentLogs(filteredLogs);
       }
     } catch (err: any) {

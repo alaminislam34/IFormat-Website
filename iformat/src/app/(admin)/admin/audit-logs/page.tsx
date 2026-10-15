@@ -45,9 +45,7 @@ export default function AdminAuditLogsPage() {
       const res = await adminService.listAuditLogs(params);
       if (res) {
         const rawList = Array.isArray(res) ? res : res.logs || [];
-        const list = rawList.filter(
-          (log: any) => log.admin?.email?.toLowerCase() !== "devamin.bd@gmail.com"
-        );
+        const list = rawList;
         setLogs(list);
         if (res.meta?.total !== undefined) {
           setTotalCount(res.meta.total);

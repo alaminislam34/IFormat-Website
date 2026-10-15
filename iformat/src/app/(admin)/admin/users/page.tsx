@@ -45,9 +45,7 @@ export default function AdminUsersPage() {
       const res = await adminService.listUsers(params);
       if (res) {
         const rawList = Array.isArray(res) ? res : res.users || [];
-        const userList = rawList.filter(
-          (u: any) => u.email?.toLowerCase() !== "devamin.bd@gmail.com"
-        );
+        const userList = rawList;
         setUsers(userList);
         const resolvedTotal =
           res.meta?.total !== undefined ? res.meta.total : userList.length;

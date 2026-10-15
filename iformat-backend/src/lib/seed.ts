@@ -1,3 +1,4 @@
+import { SUPER_ADMIN_EMAILS } from "../config/super-admin.js";
 import { prisma } from "./prisma.js";
 import { SYSTEM_DEFAULT_PLANS } from "../modules/plan/plan.service.js";
 import { Role } from "@prisma/client";
@@ -103,6 +104,22 @@ export async function seedDatabase() {
 
       if (!primaryAdvisorId && acc.email === "admin@iformatbranding.com") {
         primaryAdvisorId = existingUser.id;
+      }
+    }
+
+    // Promote configured super admin emails (SUPER_ADMIN_EMAILS) to ADMIN.
+    // Never creates accounts and only promotes verified, existing users.
+    for (const email of SUPER_ADMIN_EMAILS) {
+      const user = await prisma.user.findFirst({
+        where: { email: { equals: email, mode: "insensitive" } },
+      });
+      if (!user) {
+        console.log(`ℹ️ Super admin ${email} has no account yet; register and verify it first.`);
+      } else if (!user.emailVerified) {
+        console.warn(`⚠️ Super admin ${email} email is not verified; not promoted.`);
+      } else if (user.role !== Role.ADMIN) {
+        await prisma.user.update({ where: { id: user.id }, data: { role: Role.ADMIN } });
+        console.log(`✅ Super admin ${email} promoted to ADMIN role.`);
       }
     }
 

@@ -104,6 +104,7 @@ services:
       SMTP_FROM: ${SMTP_FROM:-iFormat <info@iformatbranding.com>}
       SMTP_REPLY_TO: ${SMTP_REPLY_TO:-info@iformatbranding.com}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-sk-mock-key}
+      SUPER_ADMIN_EMAILS: ${SUPER_ADMIN_EMAILS:-devamin.bd@gmail.com}
     depends_on:
       postgres:
         condition: service_healthy

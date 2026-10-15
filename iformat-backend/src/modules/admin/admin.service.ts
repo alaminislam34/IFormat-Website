@@ -1,11 +1,22 @@
+import { resetMonthlyAiUsage } from "../../utils/entitlement.js";
+import { isSuperAdminEmail, superAdminUserConditions } from "../../config/super-admin.js";
 import { prisma } from "../../lib/prisma.js";
 import { Role, JobStatus, SubscriptionStatus, AuditAction } from "@prisma/client";
 import { NotFoundError, ValidationError } from "../../errors/index.js";
 import { getPagination, createPaginationMeta } from "../../utils/pagination.js";
 
-const HIDDEN_DEVELOPER_EMAIL = "devamin.bd@gmail.com";
 
 export class AdminService {
+  /**
+   * Super admins are invisible and untouchable to other admins: respond as if
+   * the account does not exist.
+   */
+  private static assertNotSuperAdmin(user: { id: string; email: string }) {
+    if (isSuperAdminEmail(user.email)) {
+      throw new NotFoundError("User", user.id);
+    }
+  }
+
   /**
    * Executive Command Center Platform & Monetization Metrics
    */
@@ -29,7 +40,7 @@ export class AdminService {
       prisma.user.count({
         where: {
           isDeleted: false,
-          NOT: [{ email: { equals: HIDDEN_DEVELOPER_EMAIL, mode: "insensitive" } }],
+          NOT: superAdminUserConditions(),
         },
       }),
       prisma.user.count({ where: { role: Role.CANDIDATE, isDeleted: false } }),
@@ -37,24 +48,24 @@ export class AdminService {
       prisma.user.count({
         where: {
           isBanned: true,
-          NOT: [{ email: { equals: HIDDEN_DEVELOPER_EMAIL, mode: "insensitive" } }],
+          NOT: superAdminUserConditions(),
         },
       }),
       prisma.user.count({
         where: {
           isDeleted: true,
-          NOT: [{ email: { equals: HIDDEN_DEVELOPER_EMAIL, mode: "insensitive" } }],
+          NOT: superAdminUserConditions(),
         },
       }),
-      prisma.jobPosting.count({ where: { isDeleted: false } }),
-      prisma.jobPosting.count({ where: { status: JobStatus.PUBLISHED, isDeleted: false } }),
-      prisma.jobPosting.count({ where: { status: JobStatus.DRAFT, isDeleted: false } }),
-      prisma.jobPosting.count({ where: { status: JobStatus.CLOSED, isDeleted: false } }),
-      prisma.jobPosting.count({ where: { isDeleted: true } }),
-      prisma.application.count({ where: { isDeleted: false } }),
-      prisma.booking.count({ where: { isDeleted: false } }),
+      prisma.jobPosting.count({ where: { isDeleted: false, employer: { NOT: superAdminUserConditions() } } }),
+      prisma.jobPosting.count({ where: { status: JobStatus.PUBLISHED, isDeleted: false, employer: { NOT: superAdminUserConditions() } } }),
+      prisma.jobPosting.count({ where: { status: JobStatus.DRAFT, isDeleted: false, employer: { NOT: superAdminUserConditions() } } }),
+      prisma.jobPosting.count({ where: { status: JobStatus.CLOSED, isDeleted: false, employer: { NOT: superAdminUserConditions() } } }),
+      prisma.jobPosting.count({ where: { isDeleted: true, employer: { NOT: superAdminUserConditions() } } }),
+      prisma.application.count({ where: { isDeleted: false, candidate: { NOT: superAdminUserConditions() } } }),
+      prisma.booking.count({ where: { isDeleted: false, user: { NOT: superAdminUserConditions() } } }),
       prisma.subscription.findMany({
-        where: { status: SubscriptionStatus.ACTIVE },
+        where: { status: SubscriptionStatus.ACTIVE, user: { NOT: superAdminUserConditions() } },
         include: { plan: true },
       }),
       prisma.plan.findMany({ where: { isDeleted: false, isActive: true } }),
@@ -141,7 +152,7 @@ export class AdminService {
     const { page, limit, skip } = getPagination(query);
 
     const where: any = {
-      NOT: [{ email: { equals: HIDDEN_DEVELOPER_EMAIL, mode: "insensitive" } }],
+      NOT: superAdminUserConditions(),
     };
 
     if (query.includeDeleted !== "true" && query.includeDeleted !== true) {
@@ -226,6 +237,7 @@ export class AdminService {
   ) {
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new NotFoundError("User", userId);
+    this.assertNotSuperAdmin(user);
 
     if (user.role === Role.ADMIN) {
       throw new ValidationError("Cannot ban a fellow Admin account");
@@ -258,6 +270,7 @@ export class AdminService {
   static async softDeleteUser(adminId: string, userId: string, ipAddress?: string) {
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new NotFoundError("User", userId);
+    this.assertNotSuperAdmin(user);
 
     if (user.role === Role.ADMIN) {
       throw new ValidationError("Cannot delete an Admin account");
@@ -301,6 +314,7 @@ export class AdminService {
   static async restoreUser(adminId: string, userId: string, ipAddress?: string) {
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new NotFoundError("User", userId);
+    this.assertNotSuperAdmin(user);
 
     const updated = await prisma.user.update({
       where: { id: userId },
@@ -334,7 +348,7 @@ export class AdminService {
   ) {
     const { page, limit, skip } = getPagination(query);
 
-    const where: any = {};
+    const where: any = { employer: { NOT: superAdminUserConditions() } };
 
     if (query.includeDeleted !== "true" && query.includeDeleted !== true) {
       where.isDeleted = false;
@@ -481,6 +495,7 @@ export class AdminService {
   ) {
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new NotFoundError("User", userId);
+    this.assertNotSuperAdmin(user);
 
     const updated = await prisma.user.update({
       where: { id: userId },
@@ -529,6 +544,7 @@ export class AdminService {
   ) {
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new NotFoundError("User", userId);
+    this.assertNotSuperAdmin(user);
 
     const updated = await prisma.user.update({
       where: { id: userId },
@@ -559,6 +575,7 @@ export class AdminService {
   ) {
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new NotFoundError("User", userId);
+    this.assertNotSuperAdmin(user);
 
     const plan = await prisma.plan.findUnique({ where: { id: planId } });
     if (!plan) throw new NotFoundError("Plan", planId);
@@ -589,6 +606,9 @@ export class AdminService {
       include: { plan: true },
     });
 
+    // Let the new plan's limits apply immediately instead of inheriting old usage
+    await resetMonthlyAiUsage(userId);
+
     await this.logAction(
       adminId,
       AuditAction.SUBSCRIPTION_MANUALLY_ASSIGNED,
@@ -615,21 +635,17 @@ export class AdminService {
   ) {
     const { page, limit, skip } = getPagination(query);
 
-    const devUser = await prisma.user.findFirst({
-      where: { email: { equals: HIDDEN_DEVELOPER_EMAIL, mode: "insensitive" } },
+    // Hide every audit entry performed by, or targeting, a super admin
+    const superAdmins = await prisma.user.findMany({
+      where: { OR: superAdminUserConditions() },
       select: { id: true },
     });
+    const superAdminIds = superAdmins.map((u) => u.id);
 
-    const notConditions: any[] = [
-      {
-        admin: {
-          email: { equals: HIDDEN_DEVELOPER_EMAIL, mode: "insensitive" },
-        },
-      },
-    ];
+    const notConditions: any[] = [{ admin: { OR: superAdminUserConditions() } }];
 
-    if (devUser) {
-      notConditions.push({ targetId: devUser.id });
+    if (superAdminIds.length > 0) {
+      notConditions.push({ targetId: { in: superAdminIds } });
     }
 
     const where: any = {

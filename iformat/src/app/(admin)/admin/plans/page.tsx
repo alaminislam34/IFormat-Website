@@ -26,7 +26,7 @@ const DEFAULT_FORM: PlanFormData = {
   targetAudience: "EMPLOYER",
   maxActiveJobs: "5",
   maxApplicationsPerMonth: "50",
-  maxAiGenerations: "5",
+  maxAiGenerations: "",
   aiScreeningEnabled: true,
   featuredJobPlacement: false,
   unmaskedApplicantProfiles: true,

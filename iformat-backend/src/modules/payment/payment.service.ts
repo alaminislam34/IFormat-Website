@@ -6,6 +6,7 @@ import { ConflictError, NotFoundError, ValidationError, ForbiddenError, BadReque
 import { PlanService } from "../plan/plan.service.js";
 import { UserSubscriptionDetails } from "./payment.types.js";
 import { Role, SubscriptionStatus, PlanAudience, PlanBillingInterval } from "@prisma/client";
+import { getCurrentBillingCycleUtc, resetMonthlyAiUsage } from "../../utils/entitlement.js";
 import { sendEmail } from "../../lib/mailer.js";
 
 export class PaymentService {
@@ -118,6 +119,8 @@ export class PaymentService {
           canceledAt: null,
         },
       });
+
+      await resetMonthlyAiUsage(userId);
 
       // Dispatch purchase order notification to info@iformatbranding.com (Item 8)
       sendEmail({
@@ -420,6 +423,7 @@ export class PaymentService {
               canceledAt: null,
             },
           });
+          await resetMonthlyAiUsage(userId);
           logger.info(`✅ [Sync] User ${userId} subscription synced via session ${sessionId}`);
           return;
         }
@@ -542,6 +546,7 @@ export class PaymentService {
 
     if (!user) throw new NotFoundError("User", userId);
 
+    const isAdmin = user.role === Role.ADMIN;
     const activeSub = user.subscription;
     const isPaidPlan = Boolean(activeSub?.plan && activeSub.plan.priceInCents > 0);
     const isPaidActive =
@@ -560,17 +565,12 @@ export class PaymentService {
 
     // Retrieve cycle usage
     const now = new Date();
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
 
     let usage = { jobsPostedCount: 0, applicationsCount: 0, aiScreeningsCount: 0, aiGenerationsCount: 0 };
     try {
-      const usageRecord = await prisma.subscriptionUsage.findFirst({
-        where: {
-          userId,
-          periodStart: { lte: now },
-          periodEnd: { gte: now },
-        },
+      const { periodStart, periodEnd } = getCurrentBillingCycleUtc();
+      const usageRecord = await prisma.subscriptionUsage.findUnique({
+        where: { userId_periodStart_periodEnd: { userId, periodStart, periodEnd } },
       });
 
       if (usageRecord) {
@@ -593,14 +593,24 @@ export class PaymentService {
       cancelAtPeriodEnd: isPaidActive && activeSub ? activeSub.cancelAtPeriodEnd : false,
       currentPeriodEnd: isPaidActive && activeSub ? activeSub.currentPeriodEnd : null,
       usage,
-      effectiveLimits: {
-        maxActiveJobs: plan.maxActiveJobs,
-        maxApplicationsPerMonth: plan.maxApplicationsPerMonth,
-        aiScreeningEnabled: plan.aiScreeningEnabled,
-        featuredJobPlacement: plan.featuredJobPlacement,
-        unmaskedApplicantProfiles: plan.unmaskedApplicantProfiles,
-        unlimitedCvTemplates: plan.unlimitedCvTemplates,
-      },
+      effectiveLimits: isAdmin
+        ? {
+            // Admin accounts are never limited (matches entitlement middleware bypass)
+            maxActiveJobs: null,
+            maxApplicationsPerMonth: null,
+            aiScreeningEnabled: true,
+            featuredJobPlacement: true,
+            unmaskedApplicantProfiles: true,
+            unlimitedCvTemplates: true,
+          }
+        : {
+            maxActiveJobs: plan.maxActiveJobs,
+            maxApplicationsPerMonth: plan.maxApplicationsPerMonth,
+            aiScreeningEnabled: plan.aiScreeningEnabled,
+            featuredJobPlacement: plan.featuredJobPlacement,
+            unmaskedApplicantProfiles: plan.unmaskedApplicantProfiles,
+            unlimitedCvTemplates: plan.unlimitedCvTemplates,
+          },
     };
   }
 
@@ -701,6 +711,8 @@ export class PaymentService {
             canceledAt: null,
           },
         });
+
+        await resetMonthlyAiUsage(userId);
 
         logger.info(`✅ [Webhook] User ${userId} successfully subscribed to ${plan.name}`);
 

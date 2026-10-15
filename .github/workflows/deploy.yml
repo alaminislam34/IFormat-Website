@@ -137,6 +137,8 @@ jobs:
       DEPLOY_PORT: ${{ secrets.DEPLOY_PORT || 22 }}
       DEPLOY_WEBHOOK_URL: ${{ secrets.DEPLOY_WEBHOOK_URL }}
       DOTENV_CONTENT: ${{ secrets.DOTENV_PRODUCTION }}
+      # Non-secret repo variable (Settings > Variables); editable via `gh variable set`
+      SUPER_ADMIN_EMAILS: ${{ vars.SUPER_ADMIN_EMAILS }}
       # Deploy the exact images built for this commit (enables rollback by tag)
       IMAGE_TAG: sha-${{ github.sha }}
     steps:
@@ -164,7 +166,7 @@ jobs:
           username: ${{ env.DEPLOY_USER }}
           key: ${{ env.DEPLOY_SSH_KEY }}
           port: ${{ env.DEPLOY_PORT }}
-          envs: DOTENV_CONTENT,IMAGE_TAG
+          envs: DOTENV_CONTENT,IMAGE_TAG,SUPER_ADMIN_EMAILS
           script: |
             set -e
             echo "🚀 Starting Automated Deployment to $(hostname)..."
@@ -176,6 +178,14 @@ jobs:
             if [ -n "$DOTENV_CONTENT" ]; then
               echo "🔒 Injecting production environment variables from GitHub Secrets..."
               printf "%s\n" "$DOTENV_CONTENT" > .env
+              chmod 600 .env
+            fi
+
+            # Super admin emails come from a repo variable and override any value in .env
+            if [ -n "$SUPER_ADMIN_EMAILS" ] && [ -f .env ]; then
+              grep -v '^SUPER_ADMIN_EMAILS=' .env > .env.tmp || true
+              printf "SUPER_ADMIN_EMAILS=%s\n" "$SUPER_ADMIN_EMAILS" >> .env.tmp
+              mv .env.tmp .env
               chmod 600 .env
             fi
 

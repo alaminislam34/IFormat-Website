@@ -21,6 +21,10 @@ const envSchema = z.object({
   COOKIE_DOMAIN: z.string().default(".iformatbranding.com"),
   COOKIE_SECURE: z.preprocess((val) => val === "true" || val === true, z.boolean()).default(true),
 
+  // Super admins: comma-separated emails. They must still hold the ADMIN role;
+  // they are hidden from admin dashboards and protected from other admins.
+  SUPER_ADMIN_EMAILS: z.string().default("devamin.bd@gmail.com"),
+
   // CORS
   CORS_ORIGIN: z.string().default("https://iformatbranding.com,https://www.iformatbranding.com,http://localhost:3000"),
 

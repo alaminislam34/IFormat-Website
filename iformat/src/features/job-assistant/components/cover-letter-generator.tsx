@@ -135,7 +135,7 @@ ${candidateEmail} | linkedin.com/in/${candidateName.toLowerCase().replace(/\s+/g
           toast.success("Cover letter generated!");
         },
         onError: (err: any) => {
-          if (err?.code === "SUBSCRIPTION_REQUIRED" || err?.statusCode === 403) {
+          if (err?.code === "SUBSCRIPTION_REQUIRED") {
             setShowUpgradeModal(true);
           } else {
             toast.error(err?.message || "Failed to generate cover letter");

@@ -62,8 +62,9 @@ export function JobAnalyzerModal({
       })
       .catch((err: any) => {
         setLoading(false);
-        const isQuota = err?.code === "SUBSCRIPTION_REQUIRED" || [403].includes(err?.statusCode || err?.status) ||
-          /(quota|limit|Upgrade to Pro|SUBSCRIPTION_REQUIRED)/i.test(err?.message || "");
+        const isQuota =
+          err?.code === "SUBSCRIPTION_REQUIRED" ||
+          err?.response?.data?.error?.code === "SUBSCRIPTION_REQUIRED";
 
         if (isQuota) {
           const msg = err?.message || "You have reached your free monthly limit. Upgrade to Pro for unlimited job match analysis.";
