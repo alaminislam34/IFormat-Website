@@ -8,6 +8,7 @@ import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { createJobSchema, CreateJobFormData } from "@/lib/validations";
+import { DEFAULT_CATEGORY } from "@/features/jobs/constants";
 import { JobFormFields } from "./modal/job-form-fields";
 import { JobAiAdvicePanel } from "./modal/job-ai-advice-panel";
 
@@ -49,9 +50,11 @@ export function AddJobModal({ isOpen, onClose, onSubmit }: AddJobModalProps) {
     defaultValues: {
       title: "",
       company: user?.companyName || user?.name || "",
-      category: "Technology & Engineering",
+      category: DEFAULT_CATEGORY,
       jobType: "Full Time",
-      location: "Remote",
+      workplaceType: "Remote",
+      country: "",
+      city: "",
       salary: "$100,000 - $130,000",
       validity: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
       description: "",
@@ -66,9 +69,11 @@ export function AddJobModal({ isOpen, onClose, onSubmit }: AddJobModalProps) {
       reset({
         title: "",
         company: user?.companyName || user?.name || "",
-        category: "Technology & Engineering",
+        category: DEFAULT_CATEGORY,
         jobType: "Full Time",
-        location: "Remote",
+        workplaceType: "Remote",
+      country: "",
+      city: "",
         salary: "$100,000 - $130,000",
         validity: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
         description: "",
@@ -82,7 +87,7 @@ export function AddJobModal({ isOpen, onClose, onSubmit }: AddJobModalProps) {
   }, [isOpen, user, reset]);
 
   const selectedJobType = useWatch({ control, name: "jobType" });
-  const selectedLocation = useWatch({ control, name: "location" });
+  const selectedWorkMode = useWatch({ control, name: "workplaceType" });
 
   const onFormSubmit = async (data: CreateJobFormData) => {
     try {
@@ -97,7 +102,9 @@ export function AddJobModal({ isOpen, onClose, onSubmit }: AddJobModalProps) {
         company: data.company.trim() || user?.companyName || "iFormat Partner",
         category: data.category,
         jobType: data.jobType,
-        location: data.location,
+        workplaceType: data.workplaceType,
+        country: data.country.trim() || null,
+        city: data.city.trim() || null,
         salary: data.salary.trim() ? data.salary : "Competitive",
         validity: validityDate,
         status: "PUBLISHED",
@@ -199,7 +206,7 @@ export function AddJobModal({ isOpen, onClose, onSubmit }: AddJobModalProps) {
                   setValue={setValue}
                   watch={watch}
                   selectedJobType={selectedJobType}
-                  selectedLocation={selectedLocation}
+                  selectedWorkMode={selectedWorkMode}
                 />
 
                 {/* AI Advice Panel */}

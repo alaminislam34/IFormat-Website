@@ -4,6 +4,7 @@ import { env } from "./config/env.js";
 import { logger } from "./utils/logger.js";
 import { connectDatabase, prisma } from "./lib/prisma.js";
 import { seedDatabase } from "./lib/seed.js";
+import { migrateLegacyJobData } from "./lib/job-data-migration.js";
 
 const server = createServer(app);
 
@@ -14,6 +15,7 @@ const startServer = async () => {
 
     // 2. Ensure essential default records (Admin, Plans) exist safely
     await seedDatabase();
+    await migrateLegacyJobData();
 
     // 2. Start HTTP Server
     server.listen(env.PORT, () => {

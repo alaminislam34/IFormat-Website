@@ -9,20 +9,16 @@ import { useJobFilterStore } from "@/stores/use-job-filter-store";
 import { useAuthStore } from "@/stores/use-auth-store";
 
 import { Footer } from "@/components/layout/footer";
+import { JOB_CATEGORIES } from "@/features/jobs/constants";
 import { JobFilters } from "@/features/jobs/components/job-filters";
 import { Job } from "@/features/jobs/components/job-card";
 import { JobDetailsSheet } from "@/features/jobs/components/job-details-sheet";
 import { AddJobModal } from "@/features/jobs/components/add-job-modal";
 import { JobPortalHeader } from "@/features/jobs/components/portal/job-portal-header";
 import { JobPortalGrid } from "@/features/jobs/components/portal/job-portal-grid";
+import { formatJobLocation } from "@/features/jobs/utils/job-location";
 
-const INDUSTRIES = [
-  { name: "All Industries", icon: "📚" },
-  { name: "Technology & Engineering", icon: "⚙️" },
-  { name: "Design & Creative", icon: "🎨" },
-  { name: "Business & Marketing", icon: "📈" },
-  { name: "Data & AI", icon: "🧠" },
-];
+const INDUSTRIES = [{ name: "All Industries", icon: "📚" }, ...JOB_CATEGORIES];
 
 function JobPortalContent() {
   const router = useRouter();
@@ -167,7 +163,7 @@ function JobPortalContent() {
       !selectedCategory.startsWith("All")
     ) {
       result = result.filter((j) =>
-        j.category && j.category.toLowerCase().includes(selectedCategory.toLowerCase())
+        (j.category ?? "").toLowerCase().includes(selectedCategory.toLowerCase())
       );
     }
 
@@ -177,7 +173,7 @@ function JobPortalContent() {
       result = result.filter((j) =>
         j.title?.toLowerCase().includes(q) ||
         j.company?.toLowerCase().includes(q) ||
-        j.location?.toLowerCase().includes(q) ||
+        formatJobLocation(j).toLowerCase().includes(q) ||
         j.description?.toLowerCase().includes(q)
       );
     }
@@ -211,7 +207,7 @@ function JobPortalContent() {
         count = baseJobs.length;
       } else {
         count = baseJobs.filter((j) =>
-          j.category && j.category.toLowerCase().includes(ind.name.toLowerCase())
+          (j.category ?? "").toLowerCase().includes(ind.name.toLowerCase())
         ).length;
       }
 

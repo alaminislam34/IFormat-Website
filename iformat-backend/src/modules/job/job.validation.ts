@@ -1,7 +1,15 @@
 import { z } from "zod";
 import { JobStatus } from "@prisma/client";
+import { JOB_CATEGORIES, LEGACY_CATEGORY_MAP, WORK_MODES } from "../../config/job-options.js";
 
-export const createJobSchema = z.object({
+// Old clients may still send a pre-update category name; map it instead of rejecting.
+const categorySchema = z.preprocess(
+  (val) => (typeof val === "string" ? LEGACY_CATEGORY_MAP[val] ?? val : val),
+  z.enum(JOB_CATEGORIES, { errorMap: () => ({ message: "Please choose a valid job category" }) })
+);
+const placeSchema = z.string().trim().max(80).optional().nullable();
+
+const baseJobSchema = z.object({
   title: z
     .string({ required_error: "Job title is required" })
     .min(3, "Job title must be at least 3 characters")
@@ -11,10 +19,12 @@ export const createJobSchema = z.object({
     .min(2, "Company name must be at least 2 characters")
     .max(100, "Company name cannot exceed 100 characters")
     .optional(),
-  category: z.string().default("Technology & Engineering"),
+  category: categorySchema.default("Executive Leadership & Management"),
   jobType: z.string().default("Full Time"),
-  workplaceType: z.string().default("Remote"),
-  location: z.string().default("Remote"),
+  workplaceType: z.enum(WORK_MODES).default("Remote"),
+  country: placeSchema,
+  city: placeSchema,
+  location: z.string().trim().max(120).optional(),
   salary: z.string().default("Competitive"),
   salaryMin: z.number().int().positive().optional(),
   salaryMax: z.number().int().positive().optional(),
@@ -35,7 +45,12 @@ export const createJobSchema = z.object({
   status: z.nativeEnum(JobStatus).default(JobStatus.PUBLISHED),
 });
 
-export const updateJobSchema = createJobSchema.partial().extend({
+export const createJobSchema = baseJobSchema.refine(
+  (data) => data.workplaceType === "Remote" || !!data.country?.trim(),
+  { message: "Country is required for Onsite and Hybrid jobs", path: ["country"] }
+);
+
+export const updateJobSchema = baseJobSchema.partial().extend({
   status: z.nativeEnum(JobStatus).optional(),
 });
 
@@ -46,6 +61,8 @@ export const queryJobsSchema = z.object({
   jobType: z.string().optional(),
   workplaceType: z.string().optional(),
   location: z.string().optional(),
+  country: z.string().optional(),
+  city: z.string().optional(),
   status: z.nativeEnum(JobStatus).optional(),
   page: z.coerce.number().int().positive().optional().default(1),
   limit: z.coerce.number().int().positive().max(100).optional().default(10),

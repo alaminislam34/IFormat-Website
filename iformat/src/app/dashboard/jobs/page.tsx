@@ -21,6 +21,7 @@ import { JobDTO } from "@/types/api";
 import { EmployerJobsList } from "@/features/dashboard/components/employer-jobs-list";
 import { AddJobModal } from "@/features/jobs/components/add-job-modal";
 import { EditJobModal } from "@/features/jobs/components/edit-job-modal";
+import { formatJobLocation } from "@/features/jobs/utils/job-location";
 
 export default function EmployerJobsPage() {
   const router = useRouter();
@@ -112,7 +113,7 @@ export default function EmployerJobsPage() {
         !searchQuery.trim() ||
         job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         job.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        job.location.toLowerCase().includes(searchQuery.toLowerCase());
+        formatJobLocation(job).toLowerCase().includes(searchQuery.toLowerCase());
 
       const matchesStatus =
         selectedStatus === "ALL" ||

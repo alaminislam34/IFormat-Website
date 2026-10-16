@@ -86,6 +86,8 @@ export interface JobApplicantDTO {
     jobType?: string;
     workplaceType?: string;
     location?: string;
+    country?: string | null;
+    city?: string | null;
     salary?: string;
     status?: string;
     employer?: {
@@ -105,6 +107,8 @@ export interface JobDTO {
   jobType: string;
   workplaceType?: string;
   location: string;
+  country?: string | null;
+  city?: string | null;
   salary: string;
   salaryMin?: number | null;
   salaryMax?: number | null;
@@ -143,6 +147,8 @@ export interface JobFilterParams {
   search?: string;
   company?: string;
   location?: string;
+  country?: string;
+  city?: string;
   jobType?: string;
   workplaceType?: string;
   status?: JobStatus;
@@ -172,6 +178,8 @@ export interface CreateJobRequest {
   jobType?: string;
   workplaceType?: string;
   location?: string;
+  country?: string | null;
+  city?: string | null;
   salary?: string;
   salaryMin?: number;
   salaryMax?: number;

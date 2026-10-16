@@ -2,6 +2,7 @@ import React from "react";
 import { Briefcase, RotateCcw, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AdminJobItemDTO } from "@/services/admin.service";
+import { formatJobLocation } from "@/features/jobs/utils/job-location";
 
 interface JobRowProps {
   job: AdminJobItemDTO;
@@ -39,7 +40,7 @@ export function JobRow({ job, onUpdateStatus, onSoftDelete, onRestore }: JobRowP
       <td className="p-4">
         <p className="font-semibold text-slate-800">{job.category}</p>
         <p className="text-slate-500 text-xs">
-          {job.jobType} • {job.location}
+          {job.jobType} • {formatJobLocation(job)}
         </p>
       </td>
 

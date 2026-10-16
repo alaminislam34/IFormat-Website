@@ -84,7 +84,7 @@ async function testScreeningAndApplicantsFlow() {
         employerId: employer.id,
         title: "Senior Full Stack Engineer",
         company: "Acme Corp",
-        category: "Technology & Engineering",
+        category: "Technology, Engineering, Data & AI",
         jobType: "Full Time",
         location: "Remote",
         description: "Looking for an expert TypeScript / Next.js developer with Node.js experience.",

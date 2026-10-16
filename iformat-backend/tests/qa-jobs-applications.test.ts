@@ -85,7 +85,7 @@ async function runJobApplicationQATests() {
   const validJob = createJobSchema.safeParse({
     title: "Senior Fullstack Engineer",
     company: "iFormat Tech",
-    category: "Technology & Engineering",
+    category: "Technology, Engineering, Data & AI",
     jobType: "Full Time",
     workplaceType: "Remote",
     location: "Worldwide",

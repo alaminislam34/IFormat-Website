@@ -3,6 +3,7 @@
 import React from "react";
 import { X } from "lucide-react";
 import { JobDTO } from "@/types/api";
+import { formatJobLocation } from "@/features/jobs/utils/job-location";
 
 interface ApplyFormHeaderProps {
   job: JobDTO;
@@ -18,7 +19,7 @@ export function ApplyFormHeader({ job, onClose }: ApplyFormHeaderProps) {
         </span>
         <h3 className="text-xl font-bold text-slate-900 mt-0.5">{job.title}</h3>
         <p className="text-xs text-slate-500">
-          {job.company} • {job.location}
+          {job.company} • {formatJobLocation(job)}
         </p>
       </div>
 

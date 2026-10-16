@@ -2,6 +2,7 @@
 
 import { Calendar, Users, DollarSign, Clock, MapPin } from "lucide-react";
 import { Job } from "../job-card";
+import { formatJobLocation } from "@/features/jobs/utils/job-location";
 
 interface JobDetailsBadgesProps {
   job: Job;
@@ -40,7 +41,7 @@ export function JobDetailsBadges({
       {/* Location */}
       <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold px-3 py-1.5 rounded-lg bg-white text-blue-700 border border-blue-200/70 shadow-xs">
         <MapPin className="w-3 h-3 text-blue-500" />
-        {job.location || "Remote"}
+        {formatJobLocation(job)}
       </span>
 
       {/* Salary */}

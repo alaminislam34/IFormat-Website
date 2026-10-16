@@ -4,6 +4,7 @@ import React from "react";
 import { Edit3, Trash2, Loader2, X, MapPin, Briefcase, Building2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Job } from "../job-card";
+import { formatJobLocation } from "@/features/jobs/utils/job-location";
 
 interface JobDetailsHeaderProps {
   job: Job;
@@ -73,10 +74,10 @@ export function JobDetailsHeader({
                 {job.company}
               </span>
 
-              {job.location && (
+              {formatJobLocation(job) && (
                 <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-500">
                   <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
-                  {job.location}
+                  {formatJobLocation(job)}
                 </span>
               )}
 

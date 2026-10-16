@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Building, ChevronRight, Users, Edit3, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { JobDTO } from "@/types/api";
+import { formatJobLocation } from "@/features/jobs/utils/job-location";
 
 interface EmployerJobsListProps {
   employerJobs: JobDTO[];
@@ -63,7 +64,7 @@ export function EmployerJobsList({
             <div className="flex items-center gap-3 text-xs text-slate-500 font-medium">
               <span>{job.category}</span>
               <span>•</span>
-              <span>{job.location}</span>
+              <span>{formatJobLocation(job)}</span>
               <span>•</span>
               <span className="flex items-center gap-1 text-[#0A54B1] font-bold">
                 <Users className="w-3.5 h-3.5" />

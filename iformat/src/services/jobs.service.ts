@@ -20,6 +20,8 @@ export const jobsService = {
         search: params.search,
         company: params.company,
         location: params.location,
+        country: params.country,
+        city: params.city,
         jobType: params.jobType,
         workplaceType: params.workplaceType,
         page: params.page,

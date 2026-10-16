@@ -25,6 +25,7 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CompanyVideoPlayer } from "@/features/company/components/company-video-player";
 import { getMediaUrl } from "@/lib/utils";
+import { formatJobLocation } from "@/features/jobs/utils/job-location";
 
 interface PageProps {
   params: Promise<{ companyName: string }>;
@@ -119,7 +120,7 @@ export default function CompanyProfilePage({ params }: PageProps) {
       const matchesKeyword =
         !roleSearch.trim() ||
         job.title.toLowerCase().includes(roleSearch.toLowerCase()) ||
-        job.location.toLowerCase().includes(roleSearch.toLowerCase()) ||
+        formatJobLocation(job).toLowerCase().includes(roleSearch.toLowerCase()) ||
         job.description.toLowerCase().includes(roleSearch.toLowerCase());
 
       const matchesType =

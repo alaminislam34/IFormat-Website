@@ -3,10 +3,13 @@ model JobPosting {
   employerId       String
   title            String
   company          String
-  category         String        @default("Technology & Engineering")
+  category         String        @default("Executive Leadership & Management")
   jobType          String        @default("Full Time")
   workplaceType    String        @default("Remote")
   location         String        @default("Remote")
+  country          String?
+  city             String?
+  originalCategory String?
   salary           String        @default("Competitive")
   salaryMin        Int?
   salaryMax        Int?
@@ -28,6 +31,7 @@ model JobPosting {
 
   @@index([status, isDeleted, createdAt])
   @@index([category, status])
+  @@index([country, status])
   @@index([employerId, isDeleted])
 }
 

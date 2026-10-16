@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowLeft, Building, Download, Loader2, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { JobDTO } from "@/types/api";
+import { formatJobLocation } from "@/features/jobs/utils/job-location";
 
 interface ApplicantsHeaderProps {
   job: JobDTO | null;
@@ -63,7 +64,7 @@ export function ApplicantsHeader({
             {job?.title || "Job Applicants"}
           </h1>
           <p className="text-xs text-slate-500 flex items-center gap-4 flex-wrap">
-            <span>Location: <strong className="text-slate-700 font-medium">{job?.location || "Remote"}</strong></span>
+            <span>Location: <strong className="text-slate-700 font-medium">{job ? formatJobLocation(job) : "Remote"}</strong></span>
             <span>•</span>
             <span>Type: <strong className="text-slate-700 font-medium">{job?.jobType || "Full Time"}</strong></span>
             <span>•</span>

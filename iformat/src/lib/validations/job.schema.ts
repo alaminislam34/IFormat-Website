@@ -11,7 +11,9 @@ export const createJobSchema = z.object({
     .min(2, "Company Name must be at least 2 characters"),
   category: z.string().min(1, "Category is required"),
   jobType: z.enum(["Full Time", "Part Time", "Contract"]),
-  location: z.enum(["Remote", "Onsite", "Hybrid"]),
+  workplaceType: z.enum(["Remote", "Onsite", "Hybrid"]),
+  country: z.string().max(80),
+  city: z.string().max(80, "City name is too long"),
   salary: z
     .string()
     .min(1, "Salary range is required")
@@ -32,8 +34,12 @@ export const createJobSchema = z.object({
           return false;
         }
         // Must follow standard salary patterns (currency, numbers, range, period)
-        const pattern =
-          /^(?:[\$€£¥৳]|USD|EUR|GBP|BDT|CAD|AUD)?\s*\d[\d,]*(?:\.\d+)?\s*[kK]?\s*(?:(?:-|–|—|to)\s*(?:[\$€£¥৳]|USD|EUR|GBP|BDT|CAD|AUD)?\s*\d[\d,]*(?:\.\d+)?\s*[kK]?)?(?:\s*\/\s*(?:yr|year|mo|month|hr|hour|wk|week))?$/i;
+        const cur = "(?:[\\$€£¥৳]|C\\$|A\\$|USD|EUR|GBP|BDT|CAD|AUD|AED|SAR)?";
+        const amount = "\\d[\\d,]*(?:\\.\\d+)?\\s*[kK]?";
+        const pattern = new RegExp(
+          `^(?:(?:from|up to)\\s+)?${cur}\\s*${amount}\\s*(?:(?:-|–|—|to)\\s*${cur}\\s*${amount})?(?:\\s*\\/\\s*(?:yr|year|mo|month|hr|hour|wk|week))?$`,
+          "i"
+        );
         return pattern.test(trimmed);
       },
       {
@@ -48,6 +54,12 @@ export const createJobSchema = z.object({
   requirements: z.string().min(1, "Requirements are required"),
   niceToHave: z.string().optional(),
   perks: z.string().optional(),
+}).refine((data) => data.workplaceType === "Remote" || data.country.trim().length > 0, {
+  message: "Please select the job country",
+  path: ["country"],
+}).refine((data) => data.workplaceType === "Remote" || data.city.trim().length > 0, {
+  message: "Please enter the job city (e.g. Riyadh)",
+  path: ["city"],
 });
 
 export type CreateJobFormData = z.infer<typeof createJobSchema>;

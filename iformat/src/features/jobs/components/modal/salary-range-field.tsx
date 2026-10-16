@@ -10,6 +10,7 @@ import {
   PERIODS,
   DEFAULT_CURRENCY,
   DEFAULT_PERIOD,
+  formatMoney,
 } from "@/features/jobs/constants";
 
 interface SalaryRangeFieldProps {
@@ -62,7 +63,8 @@ export function SalaryRangeField({
     setIsNegotiable(false);
 
     // Parse currency
-    const foundCurrency = CURRENCIES.find((c) => trimmed.startsWith(c.symbol));
+    const unprefixed = trimmed.replace(/^(from|up to)\s+/i, "");
+    const foundCurrency = CURRENCIES.find((c) => unprefixed.startsWith(c.symbol));
     if (foundCurrency) {
       setCurrency(foundCurrency.symbol);
     }
@@ -114,13 +116,13 @@ export function SalaryRangeField({
     if (minClean && maxClean) {
       const minNum = parseInt(minClean, 10).toLocaleString();
       const maxNum = parseInt(maxClean, 10).toLocaleString();
-      formatted = `${currency}${minNum} - ${currency}${maxNum} ${period}`;
+      formatted = `${formatMoney(currency, minNum)} - ${formatMoney(currency, maxNum)} ${period}`;
     } else if (minClean) {
       const minNum = parseInt(minClean, 10).toLocaleString();
-      formatted = `From ${currency}${minNum} ${period}`;
+      formatted = `From ${formatMoney(currency, minNum)} ${period}`;
     } else if (maxClean) {
       const maxNum = parseInt(maxClean, 10).toLocaleString();
-      formatted = `Up to ${currency}${maxNum} ${period}`;
+      formatted = `Up to ${formatMoney(currency, maxNum)} ${period}`;
     } else {
       formatted = "";
     }
@@ -268,10 +270,10 @@ export function SalaryRangeField({
               <span className="text-[11px] text-slate-400 font-medium">Card Preview:</span>
               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-100">
                 {minSalary && maxSalary
-                  ? `${currency}${minSalary} - ${currency}${maxSalary} ${period}`
+                  ? `${formatMoney(currency, minSalary)} - ${formatMoney(currency, maxSalary)} ${period}`
                   : minSalary
-                  ? `From ${currency}${minSalary} ${period}`
-                  : `Up to ${currency}${maxSalary} ${period}`}
+                  ? `From ${formatMoney(currency, minSalary)} ${period}`
+                  : `Up to ${formatMoney(currency, maxSalary)} ${period}`}
               </span>
             </div>
           )}

@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { createJobSchema, CreateJobFormData } from "@/lib/validations/job.schema";
 import { JobDTO } from "@/types/api";
 import { useUpdateJob } from "@/hooks";
+import { getJobWorkMode } from "@/features/jobs/utils/job-location";
 import { JobFormFields } from "./modal/job-form-fields";
 
 interface EditJobModalProps {
@@ -46,7 +47,9 @@ export function EditJobModal({ job, isOpen, onClose, onUpdated }: EditJobModalPr
       company: "",
       category: "",
       jobType: "Full Time",
-      location: "Remote",
+      workplaceType: "Remote",
+      country: "",
+      city: "",
       salary: "",
       validity: "",
       description: "",
@@ -57,7 +60,7 @@ export function EditJobModal({ job, isOpen, onClose, onUpdated }: EditJobModalPr
   });
 
   const selectedJobType = useWatch({ control, name: "jobType" });
-  const selectedLocation = useWatch({ control, name: "location" });
+  const selectedWorkMode = useWatch({ control, name: "workplaceType" });
 
   React.useEffect(() => {
     if (job) {
@@ -84,7 +87,9 @@ export function EditJobModal({ job, isOpen, onClose, onUpdated }: EditJobModalPr
         company: job.company || (job as any).companyName || (job as any).employer?.companyName || "",
         category: job.category || "",
         jobType: (job.jobType as any) || "Full Time",
-        location: (job.location as any) || "Remote",
+        workplaceType: getJobWorkMode(job) as CreateJobFormData["workplaceType"],
+        country: job.country || "",
+        city: job.city || "",
         salary: job.salary || "",
         validity: job.validity
           ? new Date(job.validity).toISOString().split("T")[0]
@@ -110,7 +115,9 @@ export function EditJobModal({ job, isOpen, onClose, onUpdated }: EditJobModalPr
         company: data.company.trim(),
         category: data.category,
         jobType: data.jobType,
-        location: data.location,
+        workplaceType: data.workplaceType,
+        country: data.country.trim() || null,
+        city: data.city.trim() || null,
         salary: data.salary.trim() ? data.salary : "Competitive",
         validity: data.validity ? new Date(data.validity).toISOString() : undefined,
         status: jobStatus,
@@ -225,7 +232,7 @@ export function EditJobModal({ job, isOpen, onClose, onUpdated }: EditJobModalPr
                   setValue={setValue}
                   watch={watch}
                   selectedJobType={selectedJobType}
-                  selectedLocation={selectedLocation}
+                  selectedWorkMode={selectedWorkMode}
                 />
               </div>
 

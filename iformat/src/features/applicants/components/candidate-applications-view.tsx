@@ -28,6 +28,7 @@ import { jobsService } from "@/services/jobs.service";
 import { JobApplicantDTO } from "@/types/api/jobs";
 import { toast } from "sonner";
 import { ApplicantScreeningModal } from "./applicant-screening-modal";
+import { formatJobLocation } from "@/features/jobs/utils/job-location";
 
 type StatusTab = "ALL" | "ACTIVE" | "SHORTLISTED" | "OFFERS" | "ARCHIVED";
 
@@ -83,7 +84,7 @@ export function CandidateApplicationsView() {
     const query = searchQuery.toLowerCase();
     const title = app.job?.title?.toLowerCase() || "";
     const company = app.job?.company?.toLowerCase() || "";
-    const location = app.job?.location?.toLowerCase() || "";
+    const location = app.job ? formatJobLocation(app.job).toLowerCase() : "";
     return title.includes(query) || company.includes(query) || location.includes(query);
   });
 
@@ -324,7 +325,7 @@ export function CandidateApplicationsView() {
             const jobTitle = app.job?.title || "Position";
             const companyName = app.job?.company || "Company";
             const companyLogo = app.job?.employer?.companyLogoUrl;
-            const location = app.job?.location || "Remote";
+            const location = app.job ? formatJobLocation(app.job) : "Remote";
             const jobType = app.job?.jobType || "Full Time";
             const statusConfig = getStatusBadge(app.status);
             const StatusIcon = statusConfig.icon;

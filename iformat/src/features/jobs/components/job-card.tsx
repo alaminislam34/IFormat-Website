@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Calendar, MapPin, ArrowRight, CheckCircle2, Users, DollarSign } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { JobDTO as Job, JobApplicantDTO as Applicant } from "@/types/api";
+import { formatJobLocation, getJobWorkMode } from "@/features/jobs/utils/job-location";
 
 export type { Job, Applicant };
 
@@ -82,7 +83,7 @@ export function JobCard({
     Hybrid: "text-purple-600 bg-purple-50/70 border border-purple-100",
   };
   const locationClass =
-    locationStyles[job.location] || "text-sky-600 bg-sky-50 border border-sky-100";
+    locationStyles[getJobWorkMode(job)] || "text-sky-600 bg-sky-50 border border-sky-100";
 
   // 1. Company View: includes the full-width "View Details" button at the bottom
   if (isEmployer) {
@@ -149,7 +150,7 @@ export function JobCard({
 
             <div className="flex items-center gap-1 text-sky-500 font-bold text-xs shrink-0">
               <MapPin className="w-3.5 h-3.5 text-sky-500 shrink-0" />
-              <span>{job.location}</span>
+              <span>{formatJobLocation(job)}</span>
             </div>
           </div>
 
@@ -241,7 +242,7 @@ export function JobCard({
           <div className="flex items-center gap-1 text-slate-500 text-xs font-medium">
             <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
             <span className={cn("px-1.5 py-0.5 rounded text-[11px] font-semibold", locationClass)}>
-              {job.location}
+              {formatJobLocation(job)}
             </span>
           </div>
           <div className="flex items-center gap-1 text-[#0A54B1] font-bold text-xs">

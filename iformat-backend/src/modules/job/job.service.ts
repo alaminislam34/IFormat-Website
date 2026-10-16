@@ -6,6 +6,7 @@ import {
   ValidationError,
 } from "../../errors/index.js";
 import { getPagination, createPaginationMeta } from "../../utils/pagination.js";
+import { buildLocationLabel } from "../../config/job-options.js";
 import { CreateJobInput, UpdateJobInput, QueryJobsInput } from "./job.validation.js";
 
 // Valid State Machine Transitions for JobStatus
@@ -58,6 +59,14 @@ export class JobService {
       !query.location.startsWith("All")
     ) {
       where.location = { contains: query.location, mode: "insensitive" };
+    }
+
+    if (query.country && !query.country.startsWith("All")) {
+      where.country = { equals: query.country, mode: "insensitive" };
+    }
+
+    if (query.city) {
+      where.city = { contains: query.city, mode: "insensitive" };
     }
 
     if (query.company) {
@@ -156,6 +165,7 @@ export class JobService {
     const job = await prisma.jobPosting.create({
       data: {
         ...input,
+        location: buildLocationLabel(input),
         company: companyName,
         employerId,
         validity: input.validity ? new Date(input.validity) : null,
@@ -199,6 +209,16 @@ export class JobService {
       where: { id: jobId },
       data: {
         ...input,
+        ...(["location", "city", "country", "workplaceType"].some((k) => k in input)
+          ? {
+              location: buildLocationLabel({
+                city: input.city !== undefined ? input.city : job.city,
+                country: input.country !== undefined ? input.country : job.country,
+                location: input.location ?? job.location,
+                workplaceType: input.workplaceType ?? job.workplaceType,
+              }),
+            }
+          : {}),
         validity: input.validity !== undefined ? (input.validity ? new Date(input.validity) : null) : undefined,
       },
     });

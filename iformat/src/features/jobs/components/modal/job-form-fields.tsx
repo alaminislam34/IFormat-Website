@@ -7,6 +7,12 @@ import { CreateJobFormData } from "@/lib/validations/job.schema";
 import { SalaryRangeField } from "./salary-range-field";
 import { PremiumDatePicker } from "./premium-date-picker";
 import { cn } from "@/lib/utils";
+import {
+  JOB_CATEGORIES,
+  CITIES_BY_COUNTRY,
+  COUNTRIES,
+  WORK_MODES,
+} from "@/features/jobs/constants";
 
 interface JobFormFieldsProps {
   register: UseFormRegister<CreateJobFormData>;
@@ -14,7 +20,7 @@ interface JobFormFieldsProps {
   setValue: UseFormSetValue<CreateJobFormData>;
   watch?: UseFormWatch<CreateJobFormData>;
   selectedJobType?: string;
-  selectedLocation?: string;
+  selectedWorkMode?: string;
 }
 
 export function JobFormFields({
@@ -23,7 +29,7 @@ export function JobFormFields({
   setValue,
   watch,
   selectedJobType,
-  selectedLocation,
+  selectedWorkMode,
 }: JobFormFieldsProps) {
   return (
     <div className="space-y-5">
@@ -84,14 +90,7 @@ export function JobFormFields({
         >
           {(() => {
             const currentCat = watch ? watch("category") : undefined;
-            const standardCategories = [
-              "Technology & Engineering",
-              "Design & Creative",
-              "Business & Marketing",
-              "Data & AI",
-              "Finance & Operations",
-              "Product & Management",
-            ];
+            const standardCategories = JOB_CATEGORIES.map((c) => c.name);
             const categories = currentCat && !standardCategories.includes(currentCat)
               ? [currentCat, ...standardCategories]
               : standardCategories;
@@ -141,27 +140,96 @@ export function JobFormFields({
 
         <div className="space-y-1.5">
           <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-            Work Location
+            Work Mode
           </label>
           <div className="flex gap-2 p-1 bg-slate-50 border border-slate-100 rounded-xl">
-            {(["Remote", "Onsite", "Hybrid"] as const).map((loc) => (
+            {WORK_MODES.map((mode) => (
               <button
-                key={loc}
+                key={mode}
                 type="button"
-                onClick={() => setValue("location", loc)}
+                onClick={() => setValue("workplaceType", mode, { shouldValidate: true })}
                 className={cn(
                   "flex-1 py-2 text-xs font-bold rounded-lg border transition-all cursor-pointer focus:outline-none",
-                  selectedLocation === loc
+                  selectedWorkMode === mode
                     ? "bg-white border-sky-100 text-sky-600 shadow-xs"
                     : "bg-transparent border-transparent text-slate-500 hover:text-slate-700"
                 )}
               >
-                {loc}
+                {mode}
               </button>
             ))}
           </div>
         </div>
       </div>
+
+      {/* Job Location: country + city */}
+      {(() => {
+        const isRemote = selectedWorkMode === "Remote";
+        const country = watch ? watch("country") : "";
+        const cities = CITIES_BY_COUNTRY[country] ?? [];
+        const requiredMark = isRemote ? (
+          <span className="text-slate-400">(optional)</span>
+        ) : (
+          <span className="text-rose-500">*</span>
+        );
+        const fieldClass = (hasError: boolean) =>
+          cn(
+            "w-full h-11 px-3 rounded-xl border bg-white text-sm text-slate-800 focus:outline-none focus:ring-2 transition-all",
+            hasError
+              ? "border-rose-300 focus:ring-rose-200"
+              : "border-slate-200 focus:ring-sky-100 focus:border-sky-500"
+          );
+
+        return (
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                Country {requiredMark}
+              </label>
+              <select
+                {...register("country")}
+                className={cn(fieldClass(!!errors.country), "cursor-pointer")}
+              >
+                <option value="">Select country</option>
+                {COUNTRIES.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+              {errors.country && (
+                <p className="text-xs text-rose-500 font-semibold flex items-center gap-1 mt-1">
+                  <AlertCircle className="w-3.5 h-3.5" /> {errors.country.message}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                City {requiredMark}
+              </label>
+              <input
+                type="text"
+                list="job-city-suggestions"
+                autoComplete="off"
+                placeholder="e.g. Riyadh"
+                {...register("city")}
+                className={fieldClass(!!errors.city)}
+              />
+              <datalist id="job-city-suggestions">
+                {cities.map((city) => (
+                  <option key={city} value={city} />
+                ))}
+              </datalist>
+              {errors.city && (
+                <p className="text-xs text-rose-500 font-semibold flex items-center gap-1 mt-1">
+                  <AlertCircle className="w-3.5 h-3.5" /> {errors.city.message}
+                </p>
+              )}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Premium Job Validity Date Picker */}
       <PremiumDatePicker
