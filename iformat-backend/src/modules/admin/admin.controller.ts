@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { AdminService } from "./admin.service.js";
 import { ApiResponse } from "../../utils/apiResponse.js";
+import { AiAnalyticsService } from "../ai-analytics/ai-analytics.service.js";
 import { BadRequestError } from "../../errors/index.js";
 
 export class AdminController {
@@ -114,5 +115,10 @@ export class AdminController {
   static async listAuditLogs(req: Request, res: Response) {
     const { logs, meta } = await AdminService.listAuditLogs(req.query as any);
     return ApiResponse.collection(res, "Audit logs retrieved", logs, meta);
+  }
+
+  static async getAiAnalytics(req: Request, res: Response) {
+    const overview = await AiAnalyticsService.getOverview(req.query.days);
+    return ApiResponse.success(res, "AI analytics retrieved", overview);
   }
 }

@@ -1,5 +1,7 @@
 import { Router } from "express";
 import multer from "multer";
+import { AiFeature } from "@prisma/client";
+import { trackAi } from "../../lib/ai-context.js";
 import { AIController } from "./ai.controller.js";
 import {
   generateCoverLetterSchema,
@@ -9,6 +11,7 @@ import {
   recommendProductsSchema,
   careerChatSchema,
   analyzeJobFitSchema,
+  aiFeedbackSchema,
 } from "./ai.validation.js";
 import { validate } from "../../middlewares/validate.middleware.js";
 import { requireAuth } from "../../middlewares/auth.middleware.js";
@@ -33,6 +36,7 @@ router.use(requireCandidate);
 router.post(
   "/cover-letter",
   requireAiEntitlement("COVER_LETTER"),
+  trackAi(AiFeature.COVER_LETTER),
   validate({ body: generateCoverLetterSchema }),
   catchAsync(AIController.generateCoverLetter)
 );
@@ -41,6 +45,7 @@ router.post(
 router.post(
   "/email",
   requireAiEntitlement("COLD_EMAIL"),
+  trackAi(AiFeature.COLD_EMAIL),
   validate({ body: generateEmailSchema }),
   catchAsync(AIController.generateEmail)
 );
@@ -49,6 +54,7 @@ router.post(
 router.post(
   "/resume/optimize",
   requireAiEntitlement("RESUME_OPTIMIZER"),
+  trackAi(AiFeature.RESUME_OPTIMIZER),
   upload.single("resume"),
   validate({ body: optimizeResumeSchema }),
   catchAsync(AIController.optimizeResume)
@@ -58,6 +64,7 @@ router.post(
 router.post(
   "/cv/build",
   requireAiEntitlement("CV_BUILD"),
+  trackAi(AiFeature.CV_BUILD),
   validate({ body: buildCvSchema }),
   catchAsync(AIController.buildCv)
 );
@@ -66,6 +73,7 @@ router.post(
 router.post(
   "/recommend",
   requireAiEntitlement("PRODUCT_RECOMMEND"),
+  trackAi(AiFeature.PRODUCT_RECOMMEND),
   validate({ body: recommendProductsSchema }),
   catchAsync(AIController.recommendProducts)
 );
@@ -74,6 +82,7 @@ router.post(
 router.post(
   "/chat",
   requireAiEntitlement("CAREER_CHAT"),
+  trackAi(AiFeature.CAREER_CHAT),
   validate({ body: careerChatSchema }),
   catchAsync(AIController.careerChat)
 );
@@ -82,8 +91,16 @@ router.post(
 router.post(
   "/analyze-job",
   requireAiEntitlement("JOB_ANALYSIS"),
+  trackAi(AiFeature.JOB_ANALYSIS),
   validate({ body: analyzeJobFitSchema }),
   catchAsync(AIController.analyzeJobFit)
+);
+
+// 8. Rate an AI result (thumbs up / down)
+router.post(
+  "/feedback",
+  validate({ body: aiFeedbackSchema }),
+  catchAsync(AIController.submitFeedback)
 );
 
 export const aiRouter = router;

@@ -77,6 +77,7 @@ services:
       COOKIE_SECURE: ${COOKIE_SECURE:-true}
       AI_SERVICE_URL: ${AI_SERVICE_URL:-https://ai.bloodaidbd.com}
       AI_SERVICE_TIMEOUT_MS: ${AI_SERVICE_TIMEOUT_MS:-60000}
+      AI_COST_PER_1M_TOKENS_USD: ${AI_COST_PER_1M_TOKENS_USD:-0}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
       GOOGLE_CALLBACK_URL: ${GOOGLE_CALLBACK_URL:-https://api.iformatbranding.com/api/v1/oauth/google/callback}

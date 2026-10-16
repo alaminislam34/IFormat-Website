@@ -6,6 +6,7 @@ import { Copy, Mail, Send, Check, RotateCw, Loader2, Sparkles } from "lucide-rea
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useGenerateEmail } from "@/hooks";
+import { AiFeedback } from "@/components/ui/ai-feedback";
 import { useAuthStore } from "@/stores/use-auth-store";
 import { AuthPromptModal } from "@/components/auth/auth-prompt-modal";
 import { UpgradeModal } from "@/components/ui/upgrade-modal";
@@ -26,6 +27,7 @@ export function EmailGenerator() {
   const [tone, setTone] = React.useState<ToneType>("Professional");
   
   const [generatedEmail, setGeneratedEmail] = React.useState("");
+  const [usageId, setUsageId] = React.useState<string | undefined>();
   const [copied, setCopied] = React.useState(false);
   const [errors, setErrors] = React.useState<Record<string, string>>({});
   const [showAuthModal, setShowAuthModal] = React.useState(false);
@@ -52,6 +54,7 @@ Alex Morgan
 linkedin.com/in/alexmorgan`;
 
     setGeneratedEmail(demoEmail);
+    setUsageId(undefined);
     toast.success("Guest demo outreach email generated!");
   };
 
@@ -95,8 +98,9 @@ linkedin.com/in/alexmorgan`;
         tone,
       },
       {
-        onSuccess: (email) => {
-          setGeneratedEmail(email);
+        onSuccess: (res) => {
+          setGeneratedEmail(res.email);
+          setUsageId(res.usageId);
           toast.success("Outreach email generated!");
         },
         onError: (err: any) => {
@@ -321,6 +325,7 @@ linkedin.com/in/alexmorgan`;
           </div>
 
           {generatedEmail ? (
+            <div className="space-y-3">
             <div className="bg-slate-50/70 rounded-2xl p-6 sm:p-7 border border-slate-200/80 space-y-4">
               <div className="space-y-1.5 border-b border-slate-200/70 pb-4">
                 <div className="text-xs text-slate-500">
@@ -333,6 +338,8 @@ linkedin.com/in/alexmorgan`;
               <div className="text-sm text-slate-800 whitespace-pre-wrap leading-relaxed font-sans selection:bg-blue-100">
                 {generatedEmail.split("\n").slice(2).join("\n")}
               </div>
+            </div>
+            <AiFeedback usageId={usageId} />
             </div>
           ) : (
             <div className="h-96 rounded-2xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center p-6 text-center space-y-3 bg-slate-50/30">

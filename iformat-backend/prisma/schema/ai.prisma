@@ -1,0 +1,48 @@
+enum AiFeature {
+  COVER_LETTER
+  COLD_EMAIL
+  RESUME_OPTIMIZER
+  CV_BUILD
+  PRODUCT_RECOMMEND
+  CAREER_CHAT
+  JOB_ANALYSIS
+  CANDIDATE_SCREENING
+}
+
+enum AiCallStatus {
+  SUCCESS
+  ERROR
+  TIMEOUT
+}
+
+enum AiFeedbackRating {
+  UP
+  DOWN
+}
+
+/// One row per AI microservice call. Metadata only: no prompts, CV text or generated content.
+model AiUsageLog {
+  id              String            @id @default(uuid())
+  userId          String?
+  role            Role?
+  planCode        String?
+  feature         AiFeature
+  status          AiCallStatus
+  model           String?
+  tokensUsed      Int               @default(0)
+  latencyMs       Int
+  errorMessage    String?
+  feedbackRating  AiFeedbackRating?
+  feedbackComment String?
+  feedbackAt      DateTime?
+  createdAt       DateTime          @default(now())
+
+  // Keep the row (and the aggregate analytics) when a user account is deleted.
+  user            User?             @relation("UserAiUsage", fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt])
+  @@index([feature, createdAt])
+  @@index([userId, createdAt])
+  @@index([status, createdAt])
+  @@index([feedbackRating, feedbackAt])
+}

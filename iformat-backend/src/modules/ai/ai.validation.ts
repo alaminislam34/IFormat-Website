@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { AiFeedbackRating } from "@prisma/client";
 
 export const generateCoverLetterSchema = z.object({
   role: z.string().min(1, "Job role is required").max(300),
@@ -81,3 +82,11 @@ export type BuildCvInput = z.infer<typeof buildCvSchema>;
 export type RecommendProductsInput = z.infer<typeof recommendProductsSchema>;
 export type CareerChatInput = z.infer<typeof careerChatSchema>;
 export type AnalyzeJobFitInput = z.infer<typeof analyzeJobFitSchema>;
+
+export const aiFeedbackSchema = z.object({
+  usageId: z.string().uuid("Invalid AI result reference"),
+  rating: z.nativeEnum(AiFeedbackRating),
+  comment: z.string().trim().max(500).optional(),
+});
+
+export type AiFeedbackInput = z.infer<typeof aiFeedbackSchema>;

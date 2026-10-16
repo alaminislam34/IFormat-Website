@@ -11,6 +11,7 @@ import {
   RecommendProductsInput,
   CareerChatInput,
   AnalyzeJobFitInput,
+  AiFeedbackInput,
 } from "./ai.validation.js";
 
 export class AIService {
@@ -352,6 +353,24 @@ export class AIService {
       throw new InternalServerError(
         "AI job fit analysis is temporarily unavailable. Please try again shortly."
       );
+    }
+  }
+
+  /**
+   * Stores the user's rating on one of their own AI results
+   */
+  static async submitFeedback(input: AiFeedbackInput, userId: string) {
+    const { count } = await prisma.aiUsageLog.updateMany({
+      where: { id: input.usageId, userId },
+      data: {
+        feedbackRating: input.rating,
+        feedbackComment: input.comment || null,
+        feedbackAt: new Date(),
+      },
+    });
+
+    if (count === 0) {
+      throw new NotFoundError("AI result", input.usageId);
     }
   }
 }

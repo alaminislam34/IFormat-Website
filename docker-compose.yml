@@ -61,6 +61,7 @@ services:
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-local_dev_jwt_refresh_secret_32_characters_minimum}
       AI_SERVICE_URL: ${AI_SERVICE_URL:-https://ai.bloodaidbd.com}
       AI_SERVICE_TIMEOUT_MS: ${AI_SERVICE_TIMEOUT_MS:-60000}
+      AI_COST_PER_1M_TOKENS_USD: ${AI_COST_PER_1M_TOKENS_USD:-0}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-sk-mock-key}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}

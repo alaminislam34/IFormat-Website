@@ -1,5 +1,7 @@
 import { env } from "../config/env.js";
+import { AiFeature } from "@prisma/client";
 import { logger } from "../utils/logger.js";
+import { trackAiCall } from "./ai-usage-logger.js";
 import { InternalServerError, BadRequestError } from "../errors/index.js";
 
 // ==========================================
@@ -232,27 +234,37 @@ export class AIClient {
    * 1. Screen Candidate CV against Job Description
    */
   static async screenCandidate(data: ScreeningRequest): Promise<ScreeningResponse> {
-    return this.postJson<ScreeningRequest, ScreeningResponse>("/api/v1/ai/screen", data);
+    return trackAiCall(AiFeature.CANDIDATE_SCREENING, () =>
+      this.postJson<ScreeningRequest, ScreeningResponse>("/api/v1/ai/screen", data)
+    );
   }
 
   /**
    * 2. Generate Tailored Cover Letter
    */
   static async generateCoverLetter(data: CoverLetterRequest): Promise<CoverLetterResponse> {
-    return this.postJson<CoverLetterRequest, CoverLetterResponse>("/api/v1/ai/cover-letter", data);
+    return trackAiCall(AiFeature.COVER_LETTER, () =>
+      this.postJson<CoverLetterRequest, CoverLetterResponse>("/api/v1/ai/cover-letter", data)
+    );
   }
 
   /**
    * 3. Generate Cold Outreach Email
    */
   static async generateColdEmail(data: ColdEmailRequest): Promise<ColdEmailResponse> {
-    return this.postJson<ColdEmailRequest, ColdEmailResponse>("/api/v1/ai/email", data);
+    return trackAiCall(AiFeature.COLD_EMAIL, () =>
+      this.postJson<ColdEmailRequest, ColdEmailResponse>("/api/v1/ai/email", data)
+    );
   }
 
   /**
    * 4. Optimize Resume (Multipart PDF Upload)
    */
   static async optimizeResume(data: ResumeOptimizerRequest): Promise<ResumeOptimizerResponse> {
+    return trackAiCall(AiFeature.RESUME_OPTIMIZER, () => this.optimizeResumeRequest(data));
+  }
+
+  private static async optimizeResumeRequest(data: ResumeOptimizerRequest): Promise<ResumeOptimizerResponse> {
     const url = `${this.baseUrl}/api/v1/ai/resume/optimize`;
     logger.info(`🤖 [AIClient] POST (multipart) ${url}`);
 
@@ -312,20 +324,26 @@ export class AIClient {
    * 5. Build ATS-friendly CV & PDF
    */
   static async buildCV(data: CVBuilderRequest): Promise<CVBuilderResponse> {
-    return this.postJson<CVBuilderRequest, CVBuilderResponse>("/api/v1/ai/cv/build", data);
+    return trackAiCall(AiFeature.CV_BUILD, () =>
+      this.postJson<CVBuilderRequest, CVBuilderResponse>("/api/v1/ai/cv/build", data)
+    );
   }
 
   /**
    * 6. Recommend Products based on Candidate Profile
    */
   static async recommendProducts(data: ProductRecommenderRequest): Promise<ProductRecommenderResponse> {
-    return this.postJson<ProductRecommenderRequest, ProductRecommenderResponse>("/api/v1/ai/recommend", data);
+    return trackAiCall(AiFeature.PRODUCT_RECOMMEND, () =>
+      this.postJson<ProductRecommenderRequest, ProductRecommenderResponse>("/api/v1/ai/recommend", data)
+    );
   }
 
   /**
    * 7. Query Career Advisor Chatbot
    */
   static async queryCareerAdvisor(data: CareerChatRequest): Promise<CareerChatResponse> {
-    return this.postJson<CareerChatRequest, CareerChatResponse>("/api/v1/ai/chat", data);
+    return trackAiCall(AiFeature.CAREER_CHAT, () =>
+      this.postJson<CareerChatRequest, CareerChatResponse>("/api/v1/ai/chat", data)
+    );
   }
 }

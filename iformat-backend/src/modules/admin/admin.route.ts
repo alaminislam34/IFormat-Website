@@ -36,7 +36,10 @@ router.post("/subscriptions/override", catchAsync(AdminController.overrideSubscr
 // 6. Audit Trail
 router.get("/audit-logs", catchAsync(AdminController.listAuditLogs));
 
-// 7. System Settings & AI Model Preferences
+// 7. AI usage, cost & quality analytics
+router.get("/ai-analytics", catchAsync(AdminController.getAiAnalytics));
+
+// 8. System Settings & AI Model Preferences
 router.get("/settings", catchAsync(SettingController.getSettings));
 router.patch("/settings", catchAsync(SettingController.updateSettings));
 

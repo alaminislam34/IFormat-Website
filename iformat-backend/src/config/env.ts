@@ -34,6 +34,8 @@ const envSchema = z.object({
   // AI Microservice (FastAPI + Bedrock)
   AI_SERVICE_URL: z.string().default("https://ai.bloodaidbd.com"),
   AI_SERVICE_TIMEOUT_MS: z.coerce.number().default(60000),
+  // Blended USD price per 1M tokens, used only for the admin cost estimate (0 = hide cost)
+  AI_COST_PER_1M_TOKENS_USD: z.coerce.number().min(0).default(0),
 
   // Google OAuth
   GOOGLE_CLIENT_ID: z.string().optional(),

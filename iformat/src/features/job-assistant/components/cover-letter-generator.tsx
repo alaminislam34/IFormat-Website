@@ -7,6 +7,7 @@ import { Sparkles, Copy, FileText, Download, RotateCw, Check, Loader2 } from "lu
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useGenerateCoverLetter } from "@/hooks";
+import { AiFeedback } from "@/components/ui/ai-feedback";
 import { useAuthStore } from "@/stores/use-auth-store";
 import { AuthPromptModal } from "@/components/auth/auth-prompt-modal";
 import { UpgradeModal } from "@/components/ui/upgrade-modal";
@@ -51,6 +52,7 @@ export function CoverLetterGenerator() {
   }, [paramRole, paramCompany]);
   
   const [generatedLetter, setGeneratedLetter] = React.useState("");
+  const [usageId, setUsageId] = React.useState<string | undefined>();
   const [copied, setCopied] = React.useState(false);
   const [errors, setErrors] = React.useState<Record<string, string>>({});
   const [showAuthModal, setShowAuthModal] = React.useState(false);
@@ -78,6 +80,7 @@ ${candidateName}
 ${candidateEmail} | linkedin.com/in/${candidateName.toLowerCase().replace(/\s+/g, "")}`;
 
     setGeneratedLetter(demoLetter);
+    setUsageId(undefined);
     toast.success("Guest demo cover letter generated!");
   };
 
@@ -125,13 +128,14 @@ ${candidateEmail} | linkedin.com/in/${candidateName.toLowerCase().replace(/\s+/g
         },
       } as any,
       {
-        onSuccess: (letter) => {
+        onSuccess: (res) => {
           const emailToShow = userEmail.trim() || user?.email || "";
-          let finalLetter = letter;
+          let finalLetter = res.letter;
           if (emailToShow && !finalLetter.includes(emailToShow)) {
             finalLetter = `${finalLetter.trim()}\n\n${applicantName.trim() || user?.name || "Applicant"}\n${emailToShow}`;
           }
           setGeneratedLetter(finalLetter);
+          setUsageId(res.usageId);
           toast.success("Cover letter generated!");
         },
         onError: (err: any) => {
@@ -378,8 +382,11 @@ ${candidateEmail} | linkedin.com/in/${candidateName.toLowerCase().replace(/\s+/g
           </div>
 
           {generatedLetter ? (
-            <div className="bg-slate-50/70 rounded-2xl p-6 sm:p-7 border border-slate-200/80 min-h-96 text-sm text-slate-800 whitespace-pre-wrap leading-relaxed font-sans selection:bg-blue-100">
-              {generatedLetter}
+            <div className="space-y-3">
+              <div className="bg-slate-50/70 rounded-2xl p-6 sm:p-7 border border-slate-200/80 min-h-96 text-sm text-slate-800 whitespace-pre-wrap leading-relaxed font-sans selection:bg-blue-100">
+                {generatedLetter}
+              </div>
+              <AiFeedback usageId={usageId} />
             </div>
           ) : (
             <div className="h-96 rounded-2xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center p-6 text-center space-y-3 bg-slate-50/30">

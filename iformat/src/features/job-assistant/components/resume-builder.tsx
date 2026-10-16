@@ -17,6 +17,7 @@ import { StepWorkExperience } from "./resume/step-work-experience";
 import { StepEducation } from "./resume/step-education";
 import { StepSkillsMore } from "./resume/step-skills-more";
 import { ResumePreviewCard } from "./resume/resume-preview-card";
+import { AiFeedback } from "@/components/ui/ai-feedback";
 
 const steps = [
   { num: 1, label: "01. Personal Info" },
@@ -35,6 +36,7 @@ export function ResumeBuilder() {
     errors,
     data,
     isGenerating,
+    aiUsageId,
     copied,
     isAuthenticated,
     userCVs,
@@ -228,6 +230,7 @@ export function ResumeBuilder() {
             )}
 
             {step === 6 && (
+              <>
               <ResumePreviewCard
                 data={data}
                 activeCvId={activeCvId}
@@ -239,6 +242,8 @@ export function ResumeBuilder() {
                 onCopy={handleCopy}
                 onPrint={handlePrint}
               />
+              <AiFeedback usageId={aiUsageId} className="mt-4" />
+              </>
             )}
           </AnimatePresence>
         )}

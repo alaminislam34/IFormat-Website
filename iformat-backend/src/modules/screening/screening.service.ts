@@ -1,6 +1,7 @@
 import { prisma } from "../../lib/prisma.js";
-import { ApplicationStatus } from "@prisma/client";
+import { AiFeature, ApplicationStatus, Role } from "@prisma/client";
 import { AIClient } from "../../lib/ai-client.js";
+import { runWithAiContext } from "../../lib/ai-context.js";
 import { NotFoundError, InternalServerError } from "../../errors/index.js";
 import { logger } from "../../utils/logger.js";
 import {
@@ -98,11 +99,15 @@ export class ScreeningService {
       logger.info(`🤖 Triggering AI microservice screening for application: ${applicationId}`);
 
       try {
-        result = await AIClient.screenCandidate({
-          user_info: userInfo,
-          cv_json: cvData as Record<string, any>,
-          job_description: jobDescription,
-        });
+        result = await runWithAiContext(
+          { userId: application.job.employerId, role: Role.EMPLOYER, feature: AiFeature.CANDIDATE_SCREENING },
+          () =>
+            AIClient.screenCandidate({
+              user_info: userInfo,
+              cv_json: cvData as Record<string, any>,
+              job_description: jobDescription,
+            })
+        );
       } catch (error: any) {
         logger.error(
           `AI Microservice screening failed for application ${applicationId}:`,

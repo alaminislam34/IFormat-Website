@@ -12,6 +12,8 @@ export interface GenerateCoverLetterRequest {
 }
 
 export interface CoverLetterResponseDTO {
+  /** Reference to this result, used to attach thumbs up/down feedback. */
+  usageId?: string;
   model: string;
   tokensUsed: number;
   letter: string;
@@ -27,6 +29,8 @@ export interface GenerateEmailRequest {
 }
 
 export interface ColdEmailResponseDTO {
+  /** Reference to this result, used to attach thumbs up/down feedback. */
+  usageId?: string;
   model: string;
   tokensUsed: number;
   email: string;
@@ -40,6 +44,8 @@ export interface OptimizeResumeRequest {
 }
 
 export interface ResumeOptimizerResponseDTO {
+  /** Reference to this result, used to attach thumbs up/down feedback. */
+  usageId?: string;
   model: string;
   tokensUsed: number;
   summary: string;
@@ -57,6 +63,8 @@ export interface BuildCvRequest {
 }
 
 export interface BuildCvResponseDTO {
+  /** Reference to this result, used to attach thumbs up/down feedback. */
+  usageId?: string;
   model: string;
   tokensUsed: number;
   personal: Record<string, any>;
@@ -95,6 +103,8 @@ export interface ProductRecommendationDTO {
 }
 
 export interface ProductRecommenderResponseDTO {
+  /** Reference to this result, used to attach thumbs up/down feedback. */
+  usageId?: string;
   model: string;
   tokensUsed: number;
   recommendations: ProductRecommendationDTO[];
@@ -119,6 +129,8 @@ export interface CareerChatRequest {
 }
 
 export interface CareerChatResponseDTO {
+  /** Reference to this result, used to attach thumbs up/down feedback. */
+  usageId?: string;
   model: string;
   tokensUsed: number;
   response: string;
@@ -138,6 +150,8 @@ export interface ScreeningEvidenceDTO {
 }
 
 export interface JobFitAnalysisDTO {
+  /** Reference to this result, used to attach thumbs up/down feedback. */
+  usageId?: string;
   hasResume: boolean;
   score: number;
   recommendation: string;
@@ -155,4 +169,12 @@ export interface JobFitAnalysisDTO {
   company?: string;
   model?: string;
   tokensUsed?: number;
+}
+
+export type AiFeedbackRating = "UP" | "DOWN";
+
+export interface AiFeedbackRequest {
+  usageId: string;
+  rating: AiFeedbackRating;
+  comment?: string;
 }

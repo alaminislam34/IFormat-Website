@@ -14,13 +14,14 @@ import {
   CareerChatResponseDTO,
   AnalyzeJobFitRequest,
   JobFitAnalysisDTO,
+  AiFeedbackRequest,
 } from "@/types/api";
 
 export const aiService = {
   /**
    * Generates tailored cover letter via backend AI API
    */
-  async generateCoverLetter(payload: GenerateCoverLetterRequest): Promise<string> {
+  async generateCoverLetter(payload: GenerateCoverLetterRequest): Promise<CoverLetterResponseDTO> {
     const res = await apiClient.post<CoverLetterResponseDTO>("/ai/cover-letter", {
       role: payload.role,
       company: payload.company,
@@ -29,13 +30,13 @@ export const aiService = {
       tone: payload.tone || "professional",
       candidateProfile: payload.candidateProfile,
     });
-    return res.letter;
+    return res;
   },
 
   /**
    * Generates high-converting cold email via backend AI API
    */
-  async generateEmail(payload: GenerateEmailRequest): Promise<string> {
+  async generateEmail(payload: GenerateEmailRequest): Promise<ColdEmailResponseDTO> {
     const res = await apiClient.post<ColdEmailResponseDTO>("/ai/email", {
       recipient: payload.recipient || payload.recipientName || "Hiring Manager",
       role: payload.role,
@@ -43,7 +44,7 @@ export const aiService = {
       context: payload.context,
       tone: payload.tone,
     });
-    return res.email;
+    return res;
   },
 
   /**
@@ -97,5 +98,12 @@ export const aiService = {
   async analyzeJobFit(payload: AnalyzeJobFitRequest): Promise<JobFitAnalysisDTO> {
     const res = await apiClient.post<JobFitAnalysisDTO>("/ai/analyze-job", payload);
     return res;
+  },
+
+  /**
+   * Rate an AI result (thumbs up / down) so the team can monitor quality
+   */
+  async submitFeedback(payload: AiFeedbackRequest): Promise<void> {
+    await apiClient.post("/ai/feedback", payload);
   },
 };

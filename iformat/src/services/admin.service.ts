@@ -106,7 +106,72 @@ export interface AdminAuditLogDTO {
   };
 }
 
+export interface AiFeatureStatDTO {
+  feature: string;
+  calls: number;
+  failed: number;
+  errorRate: number;
+  tokens: number;
+  estimatedCostUsd: number | null;
+  avgLatencyMs: number;
+  thumbsUp: number;
+  thumbsDown: number;
+  satisfaction: number | null;
+}
+
+export interface AiAnalyticsDTO {
+  rangeDays: number;
+  costRatePer1MTokensUsd: number | null;
+  summary: {
+    totalCalls: number;
+    failedCalls: number;
+    successRate: number;
+    totalTokens: number;
+    estimatedCostUsd: number | null;
+    avgLatencyMs: number;
+    p95LatencyMs: number;
+    thumbsUp: number;
+    thumbsDown: number;
+  };
+  features: AiFeatureStatDTO[];
+  plans: { planCode: string; calls: number; tokens: number; estimatedCostUsd: number | null }[];
+  daily: { date: string; calls: number; errors: number; tokens: number }[];
+  topUsers: {
+    userId: string;
+    name: string;
+    email: string | null;
+    role: string | null;
+    calls: number;
+    tokens: number;
+    estimatedCostUsd: number | null;
+  }[];
+  recentErrors: {
+    id: string;
+    feature: string;
+    status: string;
+    errorMessage: string | null;
+    latencyMs: number;
+    createdAt: string;
+    user: { name: string; email: string } | null;
+  }[];
+  recentFeedback: {
+    id: string;
+    feature: string;
+    feedbackRating: "UP" | "DOWN";
+    feedbackComment: string | null;
+    feedbackAt: string;
+    user: { name: string; email: string } | null;
+  }[];
+}
+
 export class AdminService {
+  /**
+   * AI usage, cost and quality analytics for the last N days (7, 30 or 90)
+   */
+  static async getAiAnalytics(days: number): Promise<AiAnalyticsDTO> {
+    return apiClient.get<AiAnalyticsDTO>("/admin/ai-analytics", { params: { days } });
+  }
+
   /**
    * Fetch executive platform and revenue metrics
    */

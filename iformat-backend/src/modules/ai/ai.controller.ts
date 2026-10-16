@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { AIService } from "./ai.service.js";
 import { ApiResponse } from "../../utils/apiResponse.js";
+import { withUsageId } from "../../lib/ai-context.js";
 import { BadRequestError } from "../../errors/index.js";
 import {
   GenerateCoverLetterInput,
@@ -10,6 +11,7 @@ import {
   RecommendProductsInput,
   CareerChatInput,
   AnalyzeJobFitInput,
+  AiFeedbackInput,
 } from "./ai.validation.js";
 
 export class AIController {
@@ -21,7 +23,7 @@ export class AIController {
     const userId = (req as any).user?.id;
     const result = await AIService.generateCoverLetter(input, userId);
 
-    return ApiResponse.success(res, "Cover letter generated successfully", result);
+    return ApiResponse.success(res, "Cover letter generated successfully", withUsageId(result));
   }
 
   /**
@@ -31,7 +33,7 @@ export class AIController {
     const input = req.body as GenerateEmailInput;
     const result = await AIService.generateEmail(input);
 
-    return ApiResponse.success(res, "Email template generated successfully", result);
+    return ApiResponse.success(res, "Email template generated successfully", withUsageId(result));
   }
 
   /**
@@ -54,7 +56,7 @@ export class AIController {
       req.file.originalname || "resume.pdf"
     );
 
-    return ApiResponse.success(res, "Resume optimized successfully", result);
+    return ApiResponse.success(res, "Resume optimized successfully", withUsageId(result));
   }
 
   /**
@@ -65,7 +67,7 @@ export class AIController {
     const userId = (req as any).user?.id;
     const result = await AIService.buildCV(input, userId);
 
-    return ApiResponse.success(res, "CV built and formatted successfully", result);
+    return ApiResponse.success(res, "CV built and formatted successfully", withUsageId(result));
   }
 
   /**
@@ -75,7 +77,7 @@ export class AIController {
     const input = req.body as RecommendProductsInput;
     const result = await AIService.recommendProducts(input);
 
-    return ApiResponse.success(res, "Product recommendations generated successfully", result);
+    return ApiResponse.success(res, "Product recommendations generated successfully", withUsageId(result));
   }
 
   /**
@@ -86,7 +88,7 @@ export class AIController {
     const userId = (req as any).user?.id;
     const result = await AIService.careerChat(input, userId);
 
-    return ApiResponse.success(res, "Career Advisor response generated successfully", result);
+    return ApiResponse.success(res, "Career Advisor response generated successfully", withUsageId(result));
   }
 
   /**
@@ -97,6 +99,16 @@ export class AIController {
     const userId = (req as any).user.id;
     const result = await AIService.analyzeJobFit(input, userId);
 
-    return ApiResponse.success(res, "Job fit analysis completed successfully", result);
+    return ApiResponse.success(res, "Job fit analysis completed successfully", withUsageId(result));
+  }
+
+  /**
+   * POST /api/v1/ai/feedback
+   */
+  static async submitFeedback(req: Request, res: Response) {
+    const input = req.body as AiFeedbackInput;
+    await AIService.submitFeedback(input, req.user!.id);
+
+    return ApiResponse.success(res, "Thanks for your feedback");
   }
 }

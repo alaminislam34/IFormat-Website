@@ -23,6 +23,7 @@ import { cvService } from "@/services/cv.service";
 import { JobFitAnalysisDTO } from "@/types/api";
 import { toast } from "sonner";
 import { UpgradeModal } from "@/components/ui/upgrade-modal";
+import { AiFeedback } from "@/components/ui/ai-feedback";
 
 interface JobAnalyzerModalProps {
   isOpen: boolean;
@@ -380,6 +381,8 @@ export function JobAnalyzerModal({
                         </div>
                       </div>
                     )}
+
+                    <AiFeedback usageId={analysis.usageId} />
                   </div>
                 )}
               </div>

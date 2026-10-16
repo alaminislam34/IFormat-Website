@@ -19,6 +19,7 @@ export function useResumeState() {
   const [step, setStep] = React.useState(1);
   const [data, setData] = React.useState<ResumeData>(BLANK_RESUME);
   const [isGenerating, setIsGenerating] = React.useState(false);
+  const [aiUsageId, setAiUsageId] = React.useState<string | undefined>();
   const [copied, setCopied] = React.useState(false);
   const [errors, setErrors] = React.useState<Record<string, string>>({});
 
@@ -538,6 +539,7 @@ export function useResumeState() {
       });
 
       if (res) {
+        setAiUsageId(res.usageId);
         if (res.personal?.summary) {
           setData((prev) => ({
             ...prev,
@@ -622,6 +624,7 @@ ${data.certifications.map((c) => `${c.name} ${c.link ? `(${c.link})` : ""}`).joi
     data,
     setData,
     isGenerating,
+    aiUsageId,
     copied,
     isAuthenticated,
     userCVs,

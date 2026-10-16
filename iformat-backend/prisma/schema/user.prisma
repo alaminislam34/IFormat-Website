@@ -33,6 +33,7 @@ model User {
   usageRecords       SubscriptionUsage[]
   notifications      Notification[]
   auditLogs          AuditLog[]          @relation("AdminAuditLogs")
+  aiUsageLogs        AiUsageLog[]        @relation("UserAiUsage")
   systemSettings     SystemSetting[]     @relation("UserUpdatedSettings")
 
   @@index([email])

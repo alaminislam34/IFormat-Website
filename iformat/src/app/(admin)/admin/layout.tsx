@@ -21,6 +21,7 @@ import {
   ShoppingBag,
   MessageSquare,
   Film,
+  Sparkles,
 } from "lucide-react";
 import { useAuthStore } from "@/stores/use-auth-store";
 import { BrandLogo } from "@/components/ui/brand-logo";
@@ -106,6 +107,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     if (path.startsWith("/admin/companies")) return "Company Badges";
     if (path.startsWith("/admin/plans")) return "Membership Plans";
     if (path.startsWith("/admin/subscriptions")) return "Subscriptions";
+    if (path.startsWith("/admin/ai-analytics")) return "AI Analytics";
     if (path.startsWith("/admin/bookings")) return "Consultation Bookings";
     if (path.startsWith("/admin/inquiries")) return "Contact Inquiries";
     if (path.startsWith("/admin/homepage")) return "Homepage & Media";
@@ -134,6 +136,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       items: [
         { label: "Membership Plans", href: "/admin/plans", icon: Layers },
         { label: "Subscriptions", href: "/admin/subscriptions", icon: CreditCard },
+        { label: "AI Analytics", href: "/admin/ai-analytics", icon: Sparkles },
       ],
     },
     {
