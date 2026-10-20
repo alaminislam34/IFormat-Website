@@ -289,16 +289,6 @@ export class AIService {
     if (!cvContent || !isUsableResumeContent(cvContent)) {
       return {
         hasResume: false,
-        score: 0,
-        recommendation: "RESUME_REQUIRED",
-        summary:
-          "Please create or upload a detailed resume in the AI Career Assistant so our engine can evaluate your profile against this role.",
-        strengths: [],
-        gaps: [
-          "No complete resume found on your profile.",
-          "Add your technical skills, work experience, and education to see your real-time match score.",
-        ],
-        scoreBreakdown: { skills: 0, experience: 0, education: 0, domainMatch: 0 },
         jobTitle: job.title,
         company: job.company,
       };
@@ -330,28 +320,23 @@ export class AIService {
 
       return {
         hasResume: true,
-        score: Math.round(result.score),
+        score: typeof result.score === "number" ? Math.round(result.score) : result.score,
         recommendation: result.recommendation,
         summary: result.summary,
         strengths: result.strengths || [],
         gaps: result.gaps || [],
-        scoreBreakdown: result.scoreBreakdown || {
-          skills: 0,
-          experience: 0,
-          education: 0,
-          domainMatch: 0,
-        },
+        scoreBreakdown: result.scoreBreakdown,
         evidence: result.evidence || [],
         jobTitle: job.title,
         company: job.company,
-        model: result.model || "bedrock-screen",
-        tokensUsed: result.tokensUsed || 0,
+        model: result.model,
+        tokensUsed: result.tokensUsed,
+        rawAiResponse: result,
       };
     } catch (err: any) {
-      logger.error(`AI screening microservice error during job fit analysis: ${err.message}`);
-      throw new InternalServerError(
-        "AI job fit analysis is temporarily unavailable. Please try again shortly."
-      );
+      const errorMsg = err?.message || "Unknown error occurred from AI screening service.";
+      logger.error(`AI screening microservice error during job fit analysis: ${errorMsg}`);
+      throw new InternalServerError(errorMsg);
     }
   }
 }

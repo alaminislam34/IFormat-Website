@@ -11,7 +11,6 @@ import {
   AlertTriangle,
   FileText,
   ArrowRight,
-  TrendingUp,
   Briefcase,
   UploadCloud,
   FileUp,
@@ -112,13 +111,6 @@ export function JobAnalyzerModal({
     fetchAnalysis();
   }, [isOpen, job?.id]);
 
-  const score = analysis?.score ?? 0;
-  const scoreTheme = score >= 75
-    ? { label: "Strong Match", badge: "bg-emerald-50 text-emerald-700 border-emerald-200" }
-    : score >= 50
-    ? { label: "Moderate Fit", badge: "bg-blue-50 text-[#0A54B1] border-blue-200" }
-    : { label: "Tailoring Needed", badge: "bg-amber-50 text-amber-700 border-amber-200" };
-
   return (
     <>
       <AnimatePresence>
@@ -142,7 +134,7 @@ export function JobAnalyzerModal({
                     </span>
                     {analysis?.model && (
                       <span className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-100 text-slate-600 border border-slate-200/60 font-mono">
-                        {analysis.model.includes("bedrock") ? "Bedrock AI" : analysis.model}
+                        {analysis.model}
                       </span>
                     )}
                   </div>
@@ -160,13 +152,15 @@ export function JobAnalyzerModal({
               {/* Body */}
               <div className="p-6 overflow-y-auto space-y-4.5 flex-1">
                 {loadError ? (
-                  <div className="py-12 flex flex-col items-center justify-center text-center space-y-4">
-                    <div className="w-12 h-12 rounded-xl bg-amber-50 border border-amber-200/80 flex items-center justify-center text-amber-600">
+                  <div className="py-10 flex flex-col items-center justify-center text-center space-y-3.5">
+                    <div className="w-12 h-12 rounded-xl bg-red-50 border border-red-200/80 flex items-center justify-center text-red-600">
                       <AlertTriangle className="w-6 h-6" />
                     </div>
-                    <div className="space-y-1.5 max-w-sm">
-                      <h4 className="text-sm font-bold text-slate-900">AI Service Temporarily Unavailable</h4>
-                      <p className="text-xs text-slate-500 leading-relaxed">{loadError}</p>
+                    <div className="space-y-2 w-full max-w-md">
+                      <h4 className="text-sm font-bold text-slate-900">AI Service Error</h4>
+                      <div className="text-xs text-red-600 bg-red-50/80 p-3 rounded-lg border border-red-200 font-mono text-left whitespace-pre-wrap break-all leading-relaxed max-h-48 overflow-y-auto">
+                        {loadError}
+                      </div>
                     </div>
                     <div className="flex items-center gap-2 pt-1">
                       <Button
@@ -271,87 +265,77 @@ export function JobAnalyzerModal({
                     </div>
 
                     {/* Score & Recommendation Banner */}
-                    <div className="p-4.5 rounded-xl bg-slate-50/80 border border-slate-200/80 space-y-2">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-baseline gap-2">
-                          <span className="text-2xl font-black text-slate-900 tracking-tight">{score}%</span>
-                          <span className={`px-2 py-0.5 rounded-md text-[11px] font-semibold border ${scoreTheme.badge}`}>
-                            {scoreTheme.label}
-                          </span>
-                        </div>
-                        <span className="text-[11px] font-medium text-slate-400">Match Score</span>
-                      </div>
-                      <div>
-                        <h4 className="text-xs font-semibold text-slate-800">{analysis.recommendation}</h4>
-                        <p className="text-xs text-slate-600 leading-relaxed mt-0.5">{analysis.summary}</p>
-                      </div>
-                    </div>
-
-                    {/* 4 Pillars Progress Bars */}
-                    {analysis.scoreBreakdown && (
-                      <div className="p-4 rounded-xl border border-slate-200/80 bg-white space-y-2.5">
+                    {(analysis.score !== undefined || analysis.recommendation || analysis.summary) && (
+                      <div className="p-4.5 rounded-xl bg-slate-50/80 border border-slate-200/80 space-y-2">
                         <div className="flex items-center justify-between">
-                          <span className="text-xs font-semibold text-slate-800 flex items-center gap-1.5">
-                            <TrendingUp className="w-3.5 h-3.5 text-[#0A54B1]" />
-                            <span>Evaluation Pillars</span>
-                          </span>
-                          <span className="text-[11px] text-slate-400 font-medium">Weighted Criteria</span>
+                          <div className="flex items-baseline gap-2">
+                            {analysis.score !== undefined && (
+                              <span className="text-2xl font-black text-slate-900 tracking-tight">{analysis.score}%</span>
+                            )}
+                            {analysis.recommendation && (
+                              <span className="px-2.5 py-0.5 rounded-md text-[11px] font-semibold border bg-blue-50 text-[#0A54B1] border-blue-200">
+                                {analysis.recommendation}
+                              </span>
+                            )}
+                          </div>
+                          {analysis.score !== undefined && (
+                            <span className="text-[11px] font-medium text-slate-400">Match Score</span>
+                          )}
                         </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-2.5">
-                          {[
-                            { label: "Skills Match", value: analysis.scoreBreakdown.skills },
-                            { label: "Experience Level", value: analysis.scoreBreakdown.experience },
-                            { label: "Education & Credentials", value: analysis.scoreBreakdown.education },
-                            { label: "Domain Alignment", value: analysis.scoreBreakdown.domainMatch },
-                          ].map((item, idx) => (
-                            <div key={idx} className="space-y-1">
-                              <div className="flex justify-between text-xs">
-                                <span className="text-slate-500">{item.label}</span>
-                                <span className="font-semibold text-slate-800">{item.value}%</span>
-                              </div>
-                              <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
-                                <div className="h-full bg-[#0A54B1] rounded-full" style={{ width: `${Math.min(Math.max(item.value, 0), 100)}%` }} />
-                              </div>
-                            </div>
-                          ))}
-                        </div>
+                        {analysis.summary && (
+                          <div>
+                            <p className="text-xs text-slate-600 leading-relaxed mt-0.5">{analysis.summary}</p>
+                          </div>
+                        )}
                       </div>
                     )}
 
-                    {/* Strengths & Improvements */}
-                    <div className="grid sm:grid-cols-2 gap-3">
-                      <div className="p-3.5 rounded-xl border border-slate-200/80 bg-white space-y-2">
-                        <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-900">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                          <span>Key Strengths ({analysis.strengths.length})</span>
-                        </div>
-                        <ul className="space-y-1">
-                          {analysis.strengths.map((str, idx) => (
-                            <li key={idx} className="text-xs text-slate-600 flex items-start gap-1.5 leading-snug">
-                              <span className="text-emerald-600 mt-0.5 shrink-0 font-bold">•</span>
-                              <span>{str}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
+                    {/* Strengths & Improvements (only rendered if returned by AI) */}
+                    {((analysis.strengths && analysis.strengths.length > 0) || (analysis.gaps && analysis.gaps.length > 0)) && (
+                      <div className="grid sm:grid-cols-2 gap-3">
+                        {analysis.strengths && analysis.strengths.length > 0 && (
+                          <div className="p-3.5 rounded-xl border border-slate-200/80 bg-white space-y-2">
+                            <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-900">
+                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                              <span>Key Strengths ({analysis.strengths.length})</span>
+                            </div>
+                            <ul className="space-y-1">
+                              {analysis.strengths.map((str, idx) => (
+                                <li key={idx} className="text-xs text-slate-600 flex items-start gap-1.5 leading-snug">
+                                  <span className="text-emerald-600 mt-0.5 shrink-0 font-bold">•</span>
+                                  <span>{str}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
 
-                      <div className="p-3.5 rounded-xl border border-slate-200/80 bg-white space-y-2">
-                        <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-900">
-                          <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-                          <span>Suggested Improvements ({analysis.gaps.length})</span>
-                        </div>
-                        <ul className="space-y-1">
-                          {analysis.gaps.map((gap, idx) => (
-                            <li key={idx} className="text-xs text-slate-600 flex items-start gap-1.5 leading-snug">
-                              <span className="text-amber-500 mt-0.5 shrink-0 font-bold">•</span>
-                              <span>{gap}</span>
-                            </li>
-                          ))}
-                        </ul>
+                        {analysis.gaps && analysis.gaps.length > 0 && (
+                          <div className="p-3.5 rounded-xl border border-slate-200/80 bg-white space-y-2">
+                            <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-900">
+                              <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                              <span>Suggested Improvements ({analysis.gaps.length})</span>
+                            </div>
+                            <ul className="space-y-1">
+                              {analysis.gaps.map((gap, idx) => (
+                                <li key={idx} className="text-xs text-slate-600 flex items-start gap-1.5 leading-snug">
+                                  <span className="text-amber-500 mt-0.5 shrink-0 font-bold">•</span>
+                                  <span>{gap}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
                       </div>
-                    </div>
+                    )}
 
-                    {/* Verified Evidence & Citations */}
+                    {/* Empty state if AI returned no analysis fields */}
+                    {analysis.score === undefined && !analysis.recommendation && !analysis.summary && (!analysis.strengths || analysis.strengths.length === 0) && (!analysis.gaps || analysis.gaps.length === 0) && (
+                      <div className="py-8 text-center text-xs text-slate-500">
+                        AI returned no match evaluation data for this job.
+                      </div>
+                    )}
+
                     {analysis.evidence && analysis.evidence.length > 0 && (
                       <div className="p-3.5 rounded-xl border border-slate-200/80 bg-white space-y-2">
                         <div className="flex items-center justify-between">
@@ -384,7 +368,6 @@ export function JobAnalyzerModal({
                 )}
               </div>
 
-              {/* Footer */}
               {analysis?.hasResume && (
                 <div className="px-6 py-3.5 border-t border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row items-center justify-between gap-3">
                   <Link href={`/job-assistant?tab=cover-letter&role=${encodeURIComponent(job.title)}&company=${encodeURIComponent(job.company)}`} onClick={onClose} className="w-full sm:w-auto">

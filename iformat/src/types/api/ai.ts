@@ -139,12 +139,12 @@ export interface ScreeningEvidenceDTO {
 
 export interface JobFitAnalysisDTO {
   hasResume: boolean;
-  score: number;
-  recommendation: string;
-  summary: string;
-  strengths: string[];
-  gaps: string[];
-  scoreBreakdown: {
+  score?: number;
+  recommendation?: string;
+  summary?: string;
+  strengths?: string[];
+  gaps?: string[];
+  scoreBreakdown?: {
     skills: number;
     experience: number;
     education: number;
@@ -155,4 +155,5 @@ export interface JobFitAnalysisDTO {
   company?: string;
   model?: string;
   tokensUsed?: number;
+  rawAiResponse?: any;
 }
