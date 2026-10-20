@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
-import { X, Loader2, Plus, Trash2 } from "lucide-react";
+import React from "react";
+import { X, Loader2 } from "lucide-react";
+import { PlanFeaturesEditor } from "./plan-features-editor";
 import { Button } from "@/components/ui/button";
 import {
   PlanDTO,
@@ -36,6 +37,8 @@ interface AdminPlanEditorModalProps {
   isSubmitting: boolean;
   onClose: () => void;
   onSubmit: (e: React.FormEvent) => void;
+  /** All plans, used to copy features between plans */
+  allPlans?: PlanDTO[];
 }
 
 export function AdminPlanEditorModal({
@@ -46,41 +49,13 @@ export function AdminPlanEditorModal({
   isSubmitting,
   onClose,
   onSubmit,
+  allPlans = [],
 }: AdminPlanEditorModalProps) {
-  const [newFeatureText, setNewFeatureText] = useState("");
-
   if (!isOpen) return null;
-
-  const handleAddFeature = () => {
-    if (!newFeatureText.trim()) return;
-    setFormData({
-      ...formData,
-      customFeaturesList: [newFeatureText.trim(), ...(formData.customFeaturesList || [])],
-    });
-    setNewFeatureText("");
-  };
-
-  const handleRemoveFeature = (indexToRemove: number) => {
-    setFormData({
-      ...formData,
-      customFeaturesList: (formData.customFeaturesList || []).filter(
-        (_, idx) => idx !== indexToRemove
-      ),
-    });
-  };
-
-  const handleUpdateFeature = (index: number, val: string) => {
-    const updated = [...(formData.customFeaturesList || [])];
-    updated[index] = val;
-    setFormData({
-      ...formData,
-      customFeaturesList: updated,
-    });
-  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in-0 duration-150">
-      <div className="relative bg-white border border-slate-200 rounded-3xl w-full max-w-xl max-h-[90vh] shadow-2xl flex flex-col overflow-hidden">
+      <div className="relative bg-white border border-slate-200 rounded-3xl w-full max-w-2xl max-h-[90vh] shadow-2xl flex flex-col overflow-hidden">
         {/* Modal Header: Fixed at top (not scrollable) */}
         <div className="p-5 sm:p-6 border-b border-slate-100 flex items-center justify-between bg-white shrink-0 z-10">
           <div>
@@ -290,70 +265,19 @@ export function AdminPlanEditorModal({
           </div>
 
           {/* Subscription Bullet Features List */}
-          <div className="space-y-3 pt-2 border-t border-slate-100">
-            <div className="flex items-center justify-between">
-              <div>
-                <h4 className="text-xs font-semibold text-slate-700">Display Features (Bullet Points)</h4>
-                <p className="text-[11px] text-slate-500">Edit the subscription features displayed on pricing cards.</p>
-              </div>
-              <span className="text-[11px] font-medium text-slate-400">
-                {(formData.customFeaturesList || []).length} features
-              </span>
-            </div>
-
-            {/* Feature Add Input */}
-            <div className="flex items-center gap-2">
-              <input
-                type="text"
-                value={newFeatureText}
-                onChange={(e) => setNewFeatureText(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    handleAddFeature();
-                  }
-                }}
-                placeholder="e.g. Dedicated consultant, 1:1 Brand Strategy..."
-                className="flex-1 px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 placeholder:text-slate-400 text-xs focus:outline-hidden focus:border-sky-500"
-              />
-              <Button
-                type="button"
-                onClick={handleAddFeature}
-                className="bg-sky-600 hover:bg-sky-700 text-white text-xs font-semibold px-3 h-9 rounded-xl flex items-center gap-1 cursor-pointer shrink-0"
-              >
-                <Plus className="w-3.5 h-3.5" /> Add
-              </Button>
-            </div>
-
-            {/* Feature Items */}
-            <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
-              {(formData.customFeaturesList || []).length === 0 ? (
-                <p className="text-xs text-slate-400 italic py-2 text-center bg-slate-50 rounded-xl">
-                  No custom feature bullets added yet. Type above and click Add.
-                </p>
-              ) : (
-                formData.customFeaturesList.map((feat, idx) => (
-                  <div key={idx} className="flex items-center gap-2 group">
-                    <span className="text-xs text-slate-400 font-mono w-4 shrink-0">{idx + 1}.</span>
-                    <input
-                      type="text"
-                      value={feat}
-                      onChange={(e) => handleUpdateFeature(idx, e.target.value)}
-                      className="flex-1 px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-xs text-slate-800 focus:outline-hidden focus:border-sky-500"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveFeature(idx)}
-                      className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
-                      title="Remove feature"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
+          <PlanFeaturesEditor
+            key={editingPlan?.id || "new"}
+            features={formData.customFeaturesList || []}
+            onChange={(list) => setFormData((prev) => ({ ...prev, customFeaturesList: list }))}
+            preview={{
+              code: formData.code,
+              name: formData.name,
+              description: formData.description,
+              priceInDollars: formData.priceInDollars,
+              billingInterval: formData.billingInterval,
+            }}
+            otherPlans={allPlans.filter((p) => p.id !== editingPlan?.id)}
+          />
 
           {/* Feature Toggles */}
           <div className="space-y-3 pt-2 border-t border-slate-100">

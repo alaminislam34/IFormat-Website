@@ -296,6 +296,7 @@ export default function AdminPlansPage() {
         isSubmitting={isSubmitting}
         onClose={() => setIsModalOpen(false)}
         onSubmit={handleSubmit}
+        allPlans={plans}
       />
     </div>
   );
