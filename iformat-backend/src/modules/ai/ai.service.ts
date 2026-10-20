@@ -311,11 +311,17 @@ export class AIService {
       .filter(Boolean)
       .join("\n\n");
 
+    // Guard against excessively long employer-written job descriptions
+    const MAX_JOB_DESC_LENGTH = 20_000;
+    const safeJobDescription = jobDescription.length > MAX_JOB_DESC_LENGTH
+      ? jobDescription.slice(0, MAX_JOB_DESC_LENGTH) + "\n...[truncated]"
+      : jobDescription;
+
     try {
       const result = await AIClient.screenCandidate({
         user_info: userInfo,
         cv_json: cvData as Record<string, any>,
-        job_description: jobDescription,
+        job_description: safeJobDescription,
       });
 
       return {

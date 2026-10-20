@@ -119,13 +119,55 @@ export function isUsableResumeContent(content: unknown): boolean {
   return text.replace(/\s+/g, "").length >= 80;
 }
 
+/**
+ * Keys that should never be forwarded to the AI screening service.
+ * These are storage/metadata fields (URLs, binary blobs) that bloat the
+ * Bedrock Converse payload and can trigger "length limit exceeded" errors.
+ */
+const SCREENING_STRIP_KEYS = new Set([
+  "fileUrl", "url", "fileSize", "fileType", "mimeType",
+  "uploadedAt", "storedName", "parseStatus",
+]);
+
+/** Max characters of resume text sent to AI screening (~7,000 words). */
+const MAX_SCREENING_TEXT_LENGTH = 35_000;
+
+function capText(text: string, limit: number): string {
+  if (text.length <= limit) return text;
+  return text.slice(0, limit) + "\n...[content truncated for AI screening]";
+}
+
+/**
+ * Returns true when a value is a data-URI, base64 blob, or any string
+ * large enough to blow past Bedrock's payload budget.
+ */
+function isOversizedOrBinary(value: unknown): boolean {
+  if (typeof value !== "string") return false;
+  if (value.startsWith("data:")) return true;
+  // Any single string field > 50 KB is almost certainly not resume prose
+  if (value.length > 50_000) return true;
+  return false;
+}
+
+/**
+ * Builds a lightweight, AI-safe JSON payload from the stored CV content.
+ * - Strips storage metadata, file URLs, and binary/base64 blobs.
+ * - Caps raw resume text to MAX_SCREENING_TEXT_LENGTH.
+ */
 export function buildScreeningCvJson(content: unknown, userInfo: Record<string, any>) {
   const record = asRecord(content) || {};
-  const rawText = getResumePlainText(record);
+  let rawText = capText(getResumePlainText(record), MAX_SCREENING_TEXT_LENGTH);
 
   if (typeof record.fullName === "string" || Array.isArray(record.workExperience) || Array.isArray(record.experiences)) {
+    // Structured CV — shallow-copy only safe keys
+    const cleaned: Record<string, any> = {};
+    for (const [key, value] of Object.entries(record)) {
+      if (SCREENING_STRIP_KEYS.has(key)) continue;
+      if (isOversizedOrBinary(value)) continue;
+      cleaned[key] = value;
+    }
     return {
-      ...record,
+      ...cleaned,
       personal: {
         name: userInfo.name,
         email: userInfo.email,
@@ -138,7 +180,6 @@ export function buildScreeningCvJson(content: unknown, userInfo: Record<string, 
   return {
     source: record.source || "pdf_upload",
     fileName: record.fileName,
-    fileUrl: record.fileUrl || record.url,
     raw_text: rawText,
     personal: {
       name: userInfo.name,

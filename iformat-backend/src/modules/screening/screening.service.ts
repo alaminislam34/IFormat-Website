@@ -95,13 +95,19 @@ export class ScreeningService {
         .filter(Boolean)
         .join("\n\n");
 
+      // Guard against excessively long job descriptions
+      const MAX_JOB_DESC_LENGTH = 20_000;
+      const safeJobDescription = jobDescription.length > MAX_JOB_DESC_LENGTH
+        ? jobDescription.slice(0, MAX_JOB_DESC_LENGTH) + "\n...[truncated]"
+        : jobDescription;
+
       logger.info(`🤖 Triggering AI microservice screening for application: ${applicationId}`);
 
       try {
         result = await AIClient.screenCandidate({
           user_info: userInfo,
           cv_json: cvData as Record<string, any>,
-          job_description: jobDescription,
+          job_description: safeJobDescription,
         });
       } catch (error: any) {
         logger.error(
