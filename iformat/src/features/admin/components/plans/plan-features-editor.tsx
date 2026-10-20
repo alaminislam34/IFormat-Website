@@ -19,15 +19,13 @@ import { PricingCard, PricingCardItem } from "@/features/landing/components/pric
 import { DEFAULT_BRANDING_PLANS, getPlanFeatureList } from "@/features/billing/utils/branding-plans";
 
 /** Splits pasted text into clean feature lines, dropping bullets and numbering. */
-export function parseFeatureLines(text: string): string[] {
+export function parseFeatureLines(text: string, stripBullets = true): string[] {
   return text
     .split(/\r?\n/)
-    .map((line) =>
-      line
-        .trim()
-        .replace(/^([-*•✓✔▪◦>]|\d+[.)])\s*/, "")
-        .trim()
-    )
+    .map((line) => {
+      const trimmed = line.trim();
+      return stripBullets ? trimmed.replace(/^([-*•✓✔▪◦>]|\d+[.)])\s*/, "").trim() : trimmed;
+    })
     .filter((line) => line !== "");
 }
 
@@ -52,6 +50,10 @@ export function PlanFeaturesEditor({ features, onChange, preview, otherPlans }: 
   const [newFeatureText, setNewFeatureText] = useState("");
   const [showPreview, setShowPreview] = useState(false);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
+  // Only the grip handle starts a drag, so text inside the inputs stays selectable
+  const [dragArmed, setDragArmed] = useState(false);
+  // Previous list before a "copy from plan", so a mis-click can be undone
+  const [undoList, setUndoList] = useState<string[] | null>(null);
 
   const switchMode = (next: "list" | "bulk") => {
     if (next === "bulk") setBulkText(features.join("\n"));
@@ -81,15 +83,13 @@ export function PlanFeaturesEditor({ features, onChange, preview, otherPlans }: 
     if (!source) return;
     const copied = getPlanFeatureList(source.customFeatures);
     if (copied.length === 0) return;
-    if (features.length > 0 && !window.confirm(`Replace the current ${features.length} features with ${source.name}'s?`)) {
-      return;
-    }
+    setUndoList(features);
     onChange(copied);
     if (mode === "bulk") setBulkText(copied.join("\n"));
   };
 
   const defaults = DEFAULT_BRANDING_PLANS.find((p) => p.code === preview.code);
-  const isContactUs = Boolean(defaults?.isContactUs) || (preview.priceInDollars <= 0 && preview.code === "BRANDING_ENTERPRISE");
+  const isContactUs = Boolean(defaults?.isContactUs);
   const previewItem: PricingCardItem = {
     code: preview.code || "PREVIEW",
     name: preview.name || "Plan name",
@@ -159,6 +159,20 @@ export function PlanFeaturesEditor({ features, onChange, preview, otherPlans }: 
           </label>
         )}
 
+        {undoList && (
+          <button
+            type="button"
+            onClick={() => {
+              onChange(undoList);
+              if (mode === "bulk") setBulkText(undoList.join("\n"));
+              setUndoList(null);
+            }}
+            className="px-3 py-1.5 rounded-lg text-[11px] font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100 cursor-pointer"
+          >
+            Undo copy
+          </button>
+        )}
+
         <button
           type="button"
           onClick={() => setShowPreview((v) => !v)}
@@ -175,7 +189,18 @@ export function PlanFeaturesEditor({ features, onChange, preview, otherPlans }: 
           value={bulkText}
           onChange={(e) => {
             setBulkText(e.target.value);
-            onChange(parseFeatureLines(e.target.value));
+            onChange(parseFeatureLines(e.target.value, false));
+          }}
+          onPaste={(e) => {
+            // Clean bullets/numbering from pasted lists only, never from what the admin types
+            const pasted = e.clipboardData.getData("text");
+            if (!pasted.includes("\n")) return;
+            e.preventDefault();
+            const el = e.currentTarget;
+            const cleaned = parseFeatureLines(pasted).join("\n");
+            const next = el.value.slice(0, el.selectionStart) + cleaned + el.value.slice(el.selectionEnd);
+            setBulkText(next);
+            onChange(parseFeatureLines(next, false));
           }}
           placeholder={"Cancel anytime (1 month)\nDedicated brand consultant\nInterview coaching for jobs (2)"}
           className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 placeholder:text-slate-400 text-xs leading-relaxed focus:outline-hidden focus:border-sky-500 resize-y font-mono"
@@ -223,17 +248,28 @@ export function PlanFeaturesEditor({ features, onChange, preview, otherPlans }: 
               features.map((feat, idx) => (
                 <div
                   key={idx}
-                  draggable
+                  draggable={dragArmed}
                   onDragStart={() => setDragIndex(idx)}
                   onDragOver={(e) => e.preventDefault()}
                   onDrop={() => {
                     if (dragIndex !== null) move(dragIndex, idx);
                     setDragIndex(null);
+                    setDragArmed(false);
                   }}
-                  onDragEnd={() => setDragIndex(null)}
+                  onDragEnd={() => {
+                    setDragIndex(null);
+                    setDragArmed(false);
+                  }}
                   className={`flex items-center gap-1.5 rounded-lg ${dragIndex === idx ? "opacity-40" : ""}`}
                 >
-                  <GripVertical className="w-3.5 h-3.5 text-slate-300 cursor-grab shrink-0" />
+                  <span
+                    onMouseDown={() => setDragArmed(true)}
+                    onMouseUp={() => setDragArmed(false)}
+                    className="shrink-0 cursor-grab"
+                    title="Drag to reorder"
+                  >
+                    <GripVertical className="w-3.5 h-3.5 text-slate-300" />
+                  </span>
                   <span className="text-xs text-slate-400 font-mono w-5 shrink-0">{idx + 1}.</span>
                   <input
                     type="text"
@@ -284,7 +320,7 @@ export function PlanFeaturesEditor({ features, onChange, preview, otherPlans }: 
             How it looks on the pricing page
           </p>
           {/* Preview only: the card's button must not submit this form */}
-          <div className="max-w-xs mx-auto pointer-events-none select-none" aria-hidden>
+          <div className="max-w-xs mx-auto pointer-events-none select-none" aria-hidden inert>
             <PricingCard item={previewItem} onSelect={() => {}} />
           </div>
         </div>
