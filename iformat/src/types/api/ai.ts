@@ -155,5 +155,12 @@ export interface JobFitAnalysisDTO {
   company?: string;
   model?: string;
   tokensUsed?: number;
+  resumeId?: string;
+  resumeTitle?: string;
   rawAiResponse?: any;
+  aiRequest?: {
+    user_info: Record<string, any>;
+    cv_json: Record<string, any>;
+    job_description: string;
+  };
 }

@@ -232,7 +232,14 @@ export class AIClient {
    * 1. Screen Candidate CV against Job Description
    */
   static async screenCandidate(data: ScreeningRequest): Promise<ScreeningResponse> {
-    return this.postJson<ScreeningRequest, ScreeningResponse>("/api/v1/ai/screen", data);
+    try {
+      return await this.postJson<ScreeningRequest, ScreeningResponse>("/api/v1/ai/screen", data);
+    } catch (error: any) {
+      // The model sometimes returns malformed JSON; a second attempt usually succeeds.
+      if (!String(error?.message || "").includes("BEDROCK_INVALID_RESPONSE")) throw error;
+      logger.warn("🔁 [AIClient] Bedrock returned an invalid screening response, retrying once");
+      return this.postJson<ScreeningRequest, ScreeningResponse>("/api/v1/ai/screen", data);
+    }
   }
 
   /**

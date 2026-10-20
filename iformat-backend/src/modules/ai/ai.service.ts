@@ -317,15 +317,19 @@ export class AIService {
       ? jobDescription.slice(0, MAX_JOB_DESC_LENGTH) + "\n...[truncated]"
       : jobDescription;
 
+    const aiRequest = {
+      user_info: userInfo,
+      cv_json: cvData as Record<string, any>,
+      job_description: safeJobDescription,
+    };
+
     try {
-      const result = await AIClient.screenCandidate({
-        user_info: userInfo,
-        cv_json: cvData as Record<string, any>,
-        job_description: safeJobDescription,
-      });
+      const result = await AIClient.screenCandidate(aiRequest);
 
       return {
         hasResume: true,
+        resumeId: cv?.id,
+        resumeTitle: cv?.title,
         score: typeof result.score === "number" ? Math.round(result.score) : result.score,
         recommendation: result.recommendation,
         summary: result.summary,
@@ -337,7 +341,9 @@ export class AIService {
         company: job.company,
         model: result.model || "bedrock-screen",
         tokensUsed: result.tokensUsed,
+        // Exact payloads exchanged with the AI service, for inspection in the UI
         rawAiResponse: result,
+        aiRequest,
       };
     } catch (err: any) {
       const errorMsg = err?.message || "Unknown error occurred from AI screening service.";
