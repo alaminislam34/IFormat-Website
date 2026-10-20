@@ -5,6 +5,7 @@ export interface UserSession {
   name: string;
   email: string;
   role: UserRole;
+  isSuperAdmin?: boolean;
   avatarUrl?: string | null;
   avatar?: string;
   phone?: string | null;

@@ -8,6 +8,8 @@ model User {
   phone              String?
   emailVerified      Boolean             @default(false)
   tokenVersion       Int                 @default(0)
+  // Per-user admin limit overrides: { maxAiGenerations?, maxActiveJobs?, maxApplicationsPerMonth? } (null = unlimited, absent = plan default)
+  limitOverrides     Json?
 
   companyName        String?
   companyWebsite     String?

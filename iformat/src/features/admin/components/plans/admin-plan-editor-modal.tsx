@@ -19,6 +19,7 @@ export interface PlanFormData {
   maxActiveJobs: string;
   maxApplicationsPerMonth: string;
   maxAiGenerations: string;
+  maxJobAnalyses: string;
   aiScreeningEnabled: boolean;
   featuredJobPlacement: boolean;
   unmaskedApplicantProfiles: boolean;
@@ -268,6 +269,20 @@ export function AdminPlanEditorModal({
                   placeholder="e.g. 5 (blank for unltd)"
                   value={formData.maxAiGenerations}
                   onChange={(e) => setFormData({ ...formData, maxAiGenerations: e.target.value })}
+                  className="w-full px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 placeholder:text-slate-400 text-xs focus:outline-hidden focus:border-sky-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                  Job Analyses / Month
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  placeholder="e.g. 5 (blank for unltd)"
+                  value={formData.maxJobAnalyses}
+                  onChange={(e) => setFormData({ ...formData, maxJobAnalyses: e.target.value })}
                   className="w-full px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 placeholder:text-slate-400 text-xs focus:outline-hidden focus:border-sky-500"
                 />
               </div>

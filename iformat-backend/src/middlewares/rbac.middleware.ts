@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { Role } from "@prisma/client";
 import { ForbiddenError, AuthError } from "../errors/index.js";
+import { isSuperAdminEmail } from "../config/super-admin.js";
 
 export const requireRole = (...allowedRoles: Role[]) => {
   return (req: Request, _res: Response, next: NextFunction) => {
@@ -23,3 +24,18 @@ export const requireRole = (...allowedRoles: Role[]) => {
 export const requireAdmin = requireRole(Role.ADMIN);
 export const requireEmployer = requireRole(Role.EMPLOYER, Role.ADMIN);
 export const requireCandidate = requireRole(Role.CANDIDATE, Role.ADMIN);
+
+/**
+ * Only accounts listed in SUPER_ADMIN_EMAILS (and holding the ADMIN role) pass.
+ */
+export const requireSuperAdmin = (req: Request, _res: Response, next: NextFunction) => {
+  if (!req.user) {
+    return next(new AuthError("Authentication required"));
+  }
+
+  if (req.user.role !== Role.ADMIN || !isSuperAdminEmail(req.user.email)) {
+    return next(new ForbiddenError("Access forbidden: super admin only"));
+  }
+
+  next();
+};

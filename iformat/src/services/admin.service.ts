@@ -30,6 +30,14 @@ export interface AdminMetricsDTO {
   };
 }
 
+/** Per-user limit overrides: number = cap, null = unlimited, missing = plan default */
+export interface UserLimitOverrides {
+  maxAiGenerations?: number | null;
+  maxJobAnalyses?: number | null;
+  maxActiveJobs?: number | null;
+  maxApplicationsPerMonth?: number | null;
+}
+
 export interface AdminUserItemDTO {
   id: string;
   name: string;
@@ -48,6 +56,7 @@ export interface AdminUserItemDTO {
   companyVideoUrl?: string | null;
   companyDescription?: string | null;
   phone?: string | null;
+  limitOverrides?: UserLimitOverrides | null;
   createdAt: string;
   subscription?: {
     status: string;
@@ -232,6 +241,13 @@ export class AdminService {
       planId,
       durationDays,
     });
+  }
+
+  /**
+   * Set per-user limit overrides (empty object clears them)
+   */
+  static async setUserLimits(userId: string, limits: UserLimitOverrides) {
+    return apiClient.put(`/admin/users/${userId}/limits`, limits);
   }
 
   /**

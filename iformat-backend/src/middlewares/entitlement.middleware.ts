@@ -7,7 +7,11 @@ import {
   FREE_TIER_MAX_ACTIVE_JOBS,
   FREE_TIER_MONTHLY_AI_LIMIT,
   FREE_TIER_MONTHLY_APPLICATIONS_LIMIT,
+  FREE_TIER_MONTHLY_JOB_ANALYSIS_LIMIT,
+  readJobAnalysisLimit,
+  applyLimitOverride,
   getCurrentBillingCycleUtc,
+  getUserLimitOverrides,
   getEntitledSubscription,
   getFreeTierPlan,
   readAiLimit,
@@ -25,6 +29,11 @@ export const requireAiEntitlement = (actionType: string = "AI_GENERATION") => {
       }
 
       const userId = req.user.id;
+      // Job analyzer has its own limit & counter, separate from other AI tools
+      const isJobAnalysis = actionType === "JOB_ANALYSIS";
+      const limitKey = isJobAnalysis ? "maxJobAnalyses" : "maxAiGenerations";
+      const usageField = isJobAnalysis ? "jobAnalysesCount" : "aiGenerationsCount";
+      const limitLabel = isJobAnalysis ? "monthly job analyses" : "monthly AI generations";
 
       // 1. Admin Bypass: Unlimited AI access
       if (req.user.role === Role.ADMIN) {
@@ -37,11 +46,18 @@ export const requireAiEntitlement = (actionType: string = "AI_GENERATION") => {
 
       if (subscription) {
         // Paid plans are unlimited unless the admin set an explicit number
-        maxAiLimit = readAiLimit(subscription.plan.customFeatures, null);
+        maxAiLimit = isJobAnalysis
+          ? readJobAnalysisLimit(subscription.plan.customFeatures, null)
+          : readAiLimit(subscription.plan.customFeatures, null);
       } else {
         const freePlan = await getFreeTierPlan();
-        maxAiLimit = readAiLimit(freePlan?.customFeatures, FREE_TIER_MONTHLY_AI_LIMIT);
+        maxAiLimit = isJobAnalysis
+          ? readJobAnalysisLimit(freePlan?.customFeatures, FREE_TIER_MONTHLY_JOB_ANALYSIS_LIMIT)
+          : readAiLimit(freePlan?.customFeatures, FREE_TIER_MONTHLY_AI_LIMIT);
       }
+
+      // Admin per-user override wins over the plan
+      maxAiLimit = applyLimitOverride(await getUserLimitOverrides(userId), limitKey, maxAiLimit);
 
       if (maxAiLimit === null) {
         return next();
@@ -52,18 +68,18 @@ export const requireAiEntitlement = (actionType: string = "AI_GENERATION") => {
       const usage = await prisma.subscriptionUsage.findUnique({
         where: { userId_periodStart_periodEnd: { userId, periodStart, periodEnd } },
       });
-      const used = usage?.aiGenerationsCount ?? 0;
+      const used = usage?.[usageField] ?? 0;
 
       if (used >= maxAiLimit) {
         logger.warn(
-          `🚫 [Entitlement] User ${req.user.email} (${userId}) exceeded AI monthly quota (${used}/${maxAiLimit}) on ${actionType}`
+          `🚫 [Entitlement] User ${req.user.email} (${userId}) exceeded ${limitLabel} quota (${used}/${maxAiLimit}) on ${actionType}`
         );
 
         return res.status(403).json({
           success: false,
           error: {
             code: "SUBSCRIPTION_REQUIRED",
-            message: `You have reached your limit of ${maxAiLimit} monthly AI generations. Please upgrade your membership for higher or unlimited generations.`,
+            message: `You have reached your limit of ${maxAiLimit} ${limitLabel}. Please upgrade your membership for higher or unlimited usage.`,
             upgradeUrl: "/dashboard/billing",
             currentUsage: used,
             maxQuota: maxAiLimit,
@@ -78,8 +94,8 @@ export const requireAiEntitlement = (actionType: string = "AI_GENERATION") => {
         prisma.subscriptionUsage
           .upsert({
             where: { userId_periodStart_periodEnd: { userId, periodStart, periodEnd } },
-            create: { userId, periodStart, periodEnd, aiGenerationsCount: 1 },
-            update: { aiGenerationsCount: { increment: 1 } },
+            create: { userId, periodStart, periodEnd, [usageField]: 1 },
+            update: { [usageField]: { increment: 1 } },
           })
           .then(() =>
             logger.info(
@@ -168,6 +184,12 @@ export const requireJobPostingQuota = async (
       maxAllowed = freePlan?.maxActiveJobs ?? FREE_TIER_MAX_ACTIVE_JOBS;
     }
 
+    maxAllowed = applyLimitOverride(
+      await getUserLimitOverrides(req.user.id),
+      "maxActiveJobs",
+      maxAllowed
+    );
+
     if (maxAllowed === null) {
       return next();
     }
@@ -226,6 +248,12 @@ export const requireApplicationQuota = async (
       const freePlan = await getFreeTierPlan();
       maxAllowed = freePlan?.maxApplicationsPerMonth ?? FREE_TIER_MONTHLY_APPLICATIONS_LIMIT;
     }
+
+    maxAllowed = applyLimitOverride(
+      await getUserLimitOverrides(req.user.id),
+      "maxApplicationsPerMonth",
+      maxAllowed
+    );
 
     if (maxAllowed === null) {
       return next();

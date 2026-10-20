@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import { isSuperAdminEmail } from "../../config/super-admin.js";
 import { prisma } from "../../lib/prisma.js";
 import { Role, OtpType } from "@prisma/client";
 import { hashPassword, comparePassword } from "../../utils/password.js";
@@ -20,6 +21,7 @@ export const sanitizeUser = (user: any) => ({
   name: user.name,
   email: user.email,
   role: user.role,
+  isSuperAdmin: user.role === "ADMIN" && isSuperAdminEmail(user.email),
   avatarUrl: user.avatarUrl || null,
   phone: user.phone || null,
   emailVerified: user.emailVerified || false,

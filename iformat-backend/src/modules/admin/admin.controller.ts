@@ -111,6 +111,17 @@ export class AdminController {
     return ApiResponse.success(res, "Subscription manually assigned to user", sub);
   }
 
+  static async setUserLimitOverrides(req: Request, res: Response) {
+    const ipAddress = req.ip || req.socket.remoteAddress;
+    const result = await AdminService.setUserLimitOverrides(
+      req.user!.id,
+      req.params.userId,
+      req.body ?? {},
+      ipAddress
+    );
+    return ApiResponse.success(res, "User limits updated", result);
+  }
+
   static async listAuditLogs(req: Request, res: Response) {
     const { logs, meta } = await AdminService.listAuditLogs(req.query as any);
     return ApiResponse.collection(res, "Audit logs retrieved", logs, meta);

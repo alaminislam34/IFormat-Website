@@ -27,6 +27,7 @@ const DEFAULT_FORM: PlanFormData = {
   maxActiveJobs: "5",
   maxApplicationsPerMonth: "50",
   maxAiGenerations: "",
+  maxJobAnalyses: "",
   aiScreeningEnabled: true,
   featuredJobPlacement: false,
   unmaskedApplicantProfiles: true,
@@ -88,6 +89,11 @@ export default function AdminPlansPage() {
         ? String(rawFeat.maxAiGenerations)
         : "";
 
+    const maxJobAnalyses =
+      rawFeat?.maxJobAnalyses !== undefined && rawFeat?.maxJobAnalyses !== null
+        ? String(rawFeat.maxJobAnalyses)
+        : "";
+
     setFormData({
       name: plan.name,
       code: plan.code,
@@ -101,6 +107,7 @@ export default function AdminPlansPage() {
           ? String(plan.maxApplicationsPerMonth)
           : "",
       maxAiGenerations: maxAi,
+      maxJobAnalyses,
       aiScreeningEnabled: plan.aiScreeningEnabled,
       featuredJobPlacement: plan.featuredJobPlacement,
       unmaskedApplicantProfiles: plan.unmaskedApplicantProfiles,
@@ -139,6 +146,7 @@ export default function AdminPlansPage() {
     const customFeaturesPayload = {
       features: (formData.customFeaturesList || []).filter((f) => f.trim() !== ""),
       maxAiGenerations: formData.maxAiGenerations.trim() !== "" ? Number(formData.maxAiGenerations) : null,
+      maxJobAnalyses: formData.maxJobAnalyses.trim() !== "" ? Number(formData.maxJobAnalyses) : null,
     };
 
     const payload: CreatePlanDTO = {

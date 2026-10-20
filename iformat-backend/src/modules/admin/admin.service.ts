@@ -1,7 +1,7 @@
-import { resetMonthlyAiUsage } from "../../utils/entitlement.js";
+import { LIMIT_OVERRIDE_KEYS, resetMonthlyAiUsage } from "../../utils/entitlement.js";
 import { isSuperAdminEmail, superAdminUserConditions } from "../../config/super-admin.js";
 import { prisma } from "../../lib/prisma.js";
-import { Role, JobStatus, SubscriptionStatus, AuditAction } from "@prisma/client";
+import { Role, JobStatus, SubscriptionStatus, AuditAction, Prisma } from "@prisma/client";
 import { NotFoundError, ValidationError } from "../../errors/index.js";
 import { getPagination, createPaginationMeta } from "../../utils/pagination.js";
 
@@ -204,6 +204,7 @@ export class AdminService {
           companyLogoUrl: true,
           companyVideoUrl: true,
           companyDescription: true,
+          limitOverrides: true,
           createdAt: true,
           subscription: {
             include: { plan: true },
@@ -619,6 +620,45 @@ export class AdminService {
     );
 
     return subscription;
+  }
+
+  /**
+   * Per-user limit overrides. Each key: number = cap, null = unlimited, omitted = plan default.
+   */
+  static async setUserLimitOverrides(
+    adminId: string,
+    userId: string,
+    overrides: Record<string, unknown>,
+    ipAddress?: string
+  ) {
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new NotFoundError("User", userId);
+    this.assertNotSuperAdmin(user);
+
+    const clean: Record<string, number | null> = {};
+    for (const key of LIMIT_OVERRIDE_KEYS) {
+      const value = overrides?.[key];
+      if (value === null) clean[key] = null;
+      else if (typeof value === "number" && Number.isInteger(value) && value >= 0) clean[key] = value;
+      else if (value !== undefined) throw new ValidationError(`${key} must be a non-negative integer or null`);
+    }
+
+    const updated = await prisma.user.update({
+      where: { id: userId },
+      data: { limitOverrides: Object.keys(clean).length ? clean : Prisma.DbNull },
+      select: { id: true, limitOverrides: true },
+    });
+
+    await this.logAction(
+      adminId,
+      AuditAction.USER_LIMITS_UPDATED,
+      "USER",
+      userId,
+      { limitOverrides: clean },
+      ipAddress
+    );
+
+    return updated;
   }
 
   /**

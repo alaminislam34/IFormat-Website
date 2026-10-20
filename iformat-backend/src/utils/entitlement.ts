@@ -3,6 +3,7 @@ import { prisma } from "../lib/prisma.js";
 
 export const FREE_TIER_CODE = "FREE_TIER";
 export const FREE_TIER_MONTHLY_AI_LIMIT = 5;
+export const FREE_TIER_MONTHLY_JOB_ANALYSIS_LIMIT = 5;
 export const FREE_TIER_MAX_ACTIVE_JOBS = 1;
 export const FREE_TIER_MONTHLY_APPLICATIONS_LIMIT = 10;
 
@@ -54,12 +55,60 @@ export function readAiLimit(customFeatures: unknown, fallback: number | null): n
 }
 
 /**
+ * Reads the monthly job analyzer cap from a plan's customFeatures (same rules as readAiLimit).
+ */
+export function readJobAnalysisLimit(customFeatures: unknown, fallback: number | null): number | null {
+  if (customFeatures && typeof customFeatures === "object" && !Array.isArray(customFeatures)) {
+    const value = (customFeatures as Record<string, unknown>).maxJobAnalyses;
+    if (typeof value === "number") return value;
+    if (value === null) return null;
+  }
+  return fallback;
+}
+
+/**
  * Clears this month's AI usage so a plan change takes effect immediately.
  */
 export async function resetMonthlyAiUsage(userId: string) {
   const { periodStart, periodEnd } = getCurrentBillingCycleUtc();
   await prisma.subscriptionUsage.updateMany({
     where: { userId, periodStart, periodEnd },
-    data: { aiGenerationsCount: 0 },
+    data: { aiGenerationsCount: 0, jobAnalysesCount: 0 },
   });
+}
+
+export type LimitOverrideKey = "maxAiGenerations" | "maxJobAnalyses" | "maxActiveJobs" | "maxApplicationsPerMonth";
+
+export const LIMIT_OVERRIDE_KEYS: LimitOverrideKey[] = [
+  "maxAiGenerations",
+  "maxJobAnalyses",
+  "maxActiveJobs",
+  "maxApplicationsPerMonth",
+];
+
+/**
+ * Applies an admin per-user override on top of the plan-derived limit.
+ * - number          -> that cap
+ * - explicit null   -> unlimited
+ * - key missing     -> `planLimit` (null = unlimited)
+ */
+export function applyLimitOverride(
+  overrides: unknown,
+  key: LimitOverrideKey,
+  planLimit: number | null
+): number | null {
+  if (overrides && typeof overrides === "object" && !Array.isArray(overrides)) {
+    const value = (overrides as Record<string, unknown>)[key];
+    if (typeof value === "number") return value;
+    if (value === null) return null;
+  }
+  return planLimit;
+}
+
+export async function getUserLimitOverrides(userId: string) {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { limitOverrides: true },
+  });
+  return user?.limitOverrides ?? null;
 }
