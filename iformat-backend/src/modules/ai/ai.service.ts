@@ -13,6 +13,13 @@ import {
   AnalyzeJobFitInput,
 } from "./ai.validation.js";
 
+/** Accounts allowed to see the raw AI request/response in the job analyzer. */
+const RAW_AI_DATA_EMAILS = ["alaminislam15941@gmail.com"];
+
+function canSeeRawAiData(email?: string | null) {
+  return !!email && RAW_AI_DATA_EMAILS.includes(email.toLowerCase());
+}
+
 export class AIService {
   /**
    * Generates a tailored, professional Cover Letter via FastAPI Bedrock service
@@ -341,9 +348,8 @@ export class AIService {
         company: job.company,
         model: result.model || "bedrock-screen",
         tokensUsed: result.tokensUsed,
-        // Exact payloads exchanged with the AI service, for inspection in the UI
-        rawAiResponse: result,
-        aiRequest,
+        // Exact payloads exchanged with the AI service, only for debug accounts
+        ...(canSeeRawAiData(user?.email) ? { rawAiResponse: result, aiRequest } : {}),
       };
     } catch (err: any) {
       const errorMsg = err?.message || "Unknown error occurred from AI screening service.";

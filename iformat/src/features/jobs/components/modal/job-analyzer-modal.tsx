@@ -350,6 +350,8 @@ export function JobAnalyzerModal({
   const breakdown = analysis?.scoreBreakdown;
   const hasBreakdown = !!breakdown && BREAKDOWN_LABELS.some(([k]) => typeof breakdown[k] === "number");
   const hasResult = !!analysis?.hasResume && !loading && !loadError;
+  // The backend only includes raw AI data for debug accounts
+  const canSeeRaw = analysis?.rawAiResponse !== undefined;
   const showPicker = !resumesLoading && !resumesError && !loading && !loadError && !analysis && resumes.length > 0;
   const busy = loading || isUploading;
 
@@ -387,7 +389,7 @@ export function JobAnalyzerModal({
                   </button>
                 </div>
 
-                {hasResult ? (
+                {hasResult && canSeeRaw ? (
                   <div className="flex items-center gap-5 mt-4 text-xs font-semibold">
                     {([
                       ["analysis", "Analysis", Sparkles],
@@ -467,7 +469,7 @@ export function JobAnalyzerModal({
                     </div>
                   </div>
                 ) : analysis?.hasResume ? (
-                  view === "raw" ? (
+                  view === "raw" && canSeeRaw ? (
                     /* ------------------------- Raw AI data view ------------------------- */
                     <div className="space-y-3">
                       <p className="text-xs text-slate-500 leading-relaxed">
@@ -590,7 +592,7 @@ export function JobAnalyzerModal({
 
                       {analysis.score === undefined && !analysis.recommendation && !analysis.summary && (!analysis.strengths || analysis.strengths.length === 0) && (!analysis.gaps || analysis.gaps.length === 0) && (
                         <div className="py-8 text-center text-xs text-slate-500">
-                          AI returned no match evaluation data for this job. Check the Raw AI data tab.
+                          AI returned no match evaluation data for this job.{canSeeRaw && " Check the Raw AI data tab."}
                         </div>
                       )}
 
@@ -768,7 +770,7 @@ export function JobAnalyzerModal({
 
               {hasResult && (
                 <div className="px-6 py-3.5 border-t border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row items-center justify-between gap-3">
-                  {view === "analysis" ? (
+                  {view === "analysis" || !canSeeRaw ? (
                     <Link href={`/job-assistant?tab=cover-letter&role=${encodeURIComponent(job.title)}&company=${encodeURIComponent(job.company)}`} onClick={onClose} className="w-full sm:w-auto">
                       <Button variant="outline" className="w-full sm:w-auto h-9 px-3.5 rounded-lg text-xs font-medium border-slate-200 hover:bg-white text-slate-700 cursor-pointer">
                         <Sparkles className="w-3.5 h-3.5 mr-1.5 text-[#0A54B1]" />
