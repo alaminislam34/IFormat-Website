@@ -329,7 +329,7 @@ export class AIService {
         evidence: result.evidence || [],
         jobTitle: job.title,
         company: job.company,
-        model: result.model,
+        model: result.model || "bedrock-screen",
         tokensUsed: result.tokensUsed,
         rawAiResponse: result,
       };
