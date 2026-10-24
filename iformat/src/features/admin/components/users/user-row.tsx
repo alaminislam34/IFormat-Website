@@ -1,13 +1,15 @@
 import React from "react";
-import { User, Building2, ShieldAlert, RotateCcw, Trash2 } from "lucide-react";
+import { User, Building2, ShieldAlert, RotateCcw, Trash2, SlidersHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AdminUserItemDTO } from "@/services/admin.service";
+import { formatLimit, limitFieldsForRole } from "./user-limits";
 
 interface UserRowProps {
   user: AdminUserItemDTO;
   onOpenBanModal: (user: AdminUserItemDTO) => void;
   onSoftDelete: (user: AdminUserItemDTO) => void;
   onRestore: (user: AdminUserItemDTO) => void;
+  onManageLimits?: (user: AdminUserItemDTO) => void;
 }
 
 export function UserRow({
@@ -15,6 +17,7 @@ export function UserRow({
   onOpenBanModal,
   onSoftDelete,
   onRestore,
+  onManageLimits,
 }: UserRowProps) {
   const roleStr = u.role?.toUpperCase();
   const isCand = roleStr === "CANDIDATE";
@@ -103,9 +106,54 @@ export function UserRow({
         {isEmp && <span>{u._count.jobPostings} jobs posted</span>}
       </td>
 
+      {/* Usage & Limits */}
+      <td className="p-4 text-xs">
+        {u.role === "ADMIN" || !u.limits ? (
+          <span className="text-slate-400">—</span>
+        ) : (
+          <div className="space-y-1">
+            {limitFieldsForRole(u.role).map(({ key, label }) => {
+              const s = formatLimit(u, key);
+              if (!s) return null;
+              return (
+                <div key={key} className="flex items-center gap-1.5 whitespace-nowrap">
+                  <span className="text-slate-500">{label}:</span>
+                  <span className="font-semibold text-slate-800">
+                    {s.used} / {s.limit === null ? "∞" : s.limit}
+                  </span>
+                  <span
+                    className={
+                      s.remaining === 0 ? "text-rose-600 font-medium" : "text-slate-500"
+                    }
+                  >
+                    ({s.remaining === null ? "unlimited" : `${s.remaining} left`})
+                  </span>
+                  {s.isOverridden && (
+                    <span className="px-1.5 rounded bg-sky-50 text-sky-700 border border-sky-200/60 text-[10px] font-semibold">
+                      custom
+                    </span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </td>
+
       {/* Actions */}
       <td className="p-4 text-right">
         <div className="flex items-center justify-end gap-1.5">
+          {onManageLimits && u.role !== "ADMIN" && !u.isDeleted && (
+            <Button
+              onClick={() => onManageLimits(u)}
+              variant="ghost"
+              size="sm"
+              title="Manage Limits"
+              className="h-8 px-2 rounded-lg text-xs text-sky-600 hover:bg-sky-50"
+            >
+              <SlidersHorizontal className="w-3.5 h-3.5" />
+            </Button>
+          )}
 
           {u.role !== "ADMIN" && !u.isDeleted && (
             <Button

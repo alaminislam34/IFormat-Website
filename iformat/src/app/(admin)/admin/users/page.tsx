@@ -4,15 +4,19 @@ import { useEffect, useState } from "react";
 import { Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { adminService, AdminUserItemDTO } from "@/services/admin.service";
+import { adminService, AdminUserItemDTO, UserLimitOverrides } from "@/services/admin.service";
 import { AdminPageHeader } from "@/features/admin/components/shared/admin-page-header";
 import { UserFilterBar } from "@/features/admin/components/users/user-filter-bar";
 import { UserTable } from "@/features/admin/components/users/user-table";
 import { BanUserModal } from "@/features/admin/components/users/ban-user-modal";
 import { DeleteUserModal } from "@/features/admin/components/users/delete-user-modal";
+import { UserLimitsModal } from "@/features/admin/components/users/user-limits-modal";
+import { useAuthStore } from "@/stores/use-auth-store";
 import { Pagination } from "@/components/ui/table";
 
 export default function AdminUsersPage() {
+  const isSuperAdmin = useAuthStore((s) => s.user?.isSuperAdmin === true);
+  const [limitsModalUser, setLimitsModalUser] = useState<AdminUserItemDTO | null>(null);
   const [users, setUsers] = useState<AdminUserItemDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -108,6 +112,21 @@ export default function AdminUsersPage() {
     }
   };
 
+  const handleSaveLimits = async (payload: UserLimitOverrides) => {
+    if (!limitsModalUser) return;
+    try {
+      setActionLoading(true);
+      await adminService.setUserLimits(limitsModalUser.id, payload);
+      toast.success(`Limits saved for ${limitsModalUser.email}.`);
+      setLimitsModalUser(null);
+      loadUsers();
+    } catch (err: any) {
+      toast.error(err.message || "Failed to save limits");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const handleRestore = async (user: AdminUserItemDTO) => {
     try {
       await adminService.restoreUser(user.id);
@@ -153,6 +172,7 @@ export default function AdminUsersPage() {
         onOpenBanModal={(u) => setBanModalUser(u)}
         onSoftDelete={handleSoftDelete}
         onRestore={handleRestore}
+        onManageLimits={isSuperAdmin ? setLimitsModalUser : undefined}
       />
 
       <Pagination
@@ -175,6 +195,13 @@ export default function AdminUsersPage() {
         setBanReason={setBanReason}
         onConfirm={handleToggleBan}
         loading={actionLoading}
+      />
+
+      <UserLimitsModal
+        user={limitsModalUser}
+        loading={actionLoading}
+        onClose={() => setLimitsModalUser(null)}
+        onSave={handleSaveLimits}
       />
 
       <DeleteUserModal

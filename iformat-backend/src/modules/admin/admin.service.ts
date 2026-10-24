@@ -1,4 +1,17 @@
-import { LIMIT_OVERRIDE_KEYS, resetMonthlyAiUsage } from "../../utils/entitlement.js";
+import {
+  LIMIT_OVERRIDE_KEYS,
+  LimitOverrideKey,
+  FREE_TIER_MONTHLY_AI_LIMIT,
+  FREE_TIER_MONTHLY_JOB_ANALYSIS_LIMIT,
+  FREE_TIER_MAX_ACTIVE_JOBS,
+  FREE_TIER_MONTHLY_APPLICATIONS_LIMIT,
+  applyLimitOverride,
+  getCurrentBillingCycleUtc,
+  getFreeTierPlan,
+  readAiLimit,
+  readJobAnalysisLimit,
+  resetMonthlyAiUsage,
+} from "../../utils/entitlement.js";
 import { isSuperAdminEmail, superAdminUserConditions } from "../../config/super-admin.js";
 import { prisma } from "../../lib/prisma.js";
 import { Role, JobStatus, SubscriptionStatus, AuditAction, Prisma } from "@prisma/client";
@@ -222,8 +235,99 @@ export class AdminService {
       prisma.user.count({ where }),
     ]);
 
+    const usersWithLimits = await this.attachEffectiveLimits(users);
+
     const meta = createPaginationMeta(total, page, limit);
-    return { users, meta };
+    return { users: usersWithLimits, meta };
+  }
+
+  /**
+   * Adds `limits` to each user: the effective cap (plan or free tier, then the
+   * admin override; null = unlimited) next to current-period usage. Mirrors the
+   * checks in entitlement.middleware.
+   */
+  private static async attachEffectiveLimits<
+    T extends {
+      id: string;
+      role: Role;
+      limitOverrides: Prisma.JsonValue;
+      subscription: {
+        status: SubscriptionStatus;
+        currentPeriodEnd: Date | null;
+        plan: { maxActiveJobs: number | null; maxApplicationsPerMonth: number | null; customFeatures: Prisma.JsonValue };
+      } | null;
+    },
+  >(users: T[]) {
+    if (users.length === 0) return [];
+
+    const ids = users.map((u) => u.id);
+    const { periodStart, periodEnd } = getCurrentBillingCycleUtc();
+
+    const [freePlan, usageRows, jobCounts, appCounts] = await Promise.all([
+      getFreeTierPlan(),
+      prisma.subscriptionUsage.findMany({
+        where: { userId: { in: ids }, periodStart, periodEnd },
+        select: { userId: true, aiGenerationsCount: true, jobAnalysesCount: true },
+      }),
+      prisma.jobPosting.groupBy({
+        by: ["employerId"],
+        where: { employerId: { in: ids }, status: JobStatus.PUBLISHED, isDeleted: false },
+        _count: { _all: true },
+      }),
+      prisma.application.groupBy({
+        by: ["candidateId"],
+        where: { candidateId: { in: ids }, createdAt: { gte: periodStart, lte: periodEnd } },
+        _count: { _all: true },
+      }),
+    ]);
+
+    const usageByUser = new Map(usageRows.map((r) => [r.userId, r]));
+    const jobsByUser = new Map(jobCounts.map((r) => [r.employerId, r._count._all]));
+    const appsByUser = new Map(appCounts.map((r) => [r.candidateId, r._count._all]));
+    const now = new Date();
+
+    return users.map((u) => {
+      const sub = u.subscription;
+      const entitled =
+        sub &&
+        (sub.status === SubscriptionStatus.ACTIVE || sub.status === SubscriptionStatus.TRIALING) &&
+        (!sub.currentPeriodEnd || sub.currentPeriodEnd > now);
+      const plan = entitled ? sub.plan : null;
+
+      const base: Record<LimitOverrideKey, number | null> = plan
+        ? {
+            maxAiGenerations: readAiLimit(plan.customFeatures, null),
+            maxJobAnalyses: readJobAnalysisLimit(plan.customFeatures, null),
+            maxActiveJobs: plan.maxActiveJobs,
+            maxApplicationsPerMonth: plan.maxApplicationsPerMonth,
+          }
+        : {
+            maxAiGenerations: readAiLimit(freePlan?.customFeatures, FREE_TIER_MONTHLY_AI_LIMIT),
+            maxJobAnalyses: readJobAnalysisLimit(freePlan?.customFeatures, FREE_TIER_MONTHLY_JOB_ANALYSIS_LIMIT),
+            maxActiveJobs: freePlan?.maxActiveJobs ?? FREE_TIER_MAX_ACTIVE_JOBS,
+            maxApplicationsPerMonth: freePlan?.maxApplicationsPerMonth ?? FREE_TIER_MONTHLY_APPLICATIONS_LIMIT,
+          };
+
+      const usage = usageByUser.get(u.id);
+      const used: Record<LimitOverrideKey, number> = {
+        maxAiGenerations: usage?.aiGenerationsCount ?? 0,
+        maxJobAnalyses: usage?.jobAnalysesCount ?? 0,
+        maxActiveJobs: jobsByUser.get(u.id) ?? 0,
+        maxApplicationsPerMonth: appsByUser.get(u.id) ?? 0,
+      };
+
+      const limits = {} as Record<LimitOverrideKey, { limit: number | null; used: number; isOverridden: boolean }>;
+      for (const key of LIMIT_OVERRIDE_KEYS) {
+        const overrides = u.limitOverrides;
+        const isOverridden =
+          !!overrides &&
+          typeof overrides === "object" &&
+          !Array.isArray(overrides) &&
+          (overrides as Record<string, unknown>)[key] !== undefined;
+        limits[key] = { limit: applyLimitOverride(overrides, key, base[key]), used: used[key], isOverridden };
+      }
+      return { ...u, limits };
+    });
   }
 
   /**

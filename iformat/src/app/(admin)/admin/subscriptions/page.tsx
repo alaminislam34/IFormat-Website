@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { adminService, AdminUserItemDTO, UserLimitOverrides } from "@/services/admin.service";
 import { membershipService } from "@/services/membership.service";
+import { UserLimitsModal } from "@/features/admin/components/users/user-limits-modal";
 import { PlanDTO } from "@/types/api";
 import { useAuthStore } from "@/stores/use-auth-store";
 import { AdminPageHeader } from "@/features/admin/components/shared/admin-page-header";
@@ -28,25 +29,6 @@ import {
   Pagination,
   Skeleton,
 } from "@/components/ui/table";
-
-const LIMIT_FIELDS: { key: keyof UserLimitOverrides; label: string; hint: string }[] = [
-  { key: "maxAiGenerations", label: "AI generations / month", hint: "Resume, cover letter, email tools" },
-  { key: "maxJobAnalyses", label: "Job analyses / month", hint: "AI job analyzer (candidate CV vs job)" },
-  { key: "maxActiveJobs", label: "Active job posts", hint: "Employers" },
-  { key: "maxApplicationsPerMonth", label: "Applications / month", hint: "Candidates" },
-];
-
-// "" = plan default, "unlimited" = null, otherwise a number
-type LimitDraft = Record<keyof UserLimitOverrides, string>;
-
-function toDraft(o?: UserLimitOverrides | null): LimitDraft {
-  const draft = {} as LimitDraft;
-  for (const { key } of LIMIT_FIELDS) {
-    const v = o?.[key];
-    draft[key] = v === undefined ? "" : v === null ? "unlimited" : String(v);
-  }
-  return draft;
-}
 
 export default function AdminSubscriptionsPage() {
   const isSuperAdmin = useAuthStore((s) => s.user?.isSuperAdmin === true);
@@ -64,7 +46,6 @@ export default function AdminSubscriptionsPage() {
   const [durationDays, setDurationDays] = useState<number>(365);
   const [actionLoading, setActionLoading] = useState(false);
   const [limitsModalUser, setLimitsModalUser] = useState<AdminUserItemDTO | null>(null);
-  const [limitDraft, setLimitDraft] = useState<LimitDraft>(toDraft());
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const loadData = async () => {
@@ -124,23 +105,8 @@ export default function AdminSubscriptionsPage() {
     }
   };
 
-  const handleSaveLimits = async () => {
+  const handleSaveLimits = async (payload: UserLimitOverrides) => {
     if (!limitsModalUser) return;
-    const payload: UserLimitOverrides = {};
-    for (const { key } of LIMIT_FIELDS) {
-      const raw = limitDraft[key].trim();
-      if (raw === "") continue;
-      if (raw === "unlimited") {
-        payload[key] = null;
-        continue;
-      }
-      const n = Number(raw);
-      if (!Number.isInteger(n) || n < 0) {
-        alert("Limits must be whole numbers (0 or more), or Unlimited.");
-        return;
-      }
-      payload[key] = n;
-    }
     try {
       setActionLoading(true);
       await adminService.setUserLimits(limitsModalUser.id, payload);
@@ -330,7 +296,6 @@ export default function AdminSubscriptionsPage() {
                       <Button
                         onClick={() => {
                           setLimitsModalUser(u);
-                          setLimitDraft(toDraft(u.limitOverrides));
                         }}
                         variant="outline"
                         size="sm"
@@ -376,82 +341,12 @@ export default function AdminSubscriptionsPage() {
         }}
       />
 
-      {/* Custom Limits Modal */}
-      {limitsModalUser && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white border border-slate-200 rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-sky-600 font-bold text-base">
-                <SlidersHorizontal className="w-5 h-5" />
-                <span>Custom Limits</span>
-              </div>
-              <button
-                onClick={() => setLimitsModalUser(null)}
-                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <p className="text-xs text-slate-600 leading-relaxed">
-              These limits apply only to{" "}
-              <span className="font-semibold text-slate-900">{limitsModalUser.name}</span> (
-              {limitsModalUser.email}) and override their plan. Leave a field empty to use the plan default.
-            </p>
-
-            <div className="space-y-3">
-              {LIMIT_FIELDS.map(({ key, label, hint }) => {
-                const unlimited = limitDraft[key] === "unlimited";
-                return (
-                  <div key={key}>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">
-                      {label} <span className="font-normal text-slate-400">— {hint}</span>
-                    </label>
-                    <div className="flex items-center gap-3">
-                      <Input
-                        type="number"
-                        min={0}
-                        disabled={unlimited}
-                        placeholder="Plan default"
-                        value={unlimited ? "" : limitDraft[key]}
-                        onChange={(e) => setLimitDraft({ ...limitDraft, [key]: e.target.value })}
-                        className="bg-slate-50 border-slate-200 text-slate-900 text-xs rounded-xl"
-                      />
-                      <label className="flex items-center gap-1.5 text-xs font-medium text-slate-700 whitespace-nowrap cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={unlimited}
-                          onChange={(e) =>
-                            setLimitDraft({ ...limitDraft, [key]: e.target.checked ? "unlimited" : "" })
-                          }
-                        />
-                        Unlimited
-                      </label>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            <div className="flex items-center justify-end gap-3 pt-2">
-              <Button
-                onClick={() => setLimitsModalUser(null)}
-                variant="outline"
-                className="rounded-xl text-xs font-semibold bg-white border-slate-200 text-slate-700 hover:bg-slate-50 cursor-pointer"
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={handleSaveLimits}
-                disabled={actionLoading}
-                className="bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-semibold shadow-xs cursor-pointer"
-              >
-                {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Save Limits"}
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+      <UserLimitsModal
+        user={limitsModalUser}
+        loading={actionLoading}
+        onClose={() => setLimitsModalUser(null)}
+        onSave={handleSaveLimits}
+      />
 
       {/* Manual Plan Grant Modal */}
       {overrideModalUser && (

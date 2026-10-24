@@ -38,6 +38,15 @@ export interface UserLimitOverrides {
   maxApplicationsPerMonth?: number | null;
 }
 
+/** Effective cap (null = unlimited) and current-period usage for one limit */
+export interface UserLimitStatus {
+  limit: number | null;
+  used: number;
+  isOverridden: boolean;
+}
+
+export type UserLimitsDTO = Record<keyof UserLimitOverrides, UserLimitStatus>;
+
 export interface AdminUserItemDTO {
   id: string;
   name: string;
@@ -57,6 +66,7 @@ export interface AdminUserItemDTO {
   companyDescription?: string | null;
   phone?: string | null;
   limitOverrides?: UserLimitOverrides | null;
+  limits?: UserLimitsDTO;
   createdAt: string;
   subscription?: {
     status: string;

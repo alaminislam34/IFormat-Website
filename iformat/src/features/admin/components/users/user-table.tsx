@@ -18,6 +18,7 @@ interface UserTableProps {
   onOpenBanModal: (user: AdminUserItemDTO) => void;
   onSoftDelete: (user: AdminUserItemDTO) => void;
   onRestore: (user: AdminUserItemDTO) => void;
+  onManageLimits?: (user: AdminUserItemDTO) => void;
 }
 
 export function UserTable({
@@ -26,6 +27,7 @@ export function UserTable({
   onOpenBanModal,
   onSoftDelete,
   onRestore,
+  onManageLimits,
 }: UserTableProps) {
   return (
     <div className="bg-white border border-slate-200/80 rounded-3xl overflow-hidden shadow-xs">
@@ -37,6 +39,7 @@ export function UserTable({
             <TableHead>Membership Plan</TableHead>
             <TableHead>Status & Flags</TableHead>
             <TableHead>Activity</TableHead>
+            <TableHead>Usage & Limits</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -79,6 +82,14 @@ export function UserTable({
                   </div>
                 </TableCell>
 
+                {/* Usage & Limits */}
+                <TableCell>
+                  <div className="space-y-1.5">
+                    <Skeleton className="h-3.5 w-28" />
+                    <Skeleton className="h-3.5 w-24" />
+                  </div>
+                </TableCell>
+
                 {/* Actions */}
                 <TableCell className="text-right">
                   <div className="flex items-center justify-end gap-1.5">
@@ -92,7 +103,7 @@ export function UserTable({
           ) : users.length === 0 ? (
             /* Empty State */
             <TableRow className="hover:bg-transparent">
-              <TableCell colSpan={6} className="p-0 border-none">
+              <TableCell colSpan={7} className="p-0 border-none">
                 <div className="py-16 px-6 text-center space-y-3 flex flex-col items-center justify-center">
                   <div className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center border border-slate-200/60 shadow-xs">
                     <Users className="w-6 h-6" />
@@ -115,6 +126,7 @@ export function UserTable({
                 onOpenBanModal={onOpenBanModal}
                 onSoftDelete={onSoftDelete}
                 onRestore={onRestore}
+                onManageLimits={onManageLimits}
               />
             ))
           )}

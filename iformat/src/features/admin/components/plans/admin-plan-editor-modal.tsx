@@ -29,6 +29,17 @@ export interface PlanFormData {
   customFeaturesList: string[];
 }
 
+const LIMIT_INPUTS: {
+  key: "maxActiveJobs" | "maxApplicationsPerMonth" | "maxAiGenerations" | "maxJobAnalyses";
+  label: string;
+  placeholder: string;
+}[] = [
+  { key: "maxActiveJobs", label: "Max Active Jobs (Employer)", placeholder: "e.g. 5" },
+  { key: "maxApplicationsPerMonth", label: "Max Apps / Month (Candidate)", placeholder: "e.g. 50" },
+  { key: "maxAiGenerations", label: "Max AI Gen / Month", placeholder: "e.g. 5" },
+  { key: "maxJobAnalyses", label: "Job Analyses / Month", placeholder: "e.g. 5" },
+];
+
 interface AdminPlanEditorModalProps {
   isOpen: boolean;
   editingPlan: PlanDTO | null;
@@ -205,62 +216,37 @@ export function AdminPlanEditorModal({
           {/* Quotas & Limitations */}
           <div className="space-y-3 pt-2 border-t border-slate-100">
             <h4 className="text-xs font-semibold text-slate-700">Limits & Quotas</h4>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                  Max Active Jobs (Employer)
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  placeholder="e.g. 5 (blank for unltd)"
-                  value={formData.maxActiveJobs}
-                  onChange={(e) => setFormData({ ...formData, maxActiveJobs: e.target.value })}
-                  className="w-full px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 placeholder:text-slate-400 text-xs focus:outline-hidden focus:border-sky-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                  Max Apps / Month (Candidate)
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  placeholder="e.g. 50 (blank for unltd)"
-                  value={formData.maxApplicationsPerMonth}
-                  onChange={(e) => setFormData({ ...formData, maxApplicationsPerMonth: e.target.value })}
-                  className="w-full px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 placeholder:text-slate-400 text-xs focus:outline-hidden focus:border-sky-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                  Max AI Gen / Month
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  placeholder="e.g. 5 (blank for unltd)"
-                  value={formData.maxAiGenerations}
-                  onChange={(e) => setFormData({ ...formData, maxAiGenerations: e.target.value })}
-                  className="w-full px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 placeholder:text-slate-400 text-xs focus:outline-hidden focus:border-sky-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                  Job Analyses / Month
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  placeholder="e.g. 5 (blank for unltd)"
-                  value={formData.maxJobAnalyses}
-                  onChange={(e) => setFormData({ ...formData, maxJobAnalyses: e.target.value })}
-                  className="w-full px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 placeholder:text-slate-400 text-xs focus:outline-hidden focus:border-sky-500"
-                />
-              </div>
+            <p className="text-[11px] text-slate-500">
+              Leave a field empty or tick Unlimited for no cap. Applies to every subscriber on this plan.
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {LIMIT_INPUTS.map(({ key, label, placeholder }) => {
+                const unlimited = formData[key].trim() === "";
+                return (
+                  <div key={key}>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="block text-xs font-semibold text-slate-700">{label}</label>
+                      <label className="flex items-center gap-1 text-[11px] font-semibold text-sky-700 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={unlimited}
+                          onChange={(e) => setFormData({ ...formData, [key]: e.target.checked ? "" : "1" })}
+                          className="w-3.5 h-3.5 rounded text-sky-600 border-slate-300"
+                        />
+                        Unlimited
+                      </label>
+                    </div>
+                    <input
+                      type="number"
+                      min="0"
+                      placeholder={unlimited ? "Unlimited" : placeholder}
+                      value={formData[key]}
+                      onChange={(e) => setFormData({ ...formData, [key]: e.target.value })}
+                      className="w-full px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 placeholder:text-slate-400 text-xs focus:outline-hidden focus:border-sky-500"
+                    />
+                  </div>
+                );
+              })}
             </div>
           </div>
 
