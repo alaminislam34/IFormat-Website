@@ -2,7 +2,7 @@ import { Router } from "express";
 import { AdminController } from "./admin.controller.js";
 import { SettingController } from "../setting/setting.controller.js";
 import { requireAuth } from "../../middlewares/auth.middleware.js";
-import { requireAdmin, requireSuperAdmin } from "../../middlewares/rbac.middleware.js";
+import { requireAdmin } from "../../middlewares/rbac.middleware.js";
 import { catchAsync } from "../../utils/catchAsync.js";
 
 const router = Router();
@@ -33,8 +33,8 @@ router.patch("/companies/:userId/logo", catchAsync(AdminController.updateCompany
 // 5. Subscription Manual Grant / Override
 router.post("/subscriptions/override", catchAsync(AdminController.overrideSubscription));
 
-// Per-user limit overrides: super admin only
-router.put("/users/:userId/limits", requireSuperAdmin, catchAsync(AdminController.setUserLimitOverrides));
+// Per-user limit overrides
+router.put("/users/:userId/limits", catchAsync(AdminController.setUserLimitOverrides));
 
 // 6. Audit Trail
 router.get("/audit-logs", catchAsync(AdminController.listAuditLogs));

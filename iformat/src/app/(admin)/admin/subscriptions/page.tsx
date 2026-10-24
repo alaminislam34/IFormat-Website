@@ -16,7 +16,6 @@ import { adminService, AdminUserItemDTO, UserLimitOverrides } from "@/services/a
 import { membershipService } from "@/services/membership.service";
 import { UserLimitsModal } from "@/features/admin/components/users/user-limits-modal";
 import { PlanDTO } from "@/types/api";
-import { useAuthStore } from "@/stores/use-auth-store";
 import { AdminPageHeader } from "@/features/admin/components/shared/admin-page-header";
 import {
   Table,
@@ -31,7 +30,6 @@ import {
 } from "@/components/ui/table";
 
 export default function AdminSubscriptionsPage() {
-  const isSuperAdmin = useAuthStore((s) => s.user?.isSuperAdmin === true);
   const [users, setUsers] = useState<AdminUserItemDTO[]>([]);
   const [plans, setPlans] = useState<PlanDTO[]>([]);
   const [loading, setLoading] = useState(true);
@@ -292,7 +290,6 @@ export default function AdminSubscriptionsPage() {
 
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
-                      {isSuperAdmin && (
                       <Button
                         onClick={() => {
                           setLimitsModalUser(u);
@@ -304,7 +301,6 @@ export default function AdminSubscriptionsPage() {
                         <SlidersHorizontal className="w-3.5 h-3.5 mr-1.5" />
                         <span>Limits{u.limitOverrides && Object.keys(u.limitOverrides).length ? " •" : ""}</span>
                       </Button>
-                      )}
                       <Button
                         onClick={() => {
                           setOverrideModalUser(u);

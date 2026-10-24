@@ -11,11 +11,9 @@ import { UserTable } from "@/features/admin/components/users/user-table";
 import { BanUserModal } from "@/features/admin/components/users/ban-user-modal";
 import { DeleteUserModal } from "@/features/admin/components/users/delete-user-modal";
 import { UserLimitsModal } from "@/features/admin/components/users/user-limits-modal";
-import { useAuthStore } from "@/stores/use-auth-store";
 import { Pagination } from "@/components/ui/table";
 
 export default function AdminUsersPage() {
-  const isSuperAdmin = useAuthStore((s) => s.user?.isSuperAdmin === true);
   const [limitsModalUser, setLimitsModalUser] = useState<AdminUserItemDTO | null>(null);
   const [users, setUsers] = useState<AdminUserItemDTO[]>([]);
   const [loading, setLoading] = useState(true);
@@ -172,7 +170,7 @@ export default function AdminUsersPage() {
         onOpenBanModal={(u) => setBanModalUser(u)}
         onSoftDelete={handleSoftDelete}
         onRestore={handleRestore}
-        onManageLimits={isSuperAdmin ? setLimitsModalUser : undefined}
+        onManageLimits={setLimitsModalUser}
       />
 
       <Pagination
