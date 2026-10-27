@@ -68,6 +68,16 @@ export const rewriteS3UrlsToCdn = (text: string): string => {
   );
 };
 
+/**
+ * True when the URL points at this app's own media (CloudFront or the S3 bucket),
+ * so the server can safely fetch it on the user's behalf.
+ */
+export const isOwnMediaUrl = (url: string): boolean => {
+  const cfDomain = env.AWS_CLOUDFRONT_DOMAIN?.replace(/^https?:\/\//, "").replace(/\/+$/, "");
+  const cdnUrl = rewriteS3UrlsToCdn(url);
+  return Boolean(cfDomain) && cdnUrl.startsWith(`https://${cfDomain}/`);
+};
+
 export const getPresignedDownloadUrl = async (
   key: string,
   expiresIn = 3600

@@ -1,35 +1,5 @@
 services:
   # ============================================================================
-  # PostgreSQL Database (Production)
-  # ============================================================================
-  postgres:
-    image: postgres:16-alpine
-    container_name: iformat-postgres-prod
-    restart: always
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB:-iformat_db}
-    volumes:
-      - postgres_prod_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB:-iformat_db}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    deploy:
-      resources:
-        limits:
-          memory: 1024M
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "20m"
-        max-file: "5"
-    networks:
-      - iformat-internal
-
-  # ============================================================================
   # Redis Cache & Session Store
   # ============================================================================
   redis:
@@ -105,9 +75,8 @@ services:
       SMTP_REPLY_TO: ${SMTP_REPLY_TO:-info@iformatbranding.com}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-sk-mock-key}
       SUPER_ADMIN_EMAILS: ${SUPER_ADMIN_EMAILS:-devamin.bd@gmail.com}
+    # Database is AWS RDS (DATABASE_URL), not a local container
     depends_on:
-      postgres:
-        condition: service_healthy
       redis:
         condition: service_healthy
     ports:
@@ -165,7 +134,5 @@ networks:
     driver: bridge
 
 volumes:
-  postgres_prod_data:
-    driver: local
   redis_prod_data:
     driver: local

@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import { Response } from "express";
 import { prisma } from "../../lib/prisma.js";
+import { isOwnMediaUrl, rewriteS3UrlsToCdn } from "../../lib/s3.js";
 import { ApplicationStatus, JobStatus, Role } from "@prisma/client";
 import {
   NotFoundError,
@@ -577,7 +578,20 @@ export class ApplicationService {
         }
       }
 
-      // If remote HTTP/HTTPS URL (CloudFront, S3, or external)
+      // Own media (CloudFront / S3): proxy it, since the CDN sends no CORS headers
+      // and the browser cannot fetch it from the site directly
+      if (fileUrl.startsWith("https://") && isOwnMediaUrl(fileUrl) && res) {
+        const upstream = await fetch(rewriteS3UrlsToCdn(fileUrl));
+        if (!upstream.ok) {
+          throw new NotFoundError("Resume file", applicationId);
+        }
+        const buffer = Buffer.from(await upstream.arrayBuffer());
+        res.setHeader("Content-Type", upstream.headers.get("content-type") || "application/pdf");
+        res.setHeader("Content-Disposition", `attachment; filename="${safeFileName.replace(/"/g, "")}"`);
+        return res.send(buffer);
+      }
+
+      // Other external URL
       if (fileUrl.startsWith("http://") || fileUrl.startsWith("https://")) {
         if (res) {
           return res.redirect(fileUrl);

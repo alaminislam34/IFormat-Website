@@ -196,6 +196,20 @@ jobs:
             export IMAGE_TAG="$(echo "$IMAGE_TAG" | cut -c1-11)"
             echo "📦 Deploying image tag: $IMAGE_TAG"
 
+            # Free disk space BEFORE pulling, otherwise a full disk blocks the deploy.
+            # Removes every iFormat backend/frontend image no container uses. `docker rmi`
+            # (without -f) refuses images in use, so the running release always stays and
+            # becomes the rollback image after this deploy. Disk use stays bounded at
+            # ~2 releases instead of growing with every deploy.
+            # Only touches this repo's images: other projects' images and all volumes
+            # (including the database) are never removed.
+            echo "💾 Disk usage before cleanup:"; df -h / || true
+            docker images --format '{{.Repository}}:{{.Tag}}' \
+              | grep '^ghcr.io/alaminislam34/iformat-website/' \
+              | xargs -r docker rmi 2>/dev/null || true
+            docker image prune -f || true
+            docker builder prune -af --filter "until=72h" || true
+
             # Pull new images first: if this fails, the running containers are untouched
             docker compose -f docker-compose.prod.yml pull backend frontend
 
@@ -211,10 +225,10 @@ jobs:
             #   IMAGE_TAG=<previous tag> docker compose -f docker-compose.prod.yml up -d --wait
             echo "$(date -u +%FT%TZ) $IMAGE_TAG" >> deploy-history.log
 
-            # Free disk space AFTER a successful deploy. Keeps images from the last 7 days
-            # (for rollback) and does not touch other projects' stopped containers/volumes.
-            echo "🧹 Removing unused images older than 7 days..."
-            docker image prune -af --filter "until=168h" || true
+            # Remove dangling layers left by the pull. The previous release image is kept
+            # for rollback and is cleaned up by the next deploy.
+            docker image prune -f || true
+            echo "💾 Disk usage after deploy:"; df -h / || true
 
             echo "✅ Deployment completed successfully!"
 

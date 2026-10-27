@@ -130,11 +130,9 @@ export const jobsService = {
       return;
     }
 
-    const endpoint = directUrl && (directUrl.startsWith("http://") || directUrl.startsWith("https://"))
-      ? directUrl
-      : `/applications/${applicationId}/cv/download`;
-
-    await apiClient.downloadFile(endpoint, safeName);
+    // Always go through the API: the CDN sends no CORS headers, so fetching the file
+    // URL directly from the browser fails. The backend checks access and proxies it.
+    await apiClient.downloadFile(`/applications/${applicationId}/cv/download`, safeName);
   },
 };
 
