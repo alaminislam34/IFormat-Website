@@ -12,6 +12,7 @@ import {
   LayoutDashboard,
   Settings,
   Calendar,
+  Users,
 } from "lucide-react";
 import { useAuthStore } from "@/stores/use-auth-store";
 import { toast } from "sonner";
@@ -71,6 +72,24 @@ export function UserMenu({ variant = "light" }: UserMenuProps) {
   const role = user.role?.toUpperCase() || "CANDIDATE";
   const isAdmin = role === "ADMIN";
   const isEmployer = role === "EMPLOYER";
+
+  // Admins get admin pages only; candidate/employer pages don't apply to them
+  const menuLinks = isAdmin
+    ? [
+        { href: "/admin", label: "Admin Command Center", icon: Shield },
+        { href: "/admin/users", label: "Users", icon: Users },
+        { href: "/admin/bookings", label: "Consultation Bookings", icon: Calendar },
+        { href: "/admin/plans", label: "Plans & Subscriptions", icon: CreditCard },
+        { href: "/admin/settings", label: "Admin Settings", icon: Settings },
+      ]
+    : [
+        { href: "/dashboard", label: "My Dashboard", icon: LayoutDashboard },
+        ...(isEmployer
+          ? [{ href: "/company-details", label: "Company Details", icon: Building2 }]
+          : [{ href: "/dashboard/bookings", label: "Career Consultations", icon: Calendar }]),
+        { href: "/dashboard/billing", label: "Membership & Plans", icon: CreditCard },
+        { href: "/dashboard/profile", label: "Profile & Settings", icon: Settings },
+      ];
 
   const initial = user.name ? user.name.charAt(0).toUpperCase() : "U";
   const isDark = variant === "dark";
@@ -137,66 +156,17 @@ export function UserMenu({ variant = "light" }: UserMenuProps) {
 
           {/* Navigation Links (Essential Account Options Only) */}
           <div className="space-y-0.5 text-xs font-semibold text-slate-700">
-            {/* Primary Dashboard Hub */}
-            <Link
-              href="/dashboard"
-              onClick={() => setIsOpen(false)}
-              className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-slate-100 hover:text-[#0A54B1] transition-colors"
-            >
-              <LayoutDashboard className="w-4 h-4 text-[#0A54B1]" />
-              <span>My Dashboard</span>
-            </Link>
-
-            {isAdmin && (
+            {menuLinks.map((item) => (
               <Link
-                href="/admin"
-                onClick={() => setIsOpen(false)}
-                className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-[#0A54B1] hover:bg-sky-50 transition-colors font-bold"
-              >
-                <Shield className="w-4 h-4 text-[#0A54B1]" />
-                <span>Admin Command Center</span>
-              </Link>
-            )}
-
-            {isEmployer && (
-              <Link
-                href="/company-details"
+                key={item.href}
+                href={item.href}
                 onClick={() => setIsOpen(false)}
                 className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-slate-100 hover:text-[#0A54B1] transition-colors"
               >
-                <Building2 className="w-4 h-4 text-[#0A54B1]" />
-                <span>Company Details</span>
+                <item.icon className="w-4 h-4 text-[#0A54B1]" />
+                <span>{item.label}</span>
               </Link>
-            )}
-
-            {!isEmployer && (
-              <Link
-                href="/dashboard/bookings"
-                onClick={() => setIsOpen(false)}
-                className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-slate-100 hover:text-[#0A54B1] transition-colors"
-              >
-                <Calendar className="w-4 h-4 text-[#0A54B1]" />
-                <span>Career Consultations</span>
-              </Link>
-            )}
-
-            <Link
-              href="/dashboard/billing"
-              onClick={() => setIsOpen(false)}
-              className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-slate-100 hover:text-[#0A54B1] transition-colors"
-            >
-              <CreditCard className="w-4 h-4 text-[#0A54B1]" />
-              <span>Membership & Plans</span>
-            </Link>
-
-            <Link
-              href="/dashboard/profile"
-              onClick={() => setIsOpen(false)}
-              className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-slate-100 hover:text-[#0A54B1] transition-colors"
-            >
-              <Settings className="w-4 h-4 text-[#0A54B1]" />
-              <span>Profile & Settings</span>
-            </Link>
+            ))}
           </div>
 
           {/* Logout */}
