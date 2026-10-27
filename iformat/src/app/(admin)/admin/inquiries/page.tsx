@@ -177,7 +177,7 @@ export default function AdminContactInquiriesPage() {
   ];
 
   return (
-    <div className="space-y-6 w-full pb-16">
+    <div className="space-y-6 w-full">
       {/* Header */}
       <AdminPageHeader
         title="Contact Us Inquiries"

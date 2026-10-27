@@ -25,7 +25,11 @@ import {
 import { useAuthStore } from "@/stores/use-auth-store";
 import { BrandLogo } from "@/components/ui/brand-logo";
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+export default function AdminLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, isAuthenticated, logout } = useAuthStore();
@@ -100,7 +104,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const isModeratorOnly = roleUpper === "MODERATOR";
 
   const getActivePageName = (path: string) => {
-    if (path === "/admin") return isModeratorOnly ? "Job Moderation Queue" : "Dashboard";
+    if (path === "/admin")
+      return isModeratorOnly ? "Job Moderation Queue" : "Dashboard";
     if (path.startsWith("/admin/users")) return "User Directory";
     if (path.startsWith("/admin/jobs")) return "Job Moderation Queue";
     if (path.startsWith("/admin/companies")) return "Company Badges";
@@ -117,9 +122,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const allNavItems = [
     {
       group: "Overview",
-      items: [
-        { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
-      ],
+      items: [{ label: "Dashboard", href: "/admin", icon: LayoutDashboard }],
     },
     {
       group: "Moderation Queue",
@@ -133,17 +136,37 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       group: "Monetization",
       items: [
         { label: "Membership Plans", href: "/admin/plans", icon: Layers },
-        { label: "Subscriptions", href: "/admin/subscriptions", icon: CreditCard },
+        {
+          label: "Subscriptions",
+          href: "/admin/subscriptions",
+          icon: CreditCard,
+        },
       ],
     },
     {
       group: "Platform & Services",
       items: [
         { label: "Homepage & Media", href: "/admin/homepage", icon: Film },
-        { label: "Service Products", href: "/admin/services", icon: ShoppingBag },
-        { label: "Consultation Bookings", href: "/admin/bookings", icon: Calendar },
-        { label: "Contact Inquiries", href: "/admin/inquiries", icon: MessageSquare },
-        { label: "Audit Activity Logs", href: "/admin/audit-logs", icon: History },
+        {
+          label: "Service Products",
+          href: "/admin/services",
+          icon: ShoppingBag,
+        },
+        {
+          label: "Consultation Bookings",
+          href: "/admin/bookings",
+          icon: Calendar,
+        },
+        {
+          label: "Contact Inquiries",
+          href: "/admin/inquiries",
+          icon: MessageSquare,
+        },
+        {
+          label: "Audit Activity Logs",
+          href: "/admin/audit-logs",
+          icon: History,
+        },
         { label: "System Settings", href: "/admin/settings", icon: Settings },
       ],
     },
@@ -154,8 +177,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         {
           group: "Moderation Console",
           items: [
-            { label: "Job Moderation Queue", href: "/admin/jobs", icon: Briefcase },
-            { label: "Company Verification", href: "/admin/companies", icon: Building2 },
+            {
+              label: "Job Moderation Queue",
+              href: "/admin/jobs",
+              icon: Briefcase,
+            },
+            {
+              label: "Company Verification",
+              href: "/admin/companies",
+              icon: Building2,
+            },
             { label: "Audit Logs", href: "/admin/audit-logs", icon: History },
           ],
         },
@@ -177,12 +208,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       )}
 
       <aside
-        className={`fixed lg:sticky top-0 left-0 z-50 w-72 h-dvh bg-white border-none flex flex-col justify-between shrink-0 transition-transform duration-300 ${
+        className={`fixed lg:sticky top-0 left-0 z-50 w-72 h-dvh bg-white border-r border-slate-200/80 flex flex-col justify-between shrink-0 transition-transform duration-300 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         }`}
       >
         <div className="flex flex-col h-full min-h-0">
-          <div className="p-5 flex items-center justify-between shrink-0">
+          <div className="h-16 px-5 flex items-center justify-between shrink-0 border-b border-slate-200/80">
             <Link href="/admin" className="flex items-center gap-2.5 group">
               <BrandLogo size="sm" href="" priority />
               <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-sky-50 text-sky-600 border border-sky-200/60 uppercase tracking-wider">
@@ -218,7 +249,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                           : "text-slate-600 border-transparent hover:text-slate-900 hover:bg-slate-50"
                       }`}
                     >
-                      <Icon className={`w-4 h-4 ${isActive ? "text-sky-600" : "text-slate-400"}`} />
+                      <Icon
+                        className={`w-4 h-4 ${isActive ? "text-sky-600" : "text-slate-400"}`}
+                      />
                       <span>{item.label}</span>
                     </Link>
                   );
@@ -227,7 +260,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             ))}
           </nav>
 
-          <div className="p-4 border-t border-slate-100 bg-white shrink-0">
+          <div className="p-4 border-t border-slate-200/80 bg-white shrink-0">
             <button
               onClick={handleLogout}
               className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:text-rose-600 hover:bg-rose-50 transition-colors"

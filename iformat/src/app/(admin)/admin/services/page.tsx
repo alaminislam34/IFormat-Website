@@ -167,7 +167,7 @@ export default function AdminServicesPage() {
   };
 
   return (
-    <div className="space-y-6 w-full pb-16">
+    <div className="space-y-6 w-full">
       <AdminPageHeader
         title="Service Products Management"
         description="Configure career branding services, adjust pricing, manage deliverables, and update visibility."

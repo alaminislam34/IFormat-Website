@@ -29,7 +29,7 @@ export default function AdminHomepageContentPage() {
   }, [syncWithBackend]);
 
   return (
-    <div className="space-y-8 w-full pb-20">
+    <div className="space-y-8 w-full">
       <AdminPageHeader
         title="Homepage Content & Media"
         description="Edit the landing page promotional vision video, headlines, and leadership team profiles in real time."
