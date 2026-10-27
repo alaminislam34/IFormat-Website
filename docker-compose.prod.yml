@@ -1,31 +1,5 @@
 services:
   # ============================================================================
-  # Redis Cache & Session Store
-  # ============================================================================
-  redis:
-    image: redis:7-alpine
-    container_name: iformat-redis-prod
-    restart: always
-    volumes:
-      - redis_prod_data:/data
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    deploy:
-      resources:
-        limits:
-          memory: 256M
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
-    networks:
-      - iformat-internal
-
-  # ============================================================================
   # Backend API Server
   # ============================================================================
   backend:
@@ -37,7 +11,6 @@ services:
       PORT: 5000
       API_VERSION: v1
       DATABASE_URL: ${DATABASE_URL}
-      REDIS_URL: ${REDIS_URL:-redis://redis:6379}
       CORS_ORIGIN: ${CORS_ORIGIN:-https://iformatbranding.com,https://www.iformatbranding.com,https://api.iformatbranding.com}
       JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
@@ -75,10 +48,7 @@ services:
       SMTP_REPLY_TO: ${SMTP_REPLY_TO:-info@iformatbranding.com}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-sk-mock-key}
       SUPER_ADMIN_EMAILS: ${SUPER_ADMIN_EMAILS:-devamin.bd@gmail.com}
-    # Database is AWS RDS (DATABASE_URL), not a local container
-    depends_on:
-      redis:
-        condition: service_healthy
+    # Database is AWS RDS (DATABASE_URL); no local database or cache container
     ports:
       # Localhost only: public traffic must go through host nginx (SSL)
       - "127.0.0.1:5000:5000"
@@ -133,6 +103,3 @@ networks:
   iformat-internal:
     driver: bridge
 
-volumes:
-  redis_prod_data:
-    driver: local
