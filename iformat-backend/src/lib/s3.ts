@@ -44,6 +44,30 @@ export const getPublicAssetUrl = (key: string): string => {
   return `https://${env.AWS_S3_BUCKET}.s3.${env.AWS_REGION}.amazonaws.com/${cleanKey}`;
 };
 
+const escapeRegExp = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+// Virtual-hosted (bucket.s3.region...) and path-style (s3.region.../bucket) URLs
+const s3UrlPattern = (() => {
+  const bucket = escapeRegExp(env.AWS_S3_BUCKET);
+  return new RegExp(
+    `https://(?:${bucket}\\.s3[.-][a-z0-9.-]*amazonaws\\.com|s3[.-][a-z0-9.-]*amazonaws\\.com/${bucket})/([^"'\\s?]*)(\\?[^"'\\s]*)?`,
+    "g"
+  );
+})();
+
+/**
+ * Rewrites direct S3 object URLs to CloudFront. The bucket is private, so URLs
+ * stored before the CDN switch return 403 unless served through CloudFront.
+ * Presigned URLs (with a query string) are left untouched.
+ */
+export const rewriteS3UrlsToCdn = (text: string): string => {
+  const cfDomain = env.AWS_CLOUDFRONT_DOMAIN?.replace(/^https?:\/\//, "").replace(/\/+$/, "");
+  if (!cfDomain) return text;
+  return text.replace(s3UrlPattern, (match, key: string, query?: string) =>
+    query ? match : `https://${cfDomain}/${key}`
+  );
+};
+
 export const getPresignedDownloadUrl = async (
   key: string,
   expiresIn = 3600

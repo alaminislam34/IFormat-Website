@@ -35,6 +35,7 @@ import {
   CompaniesGridSkeleton,
   CompaniesStatsSkeleton,
 } from "@/features/admin/components/companies/admin-companies-skeleton";
+import { MediaImage } from "@/components/ui/media-image";
 
 export default function AdminCompaniesPage() {
   const [companies, setCompanies] = useState<AdminUserItemDTO[]>([]);
@@ -351,20 +352,16 @@ export default function AdminCompaniesPage() {
                   <div className="flex items-start justify-between gap-3 mb-4">
                     <div className="flex items-center gap-3">
                       <div className="relative group w-14 h-14 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-center overflow-hidden shrink-0">
-                        {c.companyLogoUrl ? (
-                          <img
-                            src={c.companyLogoUrl}
-                            alt={`${companyDisplayName} logo`}
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              e.currentTarget.style.display = "none";
-                            }}
-                          />
-                        ) : (
-                          <div className="w-full h-full bg-linear-to-br from-[#0A54B1] to-indigo-700 text-white font-bold text-lg flex items-center justify-center">
-                            {logoLetter}
-                          </div>
-                        )}
+                        <MediaImage
+                          src={c.companyLogoUrl}
+                          alt={`${companyDisplayName} logo`}
+                          className="w-full h-full object-cover"
+                          fallback={
+                            <div className="w-full h-full bg-linear-to-br from-[#0A54B1] to-indigo-700 text-white font-bold text-lg flex items-center justify-center">
+                              {logoLetter}
+                            </div>
+                          }
+                        />
 
                         {uploadingLogoId === c.id ? (
                           <div className="absolute inset-0 bg-black/60 flex items-center justify-center">

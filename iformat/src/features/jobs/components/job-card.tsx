@@ -6,6 +6,7 @@ import { Calendar, MapPin, ArrowRight, CheckCircle2, Users, DollarSign } from "l
 import { cn } from "@/lib/utils";
 import { JobDTO as Job, JobApplicantDTO as Applicant } from "@/types/api";
 import { formatJobLocation, getJobWorkMode } from "@/features/jobs/utils/job-location";
+import { MediaImage } from "@/components/ui/media-image";
 
 export type { Job, Applicant };
 
@@ -130,18 +131,12 @@ export function JobCard({
               title={`View ${job.company} company profile`}
             >
               <div className="w-8 h-8 rounded-xl bg-black text-white font-extrabold text-xs flex items-center justify-center shrink-0 overflow-hidden shadow-2xs group-hover/company:ring-2 group-hover/company:ring-[#0A54B1]/40 transition-all">
-                {companyLogo ? (
-                  <img
-                    src={companyLogo}
-                    alt={`${job.company} logo`}
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      e.currentTarget.style.display = "none";
-                    }}
-                  />
-                ) : (
-                  <span>{logoLetter}</span>
-                )}
+                <MediaImage
+                  src={companyLogo}
+                  alt={`${job.company} logo`}
+                  className="w-full h-full object-cover"
+                  fallback={<span>{logoLetter}</span>}
+                />
               </div>
               <span className="text-sm font-semibold text-slate-600 truncate group-hover/company:text-[#0A54B1] group-hover/company:underline">
                 {job.company}
@@ -214,21 +209,15 @@ export function JobCard({
             <div
               className={cn(
                 "w-8 h-8 rounded-full flex items-center justify-center overflow-hidden text-white font-bold text-sm shadow-xs shrink-0 border border-slate-100 group-hover/company:ring-2 group-hover/company:ring-[#0A54B1]/40 transition-all",
-                !companyLogo ? logoBg : "bg-white"
+                logoBg
               )}
             >
-              {companyLogo ? (
-                <img
-                  src={companyLogo}
-                  alt={`${job.company} logo`}
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    e.currentTarget.style.display = "none";
-                  }}
-                />
-              ) : (
-                logoLetter
-              )}
+              <MediaImage
+                src={companyLogo}
+                alt={`${job.company} logo`}
+                className="w-full h-full object-cover bg-white"
+                fallback={logoLetter}
+              />
             </div>
             <span className="text-sm font-semibold text-slate-600 truncate group-hover/company:text-[#0A54B1] group-hover/company:underline">
               {job.company}

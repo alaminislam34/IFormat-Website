@@ -38,6 +38,7 @@ import { authService } from "@/services/auth.service";
 import { Button } from "@/components/ui/button";
 import { apiClient } from "@/lib/api/api-client";
 import { CompanyVideoPlayer } from "@/features/company/components/company-video-player";
+import { MediaImage } from "@/components/ui/media-image";
 
 export default function ProfileDashboardPage() {
   const router = useRouter();
@@ -349,15 +350,12 @@ export default function ProfileDashboardPage() {
               <div className="flex items-center gap-4 sm:gap-6">
                 <div className="relative group shrink-0">
                   <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl flex items-center justify-center text-2xl font-black text-white shrink-0 bg-linear-to-r from-[#52CEDE] to-[#0A54B1] shadow-md shadow-[#0A54B1]/20 overflow-hidden border border-slate-200/50">
-                    {(isEmployer ? (companyLogoUrl || user.companyLogoUrl) : (user.avatarUrl || user.avatar)) ? (
-                      <img
-                        src={(isEmployer ? (companyLogoUrl || user.companyLogoUrl) : (user.avatarUrl || user.avatar))!}
-                        alt="Logo"
-                        className="w-full h-full object-contain p-2 bg-white"
-                      />
-                    ) : (
-                      initial
-                    )}
+                    <MediaImage
+                      src={isEmployer ? (companyLogoUrl || user.companyLogoUrl) : (user.avatarUrl || user.avatar)}
+                      alt="Logo"
+                      className="w-full h-full object-contain p-2 bg-white"
+                      fallback={initial}
+                    />
                   </div>
                   <button
                     type="button"
@@ -556,10 +554,13 @@ export default function ProfileDashboardPage() {
                       <div className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 rounded-2xl border border-slate-200/80 bg-slate-50/50">
                         <div className="w-16 h-16 rounded-xl border border-slate-200 bg-white flex items-center justify-center overflow-hidden shrink-0 shadow-xs">
                           {companyLogoUrl ? (
-                            <img
+                            <MediaImage
                               src={companyLogoUrl}
                               alt="Company logo preview"
                               className="w-full h-full object-contain p-1.5"
+                              fallback={
+                                <span className="text-xl font-black text-slate-400">{initial}</span>
+                              }
                             />
                           ) : (
                             <span className="text-xl font-black text-slate-400">

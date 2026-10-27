@@ -10,6 +10,7 @@ import { apiRouter } from "./routes/index.js";
 import { errorHandler } from "./middlewares/errorHandler.middleware.js";
 import { apiLimiter } from "./middlewares/rateLimiter.middleware.js";
 import { requestId } from "./middlewares/requestId.middleware.js";
+import { cdnUrls } from "./middlewares/cdnUrls.middleware.js";
 import { NotFoundError } from "./errors/index.js";
 import { passport } from "./lib/passport.js";
 import { swaggerSpec } from "./docs/swagger.js";
@@ -22,6 +23,7 @@ app.use("/uploads", express.static(path.resolve(process.cwd(), "uploads")));
 
 // 0. Request Correlation & ID Tracing
 app.use(requestId);
+app.use(cdnUrls);
 
 // 1. Security & Protection Middlewares
 app.use(

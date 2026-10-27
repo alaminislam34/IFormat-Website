@@ -14,13 +14,13 @@ export const createJobSchema = z.object({
   workplaceType: z.enum(["Remote", "Onsite", "Hybrid"]),
   country: z.string().max(80),
   city: z.string().max(80, "City name is too long"),
+  // Optional: left blank, the job is saved as "Competitive" (confidential / commission-based roles)
   salary: z
     .string()
-    .min(1, "Salary range is required")
     .refine(
       (val) => {
         const trimmed = val.trim();
-        if (!trimmed) return false;
+        if (!trimmed) return true;
         // Accept valid negotiable / competitive keywords
         if (
           /^(competitive|negotiable|undisclosed|market rate)(\s*\/\s*(competitive|negotiable))?$/i.test(

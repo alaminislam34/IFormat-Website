@@ -156,7 +156,7 @@ export function SalaryRangeField({
     <div className="space-y-2">
       <div className="flex items-center justify-between">
         <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-          Salary Range <span className="text-rose-500">*</span>
+          Salary Range <span className="normal-case font-medium text-slate-400">(optional)</span>
         </label>
 
         {/* Quick Negotiable Toggle Button */}

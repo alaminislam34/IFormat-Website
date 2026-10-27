@@ -3,6 +3,7 @@
 import { Building2, Check, Video, Globe, ExternalLink } from "lucide-react";
 import { Job } from "../job-card";
 import { CompanyVideoPlayer } from "@/features/company/components/company-video-player";
+import { MediaImage } from "@/components/ui/media-image";
 
 interface JobDetailsContentProps {
   job: Job;
@@ -22,15 +23,12 @@ export function JobDetailsContent({ job }: JobDetailsContentProps) {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl overflow-hidden bg-white border border-slate-200/60 flex items-center justify-center text-primary font-bold text-base shadow-xs shrink-0">
-              {companyLogo ? (
-                <img
-                  src={companyLogo}
-                  alt={`${job.company} logo`}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                (job.company || "C").charAt(0).toUpperCase()
-              )}
+              <MediaImage
+                src={companyLogo}
+                alt={`${job.company} logo`}
+                className="w-full h-full object-cover"
+                fallback={(job.company || "C").charAt(0).toUpperCase()}
+              />
             </div>
             <div>
               <h4 className="text-sm font-bold text-slate-900 leading-tight">

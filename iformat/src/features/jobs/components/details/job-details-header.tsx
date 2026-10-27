@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Edit3, Trash2, Loader2, X, MapPin, Briefcase, Building2 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, getMediaUrl } from "@/lib/utils";
 import { Job } from "../job-card";
 import { formatJobLocation } from "@/features/jobs/utils/job-location";
 
@@ -24,7 +24,7 @@ export function JobDetailsHeader({
   onClose,
 }: JobDetailsHeaderProps) {
   const [imgError, setImgError] = React.useState(false);
-  const logoUrl = job.companyLogoUrl || job.employer?.companyLogoUrl;
+  const logoUrl = getMediaUrl(job.companyLogoUrl || job.employer?.companyLogoUrl);
   const logoLetter = job.logoLetter || job.company?.trim().charAt(0)?.toUpperCase() || "I";
   const logoBg = job.logoBg || "bg-[#0A54B1]";
 

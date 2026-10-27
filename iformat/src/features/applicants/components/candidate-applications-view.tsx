@@ -29,6 +29,7 @@ import { JobApplicantDTO } from "@/types/api/jobs";
 import { toast } from "sonner";
 import { ApplicantScreeningModal } from "./applicant-screening-modal";
 import { formatJobLocation } from "@/features/jobs/utils/job-location";
+import { MediaImage } from "@/components/ui/media-image";
 
 type StatusTab = "ALL" | "ACTIVE" | "SHORTLISTED" | "OFFERS" | "ARCHIVED";
 
@@ -350,17 +351,16 @@ export function CandidateApplicationsView() {
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                   {/* Company & Role */}
                   <div className="flex items-start gap-3.5">
-                    {companyLogo ? (
-                      <img
-                        src={companyLogo}
-                        alt={companyName}
-                        className="w-12 h-12 rounded-xl object-cover border border-slate-100 shrink-0"
-                      />
-                    ) : (
-                      <div className="w-12 h-12 rounded-xl bg-linear-to-br from-sky-500 to-[#0A54B1] text-white flex items-center justify-center font-black text-base shrink-0 shadow-sm">
-                        {companyName.charAt(0).toUpperCase()}
-                      </div>
-                    )}
+                    <MediaImage
+                      src={companyLogo}
+                      alt={companyName}
+                      className="w-12 h-12 rounded-xl object-cover border border-slate-100 shrink-0"
+                      fallback={
+                        <div className="w-12 h-12 rounded-xl bg-linear-to-br from-sky-500 to-[#0A54B1] text-white flex items-center justify-center font-black text-base shrink-0 shadow-sm">
+                          {companyName.charAt(0).toUpperCase()}
+                        </div>
+                      }
+                    />
 
                     <div className="space-y-1">
                       <div className="flex items-center gap-2 flex-wrap">

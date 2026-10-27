@@ -21,6 +21,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { TableRow, TableCell } from "@/components/ui/table";
 import { AdminUserItemDTO } from "@/services/admin.service";
+import { MediaImage } from "@/components/ui/media-image";
 
 interface CompanyRowProps {
   company: AdminUserItemDTO;
@@ -49,20 +50,16 @@ export function CompanyRow({
         <div className="flex items-center gap-3.5">
           {/* Logo with upload hover */}
           <div className="relative group/logo w-11 h-11 rounded-2xl bg-slate-100 border border-slate-200 flex items-center justify-center overflow-hidden shrink-0 shadow-2xs">
-            {c.companyLogoUrl ? (
-              <img
-                src={c.companyLogoUrl}
-                alt={`${companyDisplayName} logo`}
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  e.currentTarget.style.display = "none";
-                }}
-              />
-            ) : (
-              <div className="w-full h-full bg-linear-to-br from-[#0A54B1] to-indigo-700 text-white font-bold text-sm flex items-center justify-center">
-                {logoLetter}
-              </div>
-            )}
+            <MediaImage
+              src={c.companyLogoUrl}
+              alt={`${companyDisplayName} logo`}
+              className="w-full h-full object-cover"
+              fallback={
+                <div className="w-full h-full bg-linear-to-br from-[#0A54B1] to-indigo-700 text-white font-bold text-sm flex items-center justify-center">
+                  {logoLetter}
+                </div>
+              }
+            />
 
             {uploadingLogoId === c.id ? (
               <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
