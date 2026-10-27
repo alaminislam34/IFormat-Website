@@ -18,6 +18,9 @@ function AccountTypeContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectUrl = searchParams.get("redirect");
+  // Set right after signup (email or Google): every new account starts as CANDIDATE,
+  // so the role must still be chosen here
+  const isOnboarding = searchParams.get("onboarding") === "1";
   const { user, isAuthenticated, setRole } = useAuthStore();
   const [selectedRole, setSelectedRole] = useState<RoleType>("candidate");
   const [isLoading, setIsLoading] = useState(false);
@@ -27,8 +30,11 @@ function AccountTypeContent() {
   // If user is already authenticated and already has an assigned role (CANDIDATE, EMPLOYER, or ADMIN),
   // they must NEVER be allowed to accidentally overwrite their role or be prompted with this page.
   // Immediately redirect them to their dedicated portal.
+  const mustRedirect =
+    isAuthenticated && !!user?.role && !(isOnboarding && user.role.toUpperCase() === "CANDIDATE");
+
   React.useEffect(() => {
-    if (isAuthenticated && user?.role) {
+    if (mustRedirect && user?.role) {
       const roleUpper = user.role.toUpperCase();
       let target = "/job-portal";
       if (redirectUrl && redirectUrl.startsWith("/") && redirectUrl !== "/account-type") {
@@ -44,9 +50,9 @@ function AccountTypeContent() {
       return;
     }
     setIsCheckingAuth(false);
-  }, [isAuthenticated, user, router, redirectUrl]);
+  }, [mustRedirect, user, router, redirectUrl]);
 
-  if (isCheckingAuth && isAuthenticated && user?.role) {
+  if (isCheckingAuth && mustRedirect) {
     return <LoadingScreen message="Checking account status..." />;
   }
 

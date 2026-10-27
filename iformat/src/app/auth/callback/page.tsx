@@ -52,7 +52,10 @@ function AuthCallbackContent() {
 
         // Navigate to appropriate destination based on role and redirect intent
         let finalDest = redirectPath;
-        if (!finalDest || finalDest === "/account-type" || finalDest === "/dashboard") {
+        if (finalDest === "/account-type") {
+          // New Google account: let the user choose candidate or employer
+          finalDest = "/account-type?onboarding=1";
+        } else if (!finalDest || finalDest === "/dashboard") {
           const roleUpper = userData.role?.toUpperCase();
           if (roleUpper === "ADMIN") {
             finalDest = "/admin";

@@ -81,10 +81,15 @@ function SignupContent() {
             localStorage.setItem(`otp_resend_until_${data.email}`, String(Date.now() + 60000));
           } catch {}
           toast.success(`Account created! Welcome, ${res.user.name}`);
-          const safeRedirect =
-            redirectUrl && redirectUrl !== "/account-type"
-              ? `&redirect=${encodeURIComponent(redirectUrl)}`
-              : "";
+          const originalRedirect =
+            redirectUrl && redirectUrl !== "/account-type" ? redirectUrl : "";
+          // No role picked before signup (plain "Sign up" link): ask after verification
+          const nextUrl = roleParam
+            ? originalRedirect
+            : `/account-type?onboarding=1${
+                originalRedirect ? `&redirect=${encodeURIComponent(originalRedirect)}` : ""
+              }`;
+          const safeRedirect = nextUrl ? `&redirect=${encodeURIComponent(nextUrl)}` : "";
           const verifyUrl = `/verify-otp?email=${encodeURIComponent(data.email)}${safeRedirect}`;
           router.push(verifyUrl);
         },
